@@ -1,0 +1,4 @@
+Выгрузить базу в папку Model
+1. в папке EF_IDS -> Открыть в терминале
+2. В терминале набрать :
+dotnet-ef dbcontext scaffold "data source=krr-sql-paclx03;initial catalog=KRR-PA-CNT-Railway;integrated security=True;TrustServerCertificate=true" Microsoft.EntityFrameworkCore.SqlServer --schema IDS --data-annotations -o Models
