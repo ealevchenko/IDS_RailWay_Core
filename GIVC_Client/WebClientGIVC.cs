@@ -22,8 +22,8 @@ namespace GIVC
         public string? JsonResponse { get { return this.web_api != null ? this.web_api.JsonResponse : null; } }
 
         private WebApiToken web_api = null;
-        public bool?  ErrorWeb { get { return web_api!=null ? web_api.error : null; } }
-        public bool?  ErrorToking { get { return web_api!=null ? web_api.error_token : null; } }
+        public bool? ErrorWeb { get { return web_api != null ? web_api.error : null; } }
+        public bool? ErrorToking { get { return web_api != null ? web_api.error_token : null; } }
         public WebClientGIVC(ILogger<Object> logger, IConfiguration configuration)
         {
             try
@@ -163,10 +163,28 @@ namespace GIVC
             reqDisvag resp = web_api.GetDeserializeJSON_ApiValues<reqDisvag>("GetData/reqDisvag" + String.Format("?Edrpou={0}&kod_grp={1}", Edrpou, kod_grp));
             return resp;
         }
+        public reqDisvag GetReqDisvag(string Edrpou, int kod_stan_form, int kod_gro, int kod_stan_nazn, int kod_grp, int kod_gruz)
+        {
+            if (String.IsNullOrWhiteSpace(url)) return null;
+            reqDisvag resp = web_api.GetDeserializeJSON_ApiValues<reqDisvag>("GetData/reqDisvag" + String.Format("?Edrpou={0}&kod_stan_form={1}&kod_gro={2}&kod_stan_nazn={3}&kod_grp={4}&kod_gruz={5}", Edrpou, kod_stan_form, kod_gro, kod_stan_nazn, kod_grp, kod_gruz));
+            return resp;
+        }
         public reqNDI GetReqNDI(int NomNDI)
         {
             if (String.IsNullOrWhiteSpace(url)) return null;
             reqNDI resp = web_api.GetDeserializeJSON_ApiValues<reqNDI>("GetData/reqNDI" + String.Format("?NomNDI={0}", NomNDI));
+            return resp;
+        }
+        public req2610 GetReq2610(string nom_vag, int regim)
+        {
+            if (String.IsNullOrWhiteSpace(url)) return null;
+            req2610 resp = web_api.GetDeserializeJSON_ApiValues<req2610>("GetData/req2610" + String.Format("?nom_vag={0}&regim={1}", nom_vag, regim));
+            return resp;
+        }
+        public req8858 GetReq8858(string nom_vag, string date_beg, string date_end)
+        {
+            if (String.IsNullOrWhiteSpace(url)) return null;
+            req8858 resp = web_api.GetDeserializeJSON_ApiValues<req8858>("GetData/req8858" + String.Format("?nom_vag={0}&date_beg={1}&date_end={2}", nom_vag, date_beg, date_end));
             return resp;
         }
         public string Getreq1091()
@@ -175,5 +193,7 @@ namespace GIVC
             string resp = web_api.GetApiValues("GetData/req1091" + String.Format("?kod_dor={0}&kod_grp_beg={1}&kod_grp_end={2}&esr_nazn_vag={3}", 45, 7932, 7932, 467004));
             return resp;
         }
+
+
     }
 }

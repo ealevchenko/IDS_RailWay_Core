@@ -18,8 +18,8 @@ try
         }).ConfigureLogging(logging =>
         {
             logging.ClearProviders();
-            //logging.AddConsole();
-            //logging.AddDebug();
+            logging.AddConsole();
+            logging.AddDebug();
             logging.AddNLog();
         })
         .Build();
@@ -28,7 +28,7 @@ try
 }
 catch (Exception ex)
 {
-    logger.LogError(0, ex, "Error WS_IDS");
+    logger.LogError(0, ex, "Error IDSRW_WS");
     throw;
 }
 finally

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using GIVC;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -124,7 +125,8 @@ namespace GIVC
         public int? forma { get; set; }
         public int? podh_prib { get; set; }
     }
-    public class trains_detali {
+    public class trains_detali
+    {
         public int? km { get; set; }
         public string? mn_ukr { get; set; }
         public int? kol_vag { get; set; }
@@ -151,7 +153,8 @@ namespace GIVC
         public IList<trains_detali>? trains { get; set; }
         public IList<itogs_detali>? itogs { get; set; }
     }
-    public class req7002_detali {
+    public class req7002_detali
+    {
         public string? ves_gruz { get; set; }
         public int? kol_vag { get; set; }
         public int? kod_grotp { get; set; }
@@ -257,8 +260,89 @@ namespace GIVC
         public string? TableName { get; set; }
         public IList<rows_detali>? rows { get; set; }
     }
-
-    public class DataGIVC {
+    public class REMONT_detali
+    {
+        public string? edrpou_ar { get; set; }
+        public string? edrpou_op { get; set; }
+        public int? gruzp { get; set; }
+        public string? edrpou { get; set; }
+        public string? date_plan_rem { get; set; }
+        public string? sname { get; set; }
+        public string? usl_dl { get; set; }
+        public string? tara { get; set; }
+        public string? model { get; set; }
+        public string? mname { get; set; }
+        public string? probeg { get; set; }
+        public int? kod_okpo { get; set; }
+    }
+    public class OZNAKY_detali
+    {
+        public string? pr_pred_izm { get; set; }
+        public string? pr_deny { get; set; }
+        public string? pr_iskl { get; set; }
+        public string? pr_red { get; set; }
+        public string? pr_utlc { get; set; }
+        public string? zab_rzd { get; set; }
+        public string? pr_specteh { get; set; }
+        public string? srok { get; set; }
+        public string? pr_ato { get; set; }
+        public string? pr_yellow { get; set; }
+        public string? pr_arenda { get; set; }
+        public string? pr_prodl { get; set; }
+        public string? kod_osum { get; set; }
+    }
+    public class PRYPISKA_detali
+    {
+        public int? dor_prip { get; set; }
+        public string? n_doru { get; set; }
+        public int? depo_prip { get; set; }
+        public int? nom_razr { get; set; }
+    }
+    public class req2610
+    {
+        public string? n_admr { get; set; }
+        public REMONT_detali? REMONT { get; set; }
+        public string? kod_adm_arc { get; set; }
+        public int? god_postr { get; set; }
+        public OZNAKY_detali? OZNAKY { get; set; }
+        public string? nom_vag { get; set; }
+        public PRYPISKA_detali? PRYPISKA { get; set; }
+    }
+    public class cautions_detali
+    {
+        public string? ERROR { get; set; }
+        public string? nom_vag { get; set; }
+    }
+    public class disl_vag8858_detali
+    {
+        public string? prymitka { get; set; }
+        public string? mn_park { get; set; }
+        public string? ves_gruz { get; set; }
+        public string? mnkua_opv { get; set; }
+        public string? idf_op { get; set; }
+        public string? esr_form { get; set; }
+        public string? esr_nazn_vag { get; set; }
+        public string? nom_vag { get; set; }
+        public string? date_inf { get; set; }
+        public int? code_op { get; set; }
+        public string? disl { get; set; }
+        public string? tip_parka_teh_sost { get; set; }
+        public string? kod_grp { get; set; }
+        public string? nom_sost { get; set; }
+        public string? date_op { get; set; }
+        public string? sost_pogr_pp { get; set; }
+        public string? etsng { get; set; }
+        public string? esr_nazn { get; set; }
+        public int? nom_p { get; set; }
+        public int? esr_op { get; set; }
+    }
+    public class req8858
+    {
+        public IList<cautions_detali>? cautions { get; set; }
+        public IList<disl_vag8858_detali>? disl_vag { get; set; }
+    }
+    public class DataGIVC
+    {
 
         private readonly ILogger<Object> _logger;
         private readonly IConfiguration _configuration;

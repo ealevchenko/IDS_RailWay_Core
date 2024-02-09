@@ -14,6 +14,13 @@ using System.Threading.Tasks;
 
 namespace IDS_
 {
+    public class parameters_reguest
+    {
+        public int? kod_stan_beg { get; set; }
+        public int? kod_stan_end { get; set; }
+        public int? kod_grp_beg { get; set; }
+        public int? kod_grp_end { get; set; }
+    }
     public class IDS_GIVC : IDS_Base
     {
         private DbContextOptions<EFDbContext> options;
@@ -54,7 +61,7 @@ namespace IDS_
         /// <param name="type_requests"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public int RequestToGIVC(string type_requests, string user)
+        public int RequestToGIVC(string type_requests, parameters_reguest parameters, string user)
         {
             try
             {
@@ -77,8 +84,8 @@ namespace IDS_
                 client_givc = new WebClientGIVC(_logger, _configuration);
                 if (type_requests == "req1892")
                 {
-                    //req1892 res = client_givc.GetReq1892(467004, 467004, 7932, 7932);
-                    req1892 res = client_givc.GetReq1892(467004, 467201, 7932, 7932, "01.01.2024", "31.12.2024");
+                    //req1892 res = client_givc.GetReq1892(467004, 467201, 7932, 7932, "01.01.2024", "31.12.2024");
+                    req1892 res = client_givc.GetReq1892((int)parameters.kod_stan_beg, (int)parameters.kod_stan_end, (int)parameters.kod_grp_beg, (int)parameters.kod_grp_end, DateTime.Now.Date.AddMonths(-2).ToString("dd.MM.yyyy"),DateTime.Now.Date.AddDays(1).ToString("dd.MM.yyyy"));
                     if (client_givc.ErrorWeb != null && client_givc.ErrorWeb == false && client_givc.ErrorToking == false)
                     {
                         result_givc_req.CountLine = res != null && res.disl_vag != null ? res.disl_vag.Count() : 0;
@@ -101,6 +108,8 @@ namespace IDS_
                 return (int)errors_base.global;
             }
         }
+
+
         /// <summary>
         /// Вернуть последнюю строку запроса
         /// </summary>
