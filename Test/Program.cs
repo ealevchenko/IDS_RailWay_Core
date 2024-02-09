@@ -68,9 +68,7 @@ namespace HelloApp
                 IDS_GIVC ids_givc = new IDS_GIVC(logger, config);
                 GivcRequest res_req1892 = ids_givc.GetLastGivcRequest("req1892");
                 req1892? res = ids_givc.GetGivcRequest1892(res_req1892);
-
-
-                string path = @"D:\ГИВС\Справка_1892.txt";
+                string path = @"D:\ГИВС\Справка_1892_" + res_req1892.DtRequests.ToString("ddMMyyyy_HHmm") +".txt";
                 DateTime dt = new DateTime(2024, 1, 1);
                 // отсекли по старые
                 List<disl_vag_detali> list_disl = res.disl_vag.Where(l => l.date_op == null || l.date_op == "" || DateTime.Parse(l.date_op) > dt).ToList();
@@ -157,6 +155,8 @@ namespace HelloApp
                 //tGIVC.Req7002();
                 //tGIVC.reqDisvag();
                 //tGIVC.reqNDI();
+                //tGIVC.req2610();
+                tGIVC.req8858();
                 #endregion
 
 

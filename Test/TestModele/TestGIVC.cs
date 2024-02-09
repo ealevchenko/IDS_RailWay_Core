@@ -104,7 +104,8 @@ namespace TestCore.TestModele
                 req1892 res = client_givc.GetReq1892(467004, 467201, 7932, 7932, "01.01.2024", "31.12.2024");
                 //req1892 res = client_givc.GetReq1892(467004, 467004, 7932, 7932);
                 //req1892 res = client_givc.GetReq1892(467004, 467004);
-                string path = @"D:\ГИВС\req1892.txt";
+                DateTime dt = DateTime.Now;
+                string path = @"D:\ГИВС\req1892_" + dt.ToString("ddMMyyyy_HHmm") + ".txt";
                 using (StreamWriter writer = new StreamWriter(path, false))
                 {
                     string str_field =
@@ -373,7 +374,8 @@ namespace TestCore.TestModele
             if (client_givc != null)
             {
                 //reqDisvag res = client_givc.GetReqDisvag(454606, 8887, 467004, 7932, 161113);
-                reqDisvag res = client_givc.GetReqDisvag("24432974", 7932);
+                reqDisvag res = client_givc.GetReqDisvag("24432974", 408203, 1663, 467004, 7932, 291035);
+                //reqDisvag res = client_givc.GetReqDisvag("24432974", 7932);
                 string path = @"D:\ГИВС\reqDisvag.txt";
                 using (StreamWriter writer = new StreamWriter(path, false))
                 {
@@ -455,6 +457,161 @@ namespace TestCore.TestModele
                 }
             }
         }
+        /// <summary>
+        /// 2610 «Картотечні дані про вагони вантажного парку»
+        /// </summary>
+        public void req2610()
+        {
+            if (client_givc != null)
+            {
+                req2610 res = client_givc.GetReq2610("58522038", 1);
+                DateTime dt = DateTime.Now;
+                string path = @"D:\ГИВС\req2610_"+ dt.ToString("ddMMyyyy_HHmm")+ ".txt";
+                using (StreamWriter writer = new StreamWriter(path, false))
+                {
+                    string str_field =
+                    "n_admr;" +
+                    "REMONT_edrpou_ar;" +
+                    "REMONT_edrpou_op;" +
+                    "REMONT_gruzp;" +
+                    "REMONT_edrpou;" +
+                    "REMONT_date_plan_rem;" +
+                    "REMONT_sname;" +
+                    "REMONT_usl_dl;" +
+                    "REMONT_tara;" +
+                    "REMONT_model;" +
+                    "REMONT_mname;" +
+                    "REMONT_probeg;" +
+                    "REMONT_kod_okpo;" +
+                    "kod_adm_arc;" +
+                    "god_postr;" +
+                    "OZNAKY_pr_pred_izm;" +
+                    "OZNAKY_pr_deny;" +
+                    "OZNAKY_pr_iskl;" +
+                    "OZNAKY_pr_red;" +
+                    "OZNAKY_pr_utlc;" +
+                    "OZNAKY_zab_rzd;" +
+                    "OZNAKY_pr_specteh;" +
+                    "OZNAKY_srok;" +
+                    "OZNAKY_pr_ato;" +
+                    "OZNAKY_pr_yellow;" +
+                    "OZNAKY_pr_arenda;" +
+                    "OZNAKY_pr_prodl;" +
+                    "OZNAKY_kod_osum;" +
+                    "OZNAKY_nom_vag;" +
+                    "PRYPISKA_dor_prip;" +
+                    "PRYPISKA_n_doru;" +
+                    "PRYPISKA_depo_prip;" +
+                    "PRYPISKA_nom_razr;";
+                    writer.WriteLine(str_field);
+                    //
+                    if (res != null)
+                    {
+                        string str =
+                        (res.n_admr != null ? res.n_admr : "") + ";" +
+                        (res.REMONT != null && res.REMONT.edrpou_ar != null ? res.REMONT.edrpou_ar : "") + ";" +
+                        (res.REMONT != null && res.REMONT.edrpou_op != null ? res.REMONT.edrpou_op : "") + ";" +
+                        (res.REMONT != null && res.REMONT.gruzp != null ? res.REMONT.gruzp : "") + ";" +
+                        (res.REMONT != null && res.REMONT.edrpou != null ? res.REMONT.edrpou : "") + ";" +
+                        (res.REMONT != null && res.REMONT.date_plan_rem != null ? res.REMONT.date_plan_rem : "") + ";" +
+                        (res.REMONT != null && res.REMONT.sname != null ? res.REMONT.sname : "") + ";" +
+                        (res.REMONT != null && res.REMONT.usl_dl != null ? res.REMONT.usl_dl : "") + ";" +
+                        (res.REMONT != null && res.REMONT.tara != null ? res.REMONT.tara : "") + ";" +
+                        (res.REMONT != null && res.REMONT.model != null ? res.REMONT.model : "") + ";" +
+                        (res.REMONT != null && res.REMONT.mname != null ? res.REMONT.mname : "") + ";" +
+                        (res.REMONT != null && res.REMONT.probeg != null ? res.REMONT.probeg : "") + ";" +
+                        (res.REMONT != null && res.REMONT.kod_okpo != null ? res.REMONT.kod_okpo : "") + ";" +
+                        (res.kod_adm_arc != null ? res.kod_adm_arc : "") + ";" +
+                        (res.god_postr != null ? res.god_postr : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.pr_pred_izm != null ? res.OZNAKY.pr_pred_izm : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.pr_deny != null ? res.OZNAKY.pr_deny : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.pr_iskl != null ? res.OZNAKY.pr_iskl : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.pr_red != null ? res.OZNAKY.pr_red : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.pr_utlc != null ? res.OZNAKY.pr_utlc : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.zab_rzd != null ? res.OZNAKY.zab_rzd : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.pr_specteh != null ? res.OZNAKY.pr_specteh : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.srok != null ? res.OZNAKY.srok : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.pr_ato != null ? res.OZNAKY.pr_ato : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.pr_yellow != null ? res.OZNAKY.pr_yellow : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.pr_arenda != null ? res.OZNAKY.pr_arenda : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.pr_prodl != null ? res.OZNAKY.pr_prodl : "") + ";" +
+                        (res.OZNAKY != null && res.OZNAKY.kod_osum != null ? res.OZNAKY.kod_osum : "") + ";" +
+                        (res.nom_vag != null ? res.nom_vag : "") + ";" +
+                        (res.PRYPISKA != null && res.PRYPISKA.dor_prip != null ? res.PRYPISKA.dor_prip : "") + ";" +
+                        (res.PRYPISKA != null && res.PRYPISKA.n_doru != null ? res.PRYPISKA.n_doru : "") + ";" +
+                        (res.PRYPISKA != null && res.PRYPISKA.depo_prip != null ? res.PRYPISKA.depo_prip : "") + ";" +
+                        (res.PRYPISKA != null && res.PRYPISKA.nom_razr != null ? res.PRYPISKA.nom_razr : "") + ";" +
+                        "";
+                        writer.WriteLine(str);
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// Справку 8858 информация про дислокацию вагона
+        /// </summary>
+        public void req8858()
+        {
+            if (client_givc != null)
+            {
+                req8858 res = client_givc.GetReq8858("64169279", "01.02.2024", "08.02.2024");
+                DateTime dt = DateTime.Now;
+                string path = @"D:\ГИВС\req8858_" + dt.ToString("ddMMyyyy_HHmm")+ ".txt";
+                using (StreamWriter writer = new StreamWriter(path, false))
+                {
+                    string str_field =
+                    "prymitka;" +
+                    "mn_park;" +
+                    "ves_gruz;" +
+                    "mnkua_opv;" +
+                    "idf_op;" +
+                    "esr_form;" +
+                    "esr_nazn_vag;" +
+                    "nom_vag;" +
+                    "date_inf;" +
+                    "code_op;" +
+                    "disl;" +
+                    "tip_parka_teh_sost;" +
+                    "kod_grp;" +
+                    "nom_sost;" +
+                    "date_op;" +
+                    "sost_pogr_pp;" +
+                    "etsng;" +
+                    "esr_nazn;" +
+                    "nom_p;" +
+                    "esr_op;";
+                    writer.WriteLine(str_field);
+                    //
+                    foreach (var item in res.disl_vag)
+                    {
+                        string str =
+                        (item.prymitka != null  ? item.prymitka : "") + ";" +
+                        (item.mn_park != null  ? item.mn_park : "") + ";" +
+                        (item.ves_gruz != null  ? item.ves_gruz : "") + ";" +
+                        (item.mnkua_opv != null  ? item.mnkua_opv : "") + ";" +
+                        (item.idf_op != null  ? item.idf_op : "") + ";" +
+                        (item.esr_form != null  ? item.esr_form : "") + ";" +
+                        (item.esr_nazn_vag != null  ? item.esr_nazn_vag : "") + ";" +
+                        (item.nom_vag != null  ? item.nom_vag : "") + ";" +
+                        (item.date_inf != null  ? item.date_inf : "") + ";" +
+                        (item.code_op != null  ? item.code_op : "") + ";" +
+                        (item.disl != null  ? item.disl : "") + ";" +
+                        (item.tip_parka_teh_sost != null  ? item.tip_parka_teh_sost : "") + ";" +
+                        (item.kod_grp != null  ? item.kod_grp : "") + ";" +
+                        (item.nom_sost != null  ? item.nom_sost : "") + ";" +
+                        (item.date_op != null  ? item.date_op : "") + ";" +
+                        (item.sost_pogr_pp != null  ? item.sost_pogr_pp : "") + ";" +
+                        (item.etsng != null  ? item.etsng : "") + ";" +
+                        (item.esr_nazn != null  ? item.esr_nazn : "") + ";" +
+                        (item.nom_p != null  ? item.nom_p : "") + ";" +
+                        (item.esr_op != null  ? item.esr_op : "") + ";" +
+                        "";
+                        writer.WriteLine(str);
+                    }
+                }
+            }
+        }
+
 
     }
 }
