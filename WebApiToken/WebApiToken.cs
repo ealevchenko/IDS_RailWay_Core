@@ -88,7 +88,7 @@ namespace Helper
                 {
                     username = user,
                     password = psw,
-                    refresh_token = ref_token
+                    //refresh_token = ref_token
                 }),
                                                     Encoding.UTF8,
                                                     "application/json");
