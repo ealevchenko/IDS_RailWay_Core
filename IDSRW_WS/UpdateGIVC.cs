@@ -128,7 +128,7 @@ namespace WS_IDS
 
                 int res_h = conf_reg.period.IndexOf(cur_hour);
 
-                if (conf_reg.run_day != cur_day && res_h >= 0 && conf_reg.run_hour!=cur_hour)
+                if (res_h >= 0 && conf_reg.run_hour!=cur_hour) // conf_reg.run_day != cur_day && 
                 {
                     DateTime? dt_last = null;
                     // Выполнить запрос
