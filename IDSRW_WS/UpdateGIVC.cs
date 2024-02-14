@@ -140,7 +140,7 @@ namespace WS_IDS
                         conf_reg.run_hour = cur_hour;   // Отметка о выполнении час
                         _logger.LogWarning(_eventId, "UpdateGIVC - run");
                         stopWatch.Start();
-                        int res_cl = ids_givc.RequestToGIVC(conf_reg.type_requests, new parameters_reguest() { kod_stan_beg = conf_reg.kod_stan_beg, kod_stan_end = conf_reg.kod_stan_end, kod_grp_beg = conf_reg.kod_grp_beg, kod_grp_end = conf_reg.kod_grp_end}, null);
+                        int res_cl = ids_givc.RequestToGIVC(new parameters_reguest() {  type_requests = conf_reg.type_requests, kod_stan_beg = conf_reg.kod_stan_beg, kod_stan_end = conf_reg.kod_stan_end, kod_grp_beg = conf_reg.kod_grp_beg, kod_grp_end = conf_reg.kod_grp_end}, null);
                         stopWatch.Stop();
                         _logger.LogWarning(_eventId, "UpdateGIVC:RequestToGIVC - runing, result = {0}, runtime = {1}", res_cl, GetElapsedTime(stopWatch.Elapsed));
                     }
