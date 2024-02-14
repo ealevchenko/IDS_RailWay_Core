@@ -148,7 +148,7 @@ namespace GIVC
         public reqDisvag GetReqDisvag(int kod_stan_form, int kod_gro, int kod_stan_nazn, int kod_grp, int kod_gruz)
         {
             if (String.IsNullOrWhiteSpace(url)) return null;
-            reqDisvag resp = web_api.GetDeserializeJSON_ApiValues<reqDisvag>("GetData/reqDisvag" + String.Format("?kod_stan_form={0}&kod_gro={1}&kod_stan_nazn={2}&kod_grp={3}&kod_gruz={4}", kod_stan_form, kod_gro, kod_stan_nazn, kod_grp, kod_gruz));
+            reqDisvag resp = web_api.GetDeserializeJSON_ApiValues<reqDisvag>("GetData/reqDisvag" + String.Format("?Edrpou={0}&kod_stan_form={1}&kod_gro={2}&kod_stan_nazn={3}&kod_grp={4}&kod_gruz={5}", Edrpou, kod_stan_form, kod_gro, kod_stan_nazn, kod_grp, kod_gruz));
             return resp;
         }
         /// <summary>
