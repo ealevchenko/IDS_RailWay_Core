@@ -59,9 +59,8 @@ namespace Helper
             }
             catch (Exception e)
             {
+                _logger.LogError(String.Format("WebApiToken(url_token={0}, userName={1}, password={2}), Exception={3}", url_token, this.user, this.psw, e));                
                 return false;
-                _logger.LogError(String.Format("WebApiToken(url_token={0}, userName={1}, password={2}), Exception={3}", url_token, this.user, this.psw, e));
-
             }
         }
         /// <summary>
