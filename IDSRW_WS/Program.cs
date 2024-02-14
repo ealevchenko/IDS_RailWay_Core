@@ -14,7 +14,7 @@ try
         {
             services.AddHostedService<UpdateBankRate>();
             services.AddHostedService<UpdateRent>();
-            services.AddHostedService<UpdateGIVC>();
+            //services.AddHostedService<UpdateGIVC>();
         }).ConfigureLogging(logging =>
         {
             logging.ClearProviders();
