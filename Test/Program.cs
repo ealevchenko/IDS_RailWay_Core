@@ -65,89 +65,16 @@ namespace HelloApp
                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                     .Build();
 
+                //WebClientGIVC client_givc = new WebClientGIVC(logger, config);
                 IDS_GIVC ids_givc = new IDS_GIVC(logger, config);
-                GivcRequest res_req1892 = ids_givc.GetLastGivcRequest("req1892");
-                req1892? res = ids_givc.GetGivcRequest1892(res_req1892);
-                string path = @"D:\ГИВС\Справка_1892_" + res_req1892.DtRequests.ToString("ddMMyyyy_HHmm") +".txt";
-                DateTime dt = new DateTime(2024, 1, 1);
-                // отсекли по старые
-                List<disl_vag_detali> list_disl = res.disl_vag.Where(l => l.date_op == null || l.date_op == "" || DateTime.Parse(l.date_op) > dt).ToList();
-                // Группируем по номеру состава
-                List<IGrouping<string, disl_vag_detali>> group_sostav = list_disl.Where(w => w.st_otpr != null && w.st_nazn != null).GroupBy(w => w.nom_sost).ToList();
-
-                using (StreamWriter writer = new StreamWriter(path, false))
-                {
-                    string str_field =
-                                ";" +
-                                "ДИC;" +
-                                "ИHДEKC ПOEЗДA;" +
-                                "OПЕP;" +
-                                "CTДИC;" +
-                                "CTДИC;" +
-                               "ДATA OПEPAЦ;" +
-                               "CTOTП;" +
-                               "CTOTП;" +
-                               "Д ПГP;" +
-                               "ГPOT;" +
-                               "ГPПO;" +
-                               "KOДГP;" +
-                               "ГPУЗ;" +
-                               "BAГOH;" +
-                               "TOHHЫ;";
-                    writer.WriteLine(str_field);
-                    foreach (IGrouping<string, disl_vag_detali> sostav in group_sostav.OrderBy(s => s.Key))
-                    {
-                        string sostav_num = sostav.ToList()[0].nom_sost;
-                        writer.WriteLine("СОСТАВ № " + sostav_num + ";");
-                        List<IGrouping<string, disl_vag_detali>> group_index = sostav.ToList().GroupBy(c => (c.st_otpr.esr_otpr.ToString() + "-" + c.nom_sost + "-" + c.st_nazn.esr_nazn_vag.ToString())).ToList();
-                        foreach (IGrouping<string, disl_vag_detali> index in group_index.OrderBy(s => s.Key))
-                        {
-                            string sostav_index = index.ToList()[0].st_otpr.esr_otpr.ToString() + "-" + index.ToList()[0].nom_sost + "-" + index.ToList()[0].st_nazn.esr_nazn_vag.ToString();
-                            writer.WriteLine("СОСТАВ ИНДЕКС : " + sostav_index + ";");
-                            List<IGrouping<string, disl_vag_detali>> group_cargo = index.ToList().GroupBy(c => c.gruz.etsng).ToList();
-                            foreach (IGrouping<string, disl_vag_detali> cargo in group_cargo.OrderBy(s => s.Key))
-                            {
-                                string cargo_name = cargo.ToList()[0].gruz.nvs;
-                                int sum_count = 0;
-                                int sum_ves = 0;
-                                foreach (disl_vag_detali item in cargo.ToList())
-                                {
-                                    string str =
-                                        ";" +
-                                    (item.n_dorus != null ? item.n_dorus : "") + ";" +
-                                    (item.st_otpr != null && item.st_otpr.esr_otpr != null ? item.st_otpr.esr_otpr : "    ") + "-" +
-                                    (item.nom_sost != null ? item.nom_sost : "   ") + "-" +
-                                    (item.st_nazn != null && item.st_nazn.esr_nazn_vag != null ? item.st_nazn.esr_nazn_vag : "    ") + ";" +
-                                    (item.mnkua_opv != null ? item.mnkua_opv : "") + ";" +
-                                    (item.stan != null && item.stan.esr_op != null ? item.stan.esr_op : "") + ";" +
-                                    (item.stan != null && item.stan.n_rpus != null ? item.stan.n_rpus : "") + ";" +
-                                    (item.date_op != null ? item.date_op : "") + ";" +
-                                    (item.st_otpr != null && item.st_otpr.esr_otpr != null ? item.st_otpr.esr_otpr : "    ") + ";" +
-                                    (item.st_otpr != null && item.st_otpr.n_rpus != null ? item.st_otpr.n_rpus : "    ") + ";" +
-                                    (item.date_pogr != null ? item.date_pogr : "") + ";" +
-                                    (item.kod_grotp != null ? item.kod_grotp : "") + ";" +
-                                    (item.kod_grp != null ? item.kod_grp : "") + ";" +
-                                    (item.gruz != null && item.gruz.etsng != null ? item.gruz.etsng : "    ") + ";" +
-                                    (item.gruz != null && item.gruz.nvs != null ? item.gruz.nvs : "    ") + ";" +
-                                    (item.kol_vag != null ? item.kol_vag : "") + ";" +
-                                    (item.ves_gruz != null ? item.ves_gruz : "") + ";";
-                                    writer.WriteLine(str);
-                                    sum_count += item.kol_vag;
-                                    sum_ves += item.ves_gruz != null ? int.Parse(item.ves_gruz) : 0;
-                                }
-                                string str_fut_cargo =
-                                ";ИТОГО;СОСТАВ ИНДЕКС " + sostav_index + " ;;;;;;;;;;;" +
-                                cargo_name + ";" +
-                                sum_count + ";" +
-                                sum_ves + ";";
-                                writer.WriteLine(str_fut_cargo);
-                            }
-                        }
-                    }
-                }
+                //int res_cl = ids_givc.RequestToGIVC(new parameters_reguest() { type_requests = "req8858", nom_vag="63208540",  date_beg = "13.02.2024", date_end = "14.02.2024" }, null);
+                //int res_cl = ids_givc.RequestToGIVC(new parameters_reguest() { type_requests = "req0002", esr_form = 4000, nom_sost = 677, esr_nazn = 4670 }, null);
+                //int res_cl = ids_givc.RequestToGIVC(new parameters_reguest() { type_requests = "req0002", esr_form = 4000, nom_sost = 664, esr_nazn = 4670 }, null);
+                //int res_cl = ids_givc.RequestToGIVC(new parameters_reguest() { type_requests = "reqDisvag", kod_stan_form = 481904, kod_gro = 4742, kod_stan_nazn = 467004, kod_grp = 7932, kod_gruz = 161043 }, null);
 
                 #region TestGIVC УЗ ГИВЦ
                 TestGIVC tGIVC = new TestGIVC(logger, config);
+                // ====== ЗАПРОСЫ !!! БАБЛО !!! =========
                 //tGIVC.Req0002();
                 //tGIVC.Req1892();
                 //tGIVC.Req1091();
@@ -157,6 +84,8 @@ namespace HelloApp
                 //tGIVC.reqNDI();
                 //tGIVC.req2610();
                 //tGIVC.req8858();
+                // ====== Справки =========
+                //tGIVC.reference1892();
                 #endregion
 
 
