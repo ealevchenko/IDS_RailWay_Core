@@ -20,6 +20,10 @@ public partial class GivcRequest
     [StringLength(20)]
     public string TypeRequests { get; set; } = null!;
 
+    [Column("parameters_reguest")]
+    [StringLength(1024)]
+    public string? ParametersReguest { get; set; }
+
     [Column("result_requests")]
     public string? ResultRequests { get; set; }
 
