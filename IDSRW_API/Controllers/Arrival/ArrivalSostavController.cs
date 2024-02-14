@@ -2,11 +2,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using WebAPI.Repositories;
 using WebAPI.Repositories.Arrival;
 
 namespace WebAPI.Controllers.Arrival
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class ArrivalSostavController : ControllerBase
     {

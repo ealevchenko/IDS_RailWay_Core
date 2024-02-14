@@ -108,8 +108,6 @@ namespace IDS_
                 return (int)errors_base.global;
             }
         }
-
-
         /// <summary>
         /// Вернуть последнюю строку запроса
         /// </summary>

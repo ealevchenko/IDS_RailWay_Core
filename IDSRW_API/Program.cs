@@ -1,8 +1,11 @@
 using EF_IDS.Concrete;
+using EF_IDS.Concrete.Directory;
 using EF_IDS.Entities;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
+using WebAPI.Repositories;
 using WebAPI.Repositories.Arrival;
+using WebAPI.Repositories.GIVC;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +22,9 @@ builder.Services.AddDbContext<EFDbContext>(x => x.UseSqlServer(connectionString)
 
 builder.Services.AddScoped<ILongRepository<ArrivalCar>, ArrivalCarRepository>();
 builder.Services.AddScoped<ILongRepository<ArrivalSostav>, ArrivalSostavRepository>();
+builder.Services.AddScoped<IRepository<GivcRequest>, GIVCRepository>();
+//builder.Services.AddScoped<EF_IDS.Abstract.IRepository<GivcRequest>, EFGivcRequest>();
+
 
 //builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
 //   .AddNegotiate();
