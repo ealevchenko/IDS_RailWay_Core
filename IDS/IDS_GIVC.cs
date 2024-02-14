@@ -16,10 +16,22 @@ namespace IDS_
 {
     public class parameters_reguest
     {
+        public string type_requests { get; set; }        
         public int? kod_stan_beg { get; set; }
         public int? kod_stan_end { get; set; }
         public int? kod_grp_beg { get; set; }
         public int? kod_grp_end { get; set; }
+        public string? nom_vag { get; set; }
+        public string? date_beg { get; set; }
+        public string? date_end { get; set; }
+        public int? esr_form { get; set; }
+        public int? nom_sost { get; set; }
+        public int? esr_nazn { get; set; }
+        public int? kod_stan_form { get; set; }
+        public int? kod_gro { get; set; }
+        public int? kod_stan_nazn { get; set; }
+        public int? kod_grp { get; set; }
+        public int? kod_gruz { get; set; }
     }
     public class IDS_GIVC : IDS_Base
     {
@@ -61,7 +73,7 @@ namespace IDS_
         /// <param name="type_requests"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public int RequestToGIVC(string type_requests, parameters_reguest parameters, string user)
+        public int RequestToGIVC(parameters_reguest parameters, string user)
         {
             try
             {
@@ -77,18 +89,55 @@ namespace IDS_
                 {
                     //Id = 0,
                     DtRequests = DateTime.Now,
-                    TypeRequests = type_requests,
+                    TypeRequests = parameters.type_requests,
+                    ParametersReguest = System.Text.Json.JsonSerializer.Serialize(parameters),
                     Create = DateTime.Now,
                     CreateUser = user,
                 };
                 client_givc = new WebClientGIVC(_logger, _configuration);
-                if (type_requests == "req1892")
+                if (parameters.type_requests == "req1892")
                 {
                     //req1892 res = client_givc.GetReq1892(467004, 467201, 7932, 7932, "01.01.2024", "31.12.2024");
-                    req1892 res = client_givc.GetReq1892((int)parameters.kod_stan_beg, (int)parameters.kod_stan_end, (int)parameters.kod_grp_beg, (int)parameters.kod_grp_end, DateTime.Now.Date.AddMonths(-2).ToString("dd.MM.yyyy"),DateTime.Now.Date.AddDays(1).ToString("dd.MM.yyyy"));
+                    req1892 res = client_givc.GetReq1892((int)parameters.kod_stan_beg, (int)parameters.kod_stan_end, (int)parameters.kod_grp_beg, (int)parameters.kod_grp_end, DateTime.Now.Date.AddMonths(-2).ToString("dd.MM.yyyy"), DateTime.Now.Date.AddDays(1).ToString("dd.MM.yyyy"));
                     if (client_givc.ErrorWeb != null && client_givc.ErrorWeb == false && client_givc.ErrorToking == false)
                     {
                         result_givc_req.CountLine = res != null && res.disl_vag != null ? res.disl_vag.Count() : 0;
+                    }
+                    else
+                    {
+                        result_givc_req.CountLine = -1;
+                    }
+                }
+                if (parameters.type_requests == "req8858")
+                {
+                    req8858 res = client_givc.GetReq8858((string)parameters.nom_vag, (string)parameters.date_beg, (string)parameters.date_end);
+                    if (client_givc.ErrorWeb != null && client_givc.ErrorWeb == false && client_givc.ErrorToking == false)
+                    {
+                        result_givc_req.CountLine = res != null && res.disl_vag != null ? res.disl_vag.Count() : 0;
+                    }
+                    else
+                    {
+                        result_givc_req.CountLine = -1;
+                    }
+                }
+                if (parameters.type_requests == "req0002")
+                {
+                    req0002 res = client_givc.GetReq0002((int)parameters.esr_form, (int)parameters.nom_sost, (int)parameters.esr_nazn);
+                    if (client_givc.ErrorWeb != null && client_givc.ErrorWeb == false && client_givc.ErrorToking == false)
+                    {
+                        result_givc_req.CountLine = res != null && res.info_fraza != null ? res.info_fraza.Count() : 0;
+                    }
+                    else
+                    {
+                        result_givc_req.CountLine = -1;
+                    }
+                }
+                if (parameters.type_requests == "reqDisvag")
+                {
+                    reqDisvag res = client_givc.GetReqDisvag((int)parameters.kod_stan_form, (int)parameters.kod_gro, (int)parameters.kod_stan_nazn, (int)parameters.kod_grp, (int)parameters.kod_gruz);
+                    if (client_givc.ErrorWeb != null && client_givc.ErrorWeb == false && client_givc.ErrorToking == false)
+                    {
+                        result_givc_req.CountLine = res != null && res.data != null ? res.data.Count() : 0;
                     }
                     else
                     {
@@ -104,7 +153,7 @@ namespace IDS_
             }
             catch (Exception e)
             {
-                _logger.LogError(_eventId, e, "RequestToGIVC(type_requests={0}, user={1})", type_requests, user);
+                _logger.LogError(_eventId, e, "RequestToGIVC(parameters={0}, user={1})", parameters, user);
                 return (int)errors_base.global;
             }
         }
