@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using WebAPI.Repositories;
 using WebAPI.Repositories.GIVC;
+using Microsoft.Extensions.Logging;
 
 namespace WebAPI.Controllers.GIVC
 {
@@ -14,11 +15,17 @@ namespace WebAPI.Controllers.GIVC
     public class GIVCController : ControllerBase
     {
         private IRepository<GivcRequest> repo;
+        private readonly ILogger<GIVCController> _logger;
+        private readonly IConfiguration _configuration;
 
         // конструктор вводит зарегистрированный репозиторий
-        public GIVCController(IRepository<GivcRequest> repo)
+        public GIVCController(IRepository<GivcRequest> repo, ILogger<GIVCController> logger, IConfiguration configuration)
         {
             this.repo = repo;
+            _logger = logger;
+            _configuration = configuration;
+            _logger.LogDebug(1, "NLog injected into GIVCController");
+
         }
 
         // GET: Givc/Request
@@ -76,18 +83,21 @@ namespace WebAPI.Controllers.GIVC
             GivcRequest added = await repo.CreateAsync(c);
             return CreatedAtRoute("GetGivcRequest", new { id = added.Id }, c); // 201 Created
         }
-        //// POST: Givc/Request
-        //// BODY: GivcRequest (JSON, XML)
-        //[HttpPost]
-        //public async Task<IActionResult> Request([FromBody] parameters_reguest parameters)
-        //{
-        //    if (c == null)
-        //    {
-        //        return BadRequest(); // 400 Bad request
-        //    }
-        //    GivcRequest added = await repo.CreateAsync(c);
-        //    return CreatedAtRoute("GetGivcRequest", new { id = added.Id }, c); // 201 Created
-        //}
+        // POST: Givc/Request
+        // BODY: GivcRequest (JSON, XML)
+        [HttpPost]
+        public async Task<IActionResult> Request([FromBody] parameters_reguest parameters)
+        {
+            IDS_GIVC ids_givc = new IDS_GIVC(_logger, _configuration);
+            //int res_cl = ids_givc.RequestToGIVC(new parameters_reguest() { type_requests = conf_reg.type_requests, kod_stan_beg = conf_reg.kod_stan_beg, kod_stan_end = conf_reg.kod_stan_end, kod_grp_beg = conf_reg.kod_grp_beg, kod_grp_end = conf_reg.kod_grp_end }, null);
+            GivcRequest? c = null;
+            if (c == null)
+            {
+                return BadRequest(); // 400 Bad request
+            }
+            GivcRequest added = await repo.CreateAsync(c);
+            return CreatedAtRoute("GetGivcRequest", new { id = added.Id }, c); // 201 Created
+        }
 
 
         //// PUT: api/GivcRequest/[id]
