@@ -67,7 +67,7 @@ namespace WebAPI.Controllers.GIVC
             {
                 c = list.Where(c => c.TypeRequests == type_requests).OrderByDescending(c => c.DtRequests).FirstOrDefault();
             }
-            return c != null && c.ResultRequests!=null  ? new ObjectResult(c.ResultRequests) : NotFound();
+            return c != null && c.ResultRequests != null ? new ObjectResult(c.ResultRequests) : NotFound();
         }
 
 
@@ -89,14 +89,31 @@ namespace WebAPI.Controllers.GIVC
         public async Task<IActionResult> Request([FromBody] parameters_reguest parameters)
         {
             IDS_GIVC ids_givc = new IDS_GIVC(_logger, _configuration);
-            //int res_cl = ids_givc.RequestToGIVC(new parameters_reguest() { type_requests = conf_reg.type_requests, kod_stan_beg = conf_reg.kod_stan_beg, kod_stan_end = conf_reg.kod_stan_end, kod_grp_beg = conf_reg.kod_grp_beg, kod_grp_end = conf_reg.kod_grp_end }, null);
-            GivcRequest? c = null;
-            if (c == null)
+            // Текущая дата
+            DateTime dt_curr = DateTime.Now;
+            DateTime cur_date = dt_curr.Date;
+            int cur_day = dt_curr.Date.Day;
+            int cur_hour = dt_curr.Hour;
+            // Получим последний запрос
+            GivcRequest? last_givc_req = ids_givc.GetLastGivcRequest(parameters.type_requests);
+            DateTime? dt_last = last_givc_req != null ? last_givc_req.DtRequests : null;
+            string s_param = System.Text.Json.JsonSerializer.Serialize(parameters); // Сериализуем parameters
+            if (dt_last != null)
+            {
+                int last_day = ((DateTime)dt_last).Date.Day;
+                int last_hour = ((DateTime)dt_last).Hour;
+                // Проверка на исключение повторного запроса
+                if (s_param == last_givc_req.ParametersReguest && cur_day == last_day && cur_hour == last_hour)
+                { return BadRequest(new { message = "The request has already been executed!" }); } // 400 Bad request
+
+            }
+            GivcRequest? req = ids_givc.RequestToGIVC(parameters, null); ;
+            if (req == null)
             {
                 return BadRequest(); // 400 Bad request
             }
-            GivcRequest added = await repo.CreateAsync(c);
-            return CreatedAtRoute("GetGivcRequest", new { id = added.Id }, c); // 201 Created
+            GivcRequest added = await repo.CreateAsync(req);
+            return CreatedAtRoute("GetGivcRequest", new { id = added.Id }, req); // 201 Created
         }
 
 
