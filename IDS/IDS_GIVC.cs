@@ -73,7 +73,91 @@ namespace IDS_
         /// <param name="type_requests"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public int RequestToGIVC(parameters_reguest parameters, string user)
+        //public int RequestToGIVC(parameters_reguest parameters, string user)
+        //{
+        //    try
+        //    {
+        //        EFDbContext context = new EFDbContext(this.options);
+
+        //        // Проверим и скорректируем пользователя
+        //        if (String.IsNullOrWhiteSpace(user))
+        //        {
+        //            user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+        //        }
+        //        EFGivcRequest ef_givc = new EFGivcRequest(context);
+        //        GivcRequest result_givc_req = new GivcRequest()
+        //        {
+        //            //Id = 0,
+        //            DtRequests = DateTime.Now,
+        //            TypeRequests = parameters.type_requests,
+        //            ParametersReguest = System.Text.Json.JsonSerializer.Serialize(parameters),
+        //            Create = DateTime.Now,
+        //            CreateUser = user,
+        //        };
+        //        client_givc = new WebClientGIVC(_logger, _configuration);
+        //        if (parameters.type_requests == "req1892")
+        //        {
+        //            //req1892 res = client_givc.GetReq1892(467004, 467201, 7932, 7932, "01.01.2024", "31.12.2024");
+        //            req1892 res = client_givc.GetReq1892((int)parameters.kod_stan_beg, (int)parameters.kod_stan_end, (int)parameters.kod_grp_beg, (int)parameters.kod_grp_end, DateTime.Now.Date.AddMonths(-2).ToString("dd.MM.yyyy"), DateTime.Now.Date.AddDays(1).ToString("dd.MM.yyyy"));
+        //            if (client_givc.ErrorWeb != null && client_givc.ErrorWeb == false && client_givc.ErrorToking == false)
+        //            {
+        //                result_givc_req.CountLine = res != null && res.disl_vag != null ? res.disl_vag.Count() : 0;
+        //            }
+        //            else
+        //            {
+        //                result_givc_req.CountLine = -1;
+        //            }
+        //        }
+        //        if (parameters.type_requests == "req8858")
+        //        {
+        //            req8858 res = client_givc.GetReq8858((string)parameters.nom_vag, (string)parameters.date_beg, (string)parameters.date_end);
+        //            if (client_givc.ErrorWeb != null && client_givc.ErrorWeb == false && client_givc.ErrorToking == false)
+        //            {
+        //                result_givc_req.CountLine = res != null && res.disl_vag != null ? res.disl_vag.Count() : 0;
+        //            }
+        //            else
+        //            {
+        //                result_givc_req.CountLine = -1;
+        //            }
+        //        }
+        //        if (parameters.type_requests == "req0002")
+        //        {
+        //            req0002 res = client_givc.GetReq0002((int)parameters.esr_form, (int)parameters.nom_sost, (int)parameters.esr_nazn);
+        //            if (client_givc.ErrorWeb != null && client_givc.ErrorWeb == false && client_givc.ErrorToking == false)
+        //            {
+        //                result_givc_req.CountLine = res != null && res.info_fraza != null ? res.info_fraza.Count() : 0;
+        //            }
+        //            else
+        //            {
+        //                result_givc_req.CountLine = -1;
+        //            }
+        //        }
+        //        if (parameters.type_requests == "reqDisvag")
+        //        {
+        //            reqDisvag res = client_givc.GetReqDisvag((int)parameters.kod_stan_form, (int)parameters.kod_gro, (int)parameters.kod_stan_nazn, (int)parameters.kod_grp, (int)parameters.kod_gruz);
+        //            if (client_givc.ErrorWeb != null && client_givc.ErrorWeb == false && client_givc.ErrorToking == false)
+        //            {
+        //                result_givc_req.CountLine = res != null && res.data != null ? res.data.Count() : 0;
+        //            }
+        //            else
+        //            {
+        //                result_givc_req.CountLine = -1;
+        //            }
+        //        }
+        //        result_givc_req.ResultRequests = client_givc.JsonResponse;
+        //        ef_givc.Add(result_givc_req);
+        //        int result = context.SaveChanges();
+        //        _logger.LogInformation(_eventId, "Запрос на ГИВЦ выполнен {0} получено строк {1}, Код выполнения операции сохранения в БД {2}", result_givc_req.DtRequests, result_givc_req.CountLine, result);
+
+        //        return result;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        _logger.LogError(_eventId, e, "RequestToGIVC(parameters={0}, user={1})", parameters, user);
+        //        return (int)errors_base.global;
+        //    }
+        //}
+        public GivcRequest? RequestToGIVC(parameters_reguest parameters, string user)
         {
             try
             {
@@ -145,16 +229,14 @@ namespace IDS_
                     }
                 }
                 result_givc_req.ResultRequests = client_givc.JsonResponse;
-                ef_givc.Add(result_givc_req);
-                int result = context.SaveChanges();
-                _logger.LogInformation(_eventId, "Запрос на ГИВЦ выполнен {0} получено строк {1}, Код выполнения операции сохранения в БД {2}", result_givc_req.DtRequests, result_givc_req.CountLine, result);
+                _logger.LogInformation(_eventId, "Запрос на ГИВЦ выполнен {0} получено строк {1}", result_givc_req.DtRequests, result_givc_req.CountLine);
 
-                return result;
+                return result_givc_req;
             }
             catch (Exception e)
             {
                 _logger.LogError(_eventId, e, "RequestToGIVC(parameters={0}, user={1})", parameters, user);
-                return (int)errors_base.global;
+                return null;
             }
         }
         /// <summary>
