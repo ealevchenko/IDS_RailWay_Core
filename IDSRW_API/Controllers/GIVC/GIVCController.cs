@@ -34,6 +34,16 @@ namespace WebAPI.Controllers.GIVC
         {
             return await repo.RetrieveAllAsync();
         }
+        // GET: Givc/type_requests
+        [HttpGet("Request/type_requests/{type_requests}")]
+        public async Task<IActionResult> GetListGivcRequestOfType(string type_requests)
+        {
+            IEnumerable<GivcRequest> list = await repo.RetrieveAllAsync();
+            if (list == null) return NotFound();
+            var res = list.Where(c => c.TypeRequests == type_requests).OrderByDescending(c => c.DtRequests).Select(u => new { u.Id, u.DtRequests, u.TypeRequests,u.ParametersReguest, u.CountLine, u.Create, u.CreateUser });
+            return res != null ? new ObjectResult(res) : NotFound();
+        }
+
         // GET: Givc/Request/[id]
         [HttpGet("Request/{id}", Name = "GetGivcRequest")]
         public async Task<IActionResult> GetGivcRequest(int id)
