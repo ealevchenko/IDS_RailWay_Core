@@ -11,6 +11,7 @@
     <Folder Include="Areas\Report\Models\" />
     <Folder Include="wwwroot\css\report\" />
     <Folder Include="wwwroot\img\" />
+    <Folder Include="wwwroot\js\view\shared\" />
   </ItemGroup>
 
   <ItemGroup>
