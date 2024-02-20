@@ -85,7 +85,7 @@ namespace HelloApp
                 //tGIVC.req2610();
                 //tGIVC.req8858();
                 // ====== Справки =========
-                tGIVC.reference1892();
+                //tGIVC.reference1892();
                 #endregion
 
 
