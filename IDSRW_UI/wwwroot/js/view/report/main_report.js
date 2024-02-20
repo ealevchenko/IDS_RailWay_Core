@@ -24,6 +24,10 @@
     App.Langs = $.extend(true, App.Langs, getLanguages($.Text_View, App.Lang)); //, getLanguages($.Text_Common, App.Lang), getLanguages($.Text_Table, App.Lang)
     App.User_Name = $('input#username').val();
 
+    var API_GIVC = App.api_givc;
+    var api_givc = new API_GIVC();
+
+
     // Модуль инициализаии компонентов формы
     var FE = App.form_element;
     var fe_ui = new FE();
@@ -58,10 +62,14 @@
             default_value: -1,
             fn_change: async function (e) {
                 var type = $(e.currentTarget).val();
+                api_givc.getRequestOfTypeRequests(type, function (data) {
 
+                }.bind(this));
                 var response = await fetch("https://krr-app-paweb01.europe.mittalco.com/IDSRW_API/GIVC/Request/type_requests/" + type, {
                     method: "GET",
-                    headers: { "Accept": "application/json; charset=utf-8" }
+                    headers: {
+                        "Accept": "application/json; charset=utf-8"
+                    }
                 });
                 // если запрос прошел нормально
                 if (response.ok === true) {
@@ -104,6 +112,7 @@
         //var select_type_requests = $("#type-requests").on('change', function (e) {
         //    var sel = $(this).val();
         //});
+        LockScreenOff();
     });
 
 
