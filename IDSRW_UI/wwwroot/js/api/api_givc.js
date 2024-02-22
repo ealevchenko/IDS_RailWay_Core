@@ -6,6 +6,10 @@
     // Определим язык
     App.Lang = ($.cookie('lang') === undefined ? 'ru' : $.cookie('lang'));
 
+    //import data from '../../data/setup.json' assert { type: 'JSON' };
+    //console.log(data);
+
+
     // Массив текстовых сообщений 
     $.Text_View =
     {
@@ -20,13 +24,16 @@
     };
     // Определлим список текста для этого модуля
     App.Langs = $.extend(true, App.Langs, getLanguages($.Text_View, App.Lang));
-
     //****************************************************************************************
     //-------------------------------- Конструктор и инициализация ---------------
     // создать класс api ГИВЦ
-    function api_givc() {
+    function api_givc(options) {
         this.list_countrys = null;
-    }
+        this.settings = $.extend({
+            url_api: null,
+        }, options);
+
+    };
     //****************************************************************************************
     //-------------------------------- Функции работы с БД через api ---------------
     // Загрузить таблицы базы данных 
@@ -63,8 +70,7 @@
     api_givc.prototype.getRequestOfTypeRequests = function (type_requests, callback) {
         $.ajax({
             type: 'GET',
-            //url: '../../api/ids/directory/currency/all',
-            url: 'https://krr-app-paweb01.europe.mittalco.com/IDSRW_API/GIVC/Request/type_requests/' + type_requests,
+            url: this.settings.url_api + '/GIVC/Request/type_requests/' + type_requests,
             async: true,
             dataType: 'json',
             beforeSend: function () {
@@ -76,14 +82,36 @@
                 }
             },
             error: function (x, y, z) {
-                OnAJAXError("ids_directory.getCurrency", x, y, z);
+                OnAJAXError("api_givc.getRequestOfTypeRequests", x, y, z);
             },
             complete: function () {
                 AJAXComplete();
             },
         });
     };
-
+    //
+    api_givc.prototype.getRequestOfId = function (id, callback) {
+        $.ajax({
+            type: 'GET',
+            url: this.settings.url_api + '/GIVC/Request/' + id,
+            async: true,
+            dataType: 'json',
+            beforeSend: function () {
+                AJAXBeforeSend();
+            },
+            success: function (data) {
+                if (typeof callback === 'function') {
+                    callback(data);
+                }
+            },
+            error: function (x, y, z) {
+                OnAJAXError("api_givc.getRequestOfId", x, y, z);
+            },
+            complete: function () {
+                AJAXComplete();
+            },
+        });
+    };
 
     App.api_givc = api_givc;
 

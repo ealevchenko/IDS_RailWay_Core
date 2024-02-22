@@ -1,0 +1,241 @@
+﻿body {
+}
+
+table.dataTable {
+/*    width: 100%;*/
+    margin: 0;
+/*    clear: both;
+    border-collapse: separate;
+    border-spacing: 0*/
+}
+
+/*Уменьшить размер таблицы*/
+.table-report {
+    font-size: 0.8rem;
+}
+
+.table-report-detali {
+    font-size: 0.7rem;
+}
+
+
+table.dataTable tbody td.mw-50 {
+    max-width: 50px;
+}
+
+table.dataTable tbody td.mw-100 {
+    max-width: 100px;
+}
+
+table.dataTable tbody td.mw-150 {
+    max-width: 150px;
+}
+
+table.dataTable tbody td.mw-200 {
+    max-width: 200px;
+}
+
+table.dataTable tbody td.mw-250 {
+    max-width: 250px;
+}
+
+table.dataTable tbody td.mw-300 {
+    max-width: 300px;
+}
+
+table.dataTable tbody td.shorten {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+/*время создания операции привышено*/
+/*table.dataTable.display tbody tr td.error {
+    color: red;
+}*/
+/*Превышена норма нахождения вагона на АМКР*/
+/*table.dataTable.display tbody tr td.idle-time-error {
+    color: red;
+}
+
+table.dataTable.display tbody tr td a.idle-time-error {
+    color: red;
+}*/
+
+/*IE сука не поддерживает*/
+/*:root {
+    --idle-station-bg-color: #faf0f0;
+    --idle-station-bg-color-select: #ffebeb;
+    --idle-station-bg-color-head: #ffebeb;
+}*/
+
+/*Отобразить типы полей*/
+/*Зафиксированные поля - не просвечиваемые*/
+table.dataTable.display thead tr th.fixed-column {
+    background-color: #ffffff;
+}
+table.dataTable.display tfoot tr th.fixed-column {
+    background-color: #ffffff;
+}
+
+/*Состав сдан*/
+table.dataTable tbody tr:not(.selected).green.odd, table.dataTable tbody tr:not(.selected).green.even {
+    background-color: #cdffcd;
+}
+
+table.dataTable.display tbody tr:not(.selected).odd.green > .sorting_1, table.dataTable.order-column.stripe tbody tr.odd.green > .sorting_1 {
+    background-color: #a6ffa6;
+}
+
+table.dataTable.display tbody tr:not(.selected).even.green > .sorting_1, table.dataTable.order-column.stripe tbody tr.even.green > .sorting_1 {
+    background-color: #a6ffa6;
+}
+/*Состав сдают*/
+table.dataTable tbody tr:not(.selected).yellow.odd, table.dataTable tbody tr:not(.selected).yellow.even {
+    background-color: #fef9e0;
+}
+
+table.dataTable.display tbody tr:not(.selected).odd.yellow > .sorting_1, table.dataTable.order-column.stripe tbody tr.odd.yellow > .sorting_1 {
+    background-color: #fdf2ba;
+}
+
+table.dataTable.display tbody tr:not(.selected).even.yellow > .sorting_1, table.dataTable.order-column.stripe tbody tr.even.yellow > .sorting_1 {
+    background-color: #fdf2ba;
+}
+/*Состав отмена сдачи*/
+table.dataTable tbody tr:not(.selected).red.odd, table.dataTable tbody tr:not(.selected).red.even {
+    background-color: #ffebeb;
+}
+
+table.dataTable.display tbody tr:not(.selected).odd.red > .sorting_1, table.dataTable.order-column.stripe tbody tr.odd.red > .sorting_1 {
+    background-color: #ffc4c4;
+}
+
+table.dataTable.display tbody tr:not(.selected).even.red > .sorting_1, table.dataTable.order-column.stripe tbody tr.even.red > .sorting_1 {
+    background-color: #ffc4c4;
+}
+/*Состав отправили*/
+table.dataTable tbody tr:not(.selected).blue.odd, table.dataTable tbody tr:not(.selected).blue.even {
+    background-color: #dfe9fb;
+}
+
+table.dataTable.display tbody tr:not(.selected).odd.blue > .sorting_1, table.dataTable.order-column.stripe tbody tr.odd.blue > .sorting_1 {
+    background-color: #cdddf9;
+}
+
+table.dataTable.display tbody tr:not(.selected).even.blue > .sorting_1, table.dataTable.order-column.stripe tbody tr.even.blue > .sorting_1 {
+    background-color: #cdddf9;
+}
+
+table.dataTable.display td.epd {
+    background-color: #FFF2CC;
+}
+
+table.dataTable.display td.sap {
+    background-color: #D9E1F2;
+}
+
+table.dataTable.display td.arrival {
+    background-color: #FCE4D6;
+}
+
+table.dataTable.display td.common {
+    background-color: #d6fce4;
+}
+
+table.dataTable.display td.letter {
+    background-color: #eed6fc;
+}
+
+td.details-control {
+    background: url('../../../Content/DataTables/media/images/details_open.png') no-repeat center center;
+    width: 20px;
+    cursor: pointer;
+}
+
+tr.shown td.details-control {
+    background: url('../../../Content/DataTables/media/images/details_close.png') no-repeat center center;
+    width: 20px;
+}
+
+.detali-operation {
+    border-left: 6px solid #8ae;
+    border-top: 1px solid #8ae;
+    padding: 10px;
+    /*font-size: 14px;*/
+    line-height: 1.4;
+    background-color: #eee;
+    border-radius: 4px;
+    text-align: left;
+}
+
+th.details-control, td.details-control {
+    width: 20px !important;
+}
+
+th.button-control, td.button-control {
+    width: 20px !important;
+}
+
+tr.group,
+tr.group:hover {
+    background-color: #ddd !important;
+}
+tr.type-total,
+tr.type-total:hover {
+    background-color: #6262ff !important;
+}
+tr.group-total,
+tr.group-total:hover {
+    background-color: #808080 !important;
+}
+tr.group-total-0,
+tr.group-total-0:hover {
+    background-color: #ffffaf !important;
+}
+tr.group-total-1,
+tr.group-total-1:hover {
+    background-color: #c3ffff !important;
+}
+tr.group-total-2,
+tr.group-total-2:hover {
+    background-color: #ffe1c3 !important;
+}
+tr.group-total-3,
+tr.group-total-3:hover {
+    background-color: #c3ffe1 !important;
+}
+td.total-text {
+    color: #fff !important;
+    text-align: right;
+    text-transform: uppercase;
+}
+td.total-text-type {
+    color: #000000 !important;
+    text-align: right;
+    text-transform: lowercase;
+    font-weight: 600;
+}
+
+td.total-count {
+    color: #fff !important;
+    text-align: center;
+    text-transform: uppercase;
+}
+td.total-count-type {
+    color: #000000 !important;
+    text-align: center;
+    text-transform: lowercase;
+    font-weight: 600;
+}
+
+td.total-value {
+    color: #fff !important;
+    text-align: right;
+    text-transform: uppercase;
+}
+td.total-value-type {
+    color: #000000 !important;
+    text-align: right;
+    text-transform:lowercase;
+    font-weight:600;
+}

@@ -3,6 +3,8 @@
     var App = window.App || {};
     var $ = window.jQuery;
 
+    var format_date = "YYYY-MM-DD";
+    var format_time = "HH:mm:ss";
     var format_datetime = "YYYY-MM-DD HH:mm:ss";
 
     // Массив текстовых сообщений 
@@ -11,11 +13,12 @@
         'default':  //default language: ru
         {
 
-            'title_select': 'Выберите...',
+            //'title_select': 'Выберите...',
+
         },
         'en':  //default language: English
         {
-            'title_select': 'Выберите...',
+            //'title_select': 'Выберите...',
         }
     };
 
@@ -25,12 +28,17 @@
     App.User_Name = $('input#username').val();
 
     var API_GIVC = App.api_givc;
-    var api_givc = new API_GIVC();
-
+    var TTDR = App.table_report;
+    var api_givc = new API_GIVC({ url_api: "https://krr-app-paweb01.europe.mittalco.com/IDSRW_API" });
 
     // Модуль инициализаии компонентов формы
     var FE = App.form_element;
+
     var fe_ui = new FE();
+
+    var cur_type = '-1';
+    var cur_Id = -1;
+    var curr_data = [];
 
     $(document).ready(function ($) {
         var list_type_requests = [
@@ -56,63 +64,95 @@
             }
         ];
         var last_requests = [];
+        // Отобразить экран с информацией
+        var view_report = function (type, id) {
+            // Обработаем справку 1892
+            if (type === 'req1892') {
+                curr_data = [];
+                if (id > 0) {
+                    LockScreen(langView('mess_load_data', App.Langs));
+                    api_givc.getRequestOfId(id, function (data) {
+
+                        if (data !== null && data.resultRequests !== null) {
+                            var res = JSON.parse(data.resultRequests);
+                            if (res.disl_vag != null) {
+                                curr_data = res.disl_vag;
+                            }
+                            table_table_req1892.view(curr_data);
+                            LockScreenOff();
+                        }
+                    }.bind(this));
+                } else {
+                    table_table_req1892.view(curr_data);
+                }
+
+            }
+        }
 
         var el_select_type_requests = new fe_ui.init_select($("#type-requests"), {
             data: list_type_requests,
             default_value: -1,
             fn_change: async function (e) {
-                var type = $(e.currentTarget).val();
-                api_givc.getRequestOfTypeRequests(type, function (data) {
+                cur_type = $(e.currentTarget).val();
+                last_requests = [];
+                if (cur_type !== '-1') {
+                    LockScreen(langView('mess_delay', App.Langs));
+                    api_givc.getRequestOfTypeRequests(cur_type, function (data) {
+                        $.each(data, function (i, el) {
+                            last_requests.push({
+                                'value': el.id,
+                                'text': moment(el.dtRequests).format(format_datetime),
+                                'disabled': false,
+                            });
 
-                }.bind(this));
-                var response = await fetch("https://krr-app-paweb01.europe.mittalco.com/IDSRW_API/GIVC/Request/type_requests/" + type, {
-                    method: "GET",
-                    headers: {
-                        "Accept": "application/json; charset=utf-8"
-                    }
-                });
-                // если запрос прошел нормально
-                if (response.ok === true) {
-                    // получаем данные
-                    var result = await response.json();
-
-                    result.forEach(user => {
-                        // добавляем полученные элементы в таблицу
-                        last_requests = []
-                    });
+                        }.bind(this));
+                        el_select_last_requests.update(last_requests, -1);
+                        LockScreenOff();
+                    }.bind(this));
+                } else {
+                    el_select_last_requests.update(last_requests, -1);
+                    view_report(cur_type, cur_Id);
                 }
             }.bind(this),
             check: function (value) {
 
             }.bind(this)
         });
-
         var el_select_last_requests = new fe_ui.init_select($("#last-requests"), {
             data: last_requests,
             default_value: -1,
             fn_change: function (e) {
-                var sel = $(e.currentTarget).val();
+                cur_Id = Number($(e.currentTarget).val());
+                view_report(cur_type, cur_Id);
             }.bind(this),
             check: function (value) {
 
             }.bind(this)
         });
-        //var $default_option = $('<option></option>', {
-        //    'value': '-1',
-        //    'text': langView('title_select', App.Langs),
-        //});
 
-        //var $select_type_requests = $("#type-requests");
-        //$select_type_requests.empty();
-        //$select_type_requests.append($default_option);
-        //$select_type_requests.on('change', function (e) {
-        //    var sel = $(this).val();
-        //});
+        var table_table_req1892 = new TTDR('div#req1892');               // Создадим экземпляр
+        // Инициализация модуля "Таблица прибывающих составов"
+        table_table_req1892.init({
+            alert: null,
+            detali_table: false,
+            type_report: 'req1892',     //
+            link_num: false,
+            ids_wsd: null,
+            fn_init: function () {
+                LockScreenOff();
+            },
+            fn_action_view_detali: function (rows) {
 
-        //var select_type_requests = $("#type-requests").on('change', function (e) {
-        //    var sel = $(this).val();
-        //});
+            },
+            fn_select_rows: function (rows) {
+
+            }.bind(this),
+        });
+
+
+
         LockScreenOff();
+        /*        $('#example').DataTable();*/
     });
 
 

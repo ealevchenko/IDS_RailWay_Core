@@ -61,7 +61,169 @@
     };
     var getUrlVar = function (name) {
         return getUrlVars()[name];
+};
+//==============================================================================================
+/* ----------------------------------------------------------
+    DataTables Вывод текста согласно региональных настроек
+-------------------------------------------------------------*/
+// Список слов для описания таблиц
+$.Text_Table =
+{
+    'default':  //default language: ru
+    {
+        "dt_decimal": "",
+        "dt_emptyTable": "Нет данных в таблице",
+        "dt_info": "Отображение _START_ по _END_ из _TOTAL_ записей",
+        "dt_infoEmpty": "Отображение 0 to 0 of 0 записей",
+        "dt_infoFiltered": "(отфильтровано из _MAX_ всего записей)",
+        "dt_infoPostFix": "",
+        "dt_thousands": ".",
+        "dt_lengthMenu": "Показать  _MENU_ записей",
+        "dt_loadingRecords": "Загрузка...",
+        "dt_processing": "Обработка ...",
+        "dt_search": "Найти:",
+        "dt_zeroRecords": "Не найдено совпадающих записей",
+        "dt_paginate": {
+            "first": "Первая",
+            "last": "Последняя",
+            "next": "Следующая",
+            "previous": "Предыдущая"
+        },
+        "dt_aria": {
+            "sortAscending": ": активировать сортировку столбца по возрастанию",
+            "sortDescending": ": активировать сортировку колонки по убыванию"
+        }
+
+    },
+    'en':  //default language: English
+    {
+        "dt_decimal": "",
+        "dt_emptyTable": "No data available in table",
+        "dt_info": "Showing _START_ to _END_ of _TOTAL_ entries",
+        "dt_infoEmpty": "Showing 0 to 0 of 0 entries",
+        "dt_infoFiltered": "(filtered from _MAX_ total entries)",
+        "dt_infoPostFix": "",
+        "dt_thousands": ",",
+        "dt_lengthMenu": "Show _MENU_ entries",
+        "dt_loadingRecords": "Loading...",
+        "dt_processing": "Processing...",
+        "dt_search": "Search:",
+        "dt_zeroRecords": "No matching records found",
+        "dt_paginate": {
+            "first": "First",
+            "last": "Last",
+            "next": "Next",
+            "previous": "Previous"
+        },
+        "dt_aria": {
+            "sortAscending": ": activate to sort column ascending",
+            "sortDescending": ": activate to sort column descending"
+        }
+
+    }
+
+};
+// Настройка language(DataTables)
+var language_table = function (langs) {
+    return {
+        "decimal": langView('dt_decimal', langs),
+        "emptyTable": langView('dt_emptyTable', langs),
+        "info": langView('dt_info', langs),
+        "infoEmpty": langView('dt_infoEmpty', langs),
+        "infoFiltered": langView('dt_infoFiltered', langs),
+        "infoPostFix": langView('dt_infoPostFix', langs),
+        "thousands": langView('dt_thousands', langs),
+        "lengthMenu": langView('dt_lengthMenu', langs),
+        "loadingRecords": langView('dt_loadingRecords', langs),
+        "processing": langView('dt_processing', langs),
+        "search": langView('dt_search', langs),
+        "zeroRecords": langView('dt_zeroRecords', langs),
+        "paginate": langView('dt_paginate', langs),
+        "aria": langView('dt_aria', langs),
     };
+};
+
+var init_columns = function (collums_name, list_collums) {
+    var collums = [];
+    if (collums_name && collums_name.length > 0) {
+        $.each(collums_name, function (i, el) {
+            var field = list_collums.find(function (o) {
+                return o.field === el;
+            });
+            // Если поле не найдено, создадим по умолчанию (чтобы небыло ошибки)
+            if (!field) {
+                field = {
+                    field: el,
+                    data: function (row, type, val, meta) {
+                        return "Field_error";
+                    },
+                    title: el, width: "100px", orderable: false, searchable: false
+                };
+            }
+            field.className += ' fl-' + el;
+            collums.push(field);
+        });
+    }
+    return collums;
+};
+
+var init_columns_detali = function (collums_detali, list_collums) {
+    var collums = [];
+    if (collums_detali && collums_detali.length > 0) {
+        $.each(collums_detali, function (i, el) {
+            var field = list_collums.find(function (o) {
+                return o.field === el.field;
+            });
+            // Если поле не найдено, создадим по умолчанию (чтобы небыло ошибки)
+            if (!field) {
+                field = {
+                    field: el,
+                    data: function (row, type, val, meta) {
+                        return "Field_error";
+                    },
+                    title: el, width: "100px", orderable: false, searchable: false
+                };
+            }
+            field.className += ' fl-' + el.field;
+            // Добавим детали
+            if (el.title !== null) {
+                field.title = el.title;
+            }
+            if (el.class !== null) {
+                field.className += ' ' + el.class;
+            }
+            collums.push(field);
+        });
+    }
+    return collums;
+};
+
+var init_buttons = function (buttons_name, list_buttons) {
+    var buttons = [];
+    if (buttons_name && buttons_name.length > 0) {
+        $.each(buttons_name, function (i, el) {
+            var button = list_buttons.find(function (o) {
+                return o.button === el.name;
+            });
+            // Если кнопка не найдена, создадим по умолчанию (чтобы небыло ошибки)
+            if (!button) {
+                button = {
+                    button: el.name,
+                    text: button_error,
+                    action: function (e, dt, node, config) {
+
+                    },
+                    enabled: false
+                };
+            }
+            if (el.action) {
+                button.action = el.action;
+            }
+            buttons.push(button);
+        });
+    }
+    return buttons;
+};
 
 (function (window) {
     'use strict';
@@ -163,7 +325,7 @@
         }
     };
     // Определлим список текста для этого модуля
-    App.Langs = $.extend(true, App.Langs, getLanguages($.Text_View, App.Lang), getLanguages($.Text_Common, App.Lang));
+    App.Langs = $.extend(true, App.Langs, getLanguages($.Text_View, App.Lang), getLanguages($.Text_Common, App.Lang), getLanguages($.Text_Table, App.Lang));
 
     //================================================================================
     // Класс для создания объектов 
@@ -173,9 +335,66 @@
 
     };
 
-    form_element.prototype.init_select = function (element, options) {
+    var add_tag = function (element, tag_name, tag_value) {
+        if (element && tag_name && tag_name !== '' && tag_value !== null) {
+            element.attr(tag_name, tag_value);
+        }
+    }
+
+    var add_class = function (element, tag) {
+        if (element && tag && tag !== '') {
+            element.addClass(tag);
+        }
+    }
+
+    var add_id = function (element, tag) {
+        if (element && tag && tag !== '') {
+            element.attr('id', tag);
+        }
+    }
+
+    var add_for = function (element, tag) {
+        if (element && tag && tag !== '') {
+            element.attr('for', tag);
+        }
+    }
+
+    var add_title = function (element, tag) {
+        if (element && tag && tag !== '') {
+            element.attr('title', tag);
+        }
+    }
+
+    var add_value = function (element, value) {
+        if (element && value && value !== '') {
+            element.attr('value', value);
+        }
+    }
+
+    var add_val = function (element, value) {
+        if (element && value && value !== '') {
+            element.val(value);
+        }
+    }
+
+    var append_label = function (element, label) {
+        if (element && label && label !== '') {
+            element.append(label);
+        }
+    };
+
+    var add_click = function (element, fn) {
+        if (element && typeof fn === 'function') {
+            element.on('click', fn);
+        }
+    };
+
+    form_element.prototype.init_select = function ($element, options) {
         //TODO: создать и настроить SELECT сделать надпись выберите через placeholder, чтобы работала required
-        this.$element = element;
+        if (!$element) {
+            throw new Error('Не указан элемент $element');
+        }
+        this.$element = $element;
         var $default_option = $('<option></option>', {
             'value': '-1',
             'text': langView('title_select', App.Langs),
@@ -196,7 +415,7 @@
                         this.settings.fn_change(event);
                     }
                     if (typeof this.settings.check === 'function') {
-                        this.settings.check(element.val());
+                        this.settings.check(this.$element.val());
                     };
                 }.bind(this));
             }
@@ -237,10 +456,9 @@
         };
         this.update = function (data, default_value) {
             this.$element.empty();
-            element.append($default_option);
-            //if (default_value === -1) {
-            //    element.append($default_option);
-            //}
+            if (default_value === -1) {
+                this.$element.append($default_option);
+            }
             if (data) {
                 $.each(data, function (i, el) {
                     // Преобразовать формат
@@ -300,6 +518,23 @@
                 add_tag(this.$select, 'multiple', 'multiple');
             }
             this.$select.prop('readonly', this.settings.readonly);
+        }
+    };
+
+    form_element.prototype.table = function (options) {
+        this.settings = $.extend({
+            id: null,
+            class: null,
+            title: null,
+        }, options);
+        this.$table = $('<table></table>');
+
+        if (!this.$table || this.$table.length === 0) {
+            throw new Error('Не удалось создать элемент <table></table>');
+        } else {
+            add_class(this.$table, this.settings.class);
+            add_id(this.$table, this.settings.id);
+            add_tag(this.$table, 'title', this.settings.title);
         }
     };
 
