@@ -149,6 +149,13 @@
             }.bind(this),
         });
 
+        $('#fm-reguest-givc').submit(function (event) {
+            event.preventDefault();
+            var kod_stan_beg = $('#kod_stan_beg').val();
+            var kod_stan_end = $('#kod_stan_end').val();
+            var kod_grp_beg = $('#kod_grp_beg').val();
+            var kod_grp_end = $('#kod_grp_end').val();
+        }); 
 
 
         LockScreenOff();
