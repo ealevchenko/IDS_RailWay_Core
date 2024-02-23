@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using WebCore_UI.Models;
 
+
 namespace WebCore_UI.Controllers
 {
     public class HomeController : Controller
@@ -13,6 +14,9 @@ namespace WebCore_UI.Controllers
             _logger = logger;
         }
 
+        [Route("/")]
+        [Route("{controller}")]
+        [Route("{controller}/{action}")]
         public IActionResult Index()
         {
             return View();

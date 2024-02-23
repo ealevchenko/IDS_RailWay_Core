@@ -16,23 +16,21 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-//app.MapControllers();
+
 app.UseAuthorization();
 
-app.MapControllers();
-
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 //app.UseEndpoints(endpoints =>
 //{
 //    endpoints.MapControllerRoute(
-//      name: "Report",
-//      pattern: "IDSRW_UI/Report/{controller=Home}/{action=Index}/{id?}");    
-//    endpoints.MapControllerRoute(
 //      name: "areas",
-//      pattern: "IDSRW_UI/{area:exists}/{controller=Home}/{action=Index}/{id?}");
+//      pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 //    endpoints.MapControllerRoute(
 //      name: "default",
-//      pattern: "IDSRW_UI/{controller=Home}/{action=Index}/{id?}");
+//      pattern: "{controller=Home}/{action=Index}/{id?}");
 //});
 //app.MapControllerRoute(
 //    name: "default",
