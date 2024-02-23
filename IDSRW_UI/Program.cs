@@ -1,3 +1,9 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.FileSystemGlobbing.Internal;
+using System.Xml.Linq;
+
+System.Environment.CurrentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -15,14 +21,20 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRouting();
+//app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+//app.MapControllerRoute(
+//    name: "default",
+//    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapAreaControllerRoute(
+    name: "areas",
+    areaName : "default",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+    );
 
+app.UseRouting();
 //app.UseEndpoints(endpoints =>
 //{
 //    endpoints.MapControllerRoute(
