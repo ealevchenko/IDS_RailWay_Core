@@ -24,13 +24,13 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllerRoute(
       name: "Report",
-      pattern: "../Report/{controller=Home}/{action=Index}/{id?}");    
+      pattern: "IDSRW_UI/Report/{controller=Home}/{action=Index}/{id?}");    
     endpoints.MapControllerRoute(
       name: "areas",
-      pattern: "../{area:exists}/{controller=Home}/{action=Index}/{id?}");
+      pattern: "IDSRW_UI/{area:exists}/{controller=Home}/{action=Index}/{id?}");
     endpoints.MapControllerRoute(
       name: "default",
-      pattern: "../{controller=Home}/{action=Index}/{id?}");
+      pattern: "IDSRW_UI/{controller=Home}/{action=Index}/{id?}");
 });
 //app.MapControllerRoute(
 //    name: "default",
