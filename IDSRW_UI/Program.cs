@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using System.Xml.Linq;
 
-System.Environment.CurrentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
+//System.Environment.CurrentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +34,7 @@ app.MapAreaControllerRoute(
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
     );
 
-app.UseRouting();
+//app.UseRouting();
 //app.UseEndpoints(endpoints =>
 //{
 //    endpoints.MapControllerRoute(
