@@ -19,11 +19,16 @@ namespace WebCore_UI.Controllers
         }
 
 
+        [Route("")]
+        [Route("Home")]
+        [Route("Home/Index")]
+        [Route("Home/Index/{id?}")]
         public IActionResult Index()
         {
             return View();
         }
-
+        [Route("Home/Privacy")]
+        [Route("Home/Privacy/{id?}")]
         public IActionResult Privacy()
         {
             return View();
