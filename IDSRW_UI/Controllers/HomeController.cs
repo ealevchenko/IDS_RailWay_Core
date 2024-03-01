@@ -5,10 +5,10 @@ using WebCore_UI.Models;
 
 namespace WebCore_UI.Controllers
 {
-    [Route("")]
-    [Route("{controller}")]
-    [Route("{controller}/{action}")]
-    [Route("{controller}/{action}/{id?}")]
+    //[Route("")]
+    //[Route("{controller}")]
+    //[Route("{controller}/{action}")]
+    //[Route("{controller}/{action}/{id?}")]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

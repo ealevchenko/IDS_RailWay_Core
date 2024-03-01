@@ -18,9 +18,9 @@ namespace IDSRW_UI.Areas.Report.Controllers
 
         }
 
-        [Route("{area}")]
-        [Route("{area}/{controller}")]
-        [Route("{area}/{controller}/{action}")]
+        //[Route("{area}")]
+        //[Route("{area}/{controller}")]
+        //[Route("{area}/{controller}/{action}")]
         public IActionResult Index()
         {
             _logger.LogDebug(1, "View Report-> Home/Index");
