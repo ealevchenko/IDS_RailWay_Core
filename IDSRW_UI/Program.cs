@@ -34,7 +34,20 @@ try
 
     app.UseAuthorization();
 
-    app.MapControllers();
+    //app.UsePathBase("/IDSRW_UI");
+
+    //app.MapControllers();
+
+    //app.UseRouting(routes =>
+    //{
+    //    routes.MapControllerRoute(
+    //        name: "default",
+    //        pattern: "{controller=Home}/{action=Index}/{id?}",
+    //        defaults: new { controller = "Home", action = "Index" },
+    //        constraints: new { id = new IntRouteConstraint() },
+    //        dataTokens: new { pathBase = "/app1" }
+    //    );
+    //});
 
 
     //app.UseRouting();
@@ -52,12 +65,14 @@ try
 
     //app.UseAuthorization();
 
-    //app.MapControllerRoute(
-    //    name: "default",
-    //    pattern: "{controller=Home}/{action=Index}/{id?}");
+    app.MapControllerRoute(
+            name: "default",
+            pattern: "{controller=Home}/{action=Index}/{id?}",
+            defaults: new { controller = "Home", action = "Index" },
+            dataTokens: new { pathBase = "/IDSRW_UI" });
     //app.MapAreaControllerRoute(
     //    name: "areas",
-    //    areaName : "default",
+    //    areaName: "default",
     //    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
     //    );
 
@@ -71,6 +86,8 @@ try
     //      name: "default",
     //      pattern: "{controller=Home}/{action=Index}/{id?}");
     //});
+
+
     //app.MapControllerRoute(
     //    name: "default",
     //    pattern: "{controller=Home}/{action=Index}/{id?}");
