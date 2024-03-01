@@ -67,10 +67,10 @@
         out_load(process);
     };
     //======= Получить все выполненные запросы по указаной справке ======================================
-    api_givc.prototype.getRequestOfTypeRequests = function (type_requests, callback) {
+    api_givc.prototype.getRequestOfTypeRequests = function (type_requests, count, callback) {
         $.ajax({
             type: 'GET',
-            url: this.settings.url_api + '/GIVC/Request/type_requests/' + type_requests,
+            url: this.settings.url_api + '/GIVC/Request/type_requests/' + type_requests + '/count/' + count,
             async: true,
             dataType: 'json',
             beforeSend: function () {
@@ -106,6 +106,30 @@
             },
             error: function (x, y, z) {
                 OnAJAXError("api_givc.getRequestOfId", x, y, z);
+            },
+            complete: function () {
+                AJAXComplete();
+            },
+        });
+    };
+    //
+    api_givc.prototype.postGIVC = function (parameters, callback) {
+        $.ajax({
+            url: this.settings.url_api + '/GIVC/',
+            type: 'POST',
+            data: JSON.stringify(parameters),
+            contentType: "application/json;charset=utf-8",
+            async: true,
+            beforeSend: function () {
+                AJAXBeforeSend();
+            },
+            success: function (data) {
+                if (typeof callback === 'function') {
+                    callback(data);
+                }
+            },
+            error: function (x, y, z) {
+                OnAJAXError("api_givc.postGIVC", x, y, z, callback);
             },
             complete: function () {
                 AJAXComplete();

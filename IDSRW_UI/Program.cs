@@ -21,18 +21,29 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-//app.UseRouting();
+app.UseRouting();
 
-app.UseAuthorization();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllerRoute(
+        name: "MyArea",
+      pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+    endpoints.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}");
+});
+
+
+//app.UseAuthorization();
 
 //app.MapControllerRoute(
 //    name: "default",
 //    pattern: "{controller=Home}/{action=Index}/{id?}");
-app.MapAreaControllerRoute(
-    name: "areas",
-    areaName : "default",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
-    );
+//app.MapAreaControllerRoute(
+//    name: "areas",
+//    areaName : "default",
+//    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+//    );
 
 //app.UseRouting();
 //app.UseEndpoints(endpoints =>

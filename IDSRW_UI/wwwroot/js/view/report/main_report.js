@@ -33,8 +33,13 @@
 
     // Модуль инициализаии компонентов формы
     var FE = App.form_element;
-
     var fe_ui = new FE();
+
+    var alert = App.alert_form;
+    var main_alert = new alert($('div#main-alert')); // Создадим класс ALERTG
+
+    var validation_form = App.validation_form;
+    var validation = new validation_form();
 
     var cur_type = '-1';
     var cur_Id = -1;
@@ -64,28 +69,41 @@
             }
         ];
         var last_requests = [];
-        // Отобразить экран с информацией
-        var view_report = function (type, id) {
-            // Обработаем справку 1892
-            if (type === 'req1892') {
-                curr_data = [];
-                if (id > 0) {
-                    LockScreen(langView('mess_load_data', App.Langs));
-                    api_givc.getRequestOfId(id, function (data) {
-
-                        if (data !== null && data.resultRequests !== null) {
-                            var res = JSON.parse(data.resultRequests);
-                            if (res.disl_vag != null) {
-                                curr_data = res.disl_vag;
-                            }
-                            table_table_req1892.view(curr_data);
-                            LockScreenOff();
-                        }
-                    }.bind(this));
+        var getRequests = function (data) {
+            var result = [];
+            if (data !== null && data.resultRequests !== null) {
+                if (data.resultRequests !== 'error_toking') {
+                    var res = JSON.parse(data.resultRequests);
+                    if (res.disl_vag != null) {
+                        result = res.disl_vag;
+                    }
                 } else {
-                    table_table_req1892.view(curr_data);
+                    validation.out_warning_message('При выполнении запроса, произошла ошибка - ' + data.resultRequests)
                 }
 
+            }
+            return result;
+        };
+
+
+        // Отобразить экран с информацией
+        var view_report = function (type, id) {
+            curr_data = [];
+            switch (type) {
+                case 'req1892': {
+                    if (id > 0) {
+                        LockScreen(langView('mess_load_data', App.Langs));
+                        api_givc.getRequestOfId(id, function (data) {
+                            curr_data = getRequests(data);
+                            table_table_req1892.view(curr_data);
+                            LockScreenOff();
+                        }.bind(this));
+                    } else {
+                        table_table_req1892.view(curr_data);
+                        LockScreenOff();
+                    }
+                    break;
+                }
             }
         }
 
@@ -97,7 +115,7 @@
                 last_requests = [];
                 if (cur_type !== '-1') {
                     LockScreen(langView('mess_delay', App.Langs));
-                    api_givc.getRequestOfTypeRequests(cur_type, function (data) {
+                    api_givc.getRequestOfTypeRequests(cur_type, 10, function (data) {
                         $.each(data, function (i, el) {
                             last_requests.push({
                                 'value': el.id,
@@ -148,14 +166,77 @@
 
             }.bind(this),
         });
+        // Инициализация формы 
+        var $form = $('#fm-reguest-givc');
+        var $el_kod_stan_beg = $('#kod_stan_beg');
+        var $el_kod_stan_end = $('#kod_stan_end');
+        var $el_kod_grp_beg = $('#kod_grp_beg');
+        var $el_kod_grp_end = $('#kod_grp_end');
+        //var $el_date_beg = $('#date_beg');
+        //var $el_date_end = $('#date_end');
+        var allFields = $([])
+            .add($el_kod_stan_beg)
+            .add($el_kod_stan_end)
+            .add($el_kod_grp_beg)
+            .add($el_kod_grp_end);
+        //.add($el_date_beg)
+        //.add($el_date_end);
 
-        $('#fm-reguest-givc').submit(function (event) {
+        validation.init({
+            alert: main_alert,
+            elements: allFields,
+        });
+        validation.clear_all();
+        //$el_date_beg.val(moment().subtract(60, 'days').format('DD.MM.YYYY'));
+        //$el_date_end.val(moment().add(1, 'days').format('DD.MM.YYYY'));
+        //$el_date_beg.val('21.01.2024');
+        //$el_date_end.val('22.01.2024');
+
+        $form.submit(function (event) {
             event.preventDefault();
-            var kod_stan_beg = $('#kod_stan_beg').val();
-            var kod_stan_end = $('#kod_stan_end').val();
-            var kod_grp_beg = $('#kod_grp_beg').val();
-            var kod_grp_end = $('#kod_grp_end').val();
-        }); 
+            event.stopPropagation();
+            //validation.check_control_datetime_input($el_date_beg, "Ошибка", "Ок", false);
+            // Выполним запрос
+            LockScreen(langView('mess_load_data', App.Langs));
+            curr_data = [];
+            var parameters = {
+                type_requests: 'req1892',
+                kod_stan_beg: Number($el_kod_stan_beg.val()),
+                kod_stan_end: Number($el_kod_stan_end.val()),
+                kod_grp_beg: Number($el_kod_grp_beg.val()),
+                kod_grp_end: Number($el_kod_grp_end.val()),
+                nom_vag: null,
+                date_beg: null,
+                date_end: null,
+                esr_form: 0,
+                nom_sost: 0,
+                esr_nazn: 0,
+                kod_stan_form: 0,
+                kod_gro: 0,
+                kod_stan_nazn: 0,
+                kod_grp: 0,
+                kod_gruz: 0
+            };
+            api_givc.postGIVC(parameters, function (data) {
+                if (data && data.resultRequests) {
+                    validation.out_info_message('Запрос выполнен, получено ' + data.countLine + ' строк');
+                    var res = JSON.parse(data.resultRequests);
+                    if (res.disl_vag != null) {
+                        curr_data = res.disl_vag;
+                    }
+                    table_table_req1892.view(curr_data);
+                    LockScreenOff();
+                } else {
+                    var message = 'Ошибка!'
+                    if (data.message) {
+                        message = data.message;
+                    }
+                    table_table_req1892.view(curr_data);
+                    validation.out_error_message(message);
+                }
+                LockScreenOff();
+            }.bind(this));
+        });
 
 
         LockScreenOff();

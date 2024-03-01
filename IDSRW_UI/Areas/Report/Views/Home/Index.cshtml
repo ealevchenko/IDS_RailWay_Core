@@ -18,7 +18,7 @@
     <script src="~/js/view/report/main_report.js"></script>
 }
 <main class="container">
-    <div class="alert alert-primary" role="alert">
+    <div class="alert alert-primary" role="alert" id="main-alert">
         A simple primary alert—check it out!
     </div>
     <div class="col-md-12">
@@ -44,7 +44,7 @@
                     <div class="accordion-body">
                         <div class="row mb-2">
                             <div class="col-12">
-                                <form class="row g-3 needs-validation" id="fm-reguest-givc" novalidate>
+                                <form class="row g-3 needs-validation" id="fm-reguest-givc">
                                     <div class="col-md-3">
                                         <label for="kod_stan_beg" class="form-label">Нижня межа кодів ЄМР</label>
                                         <input type="number" class="form-control" id="kod_stan_beg" value="467004" required>
@@ -73,8 +73,22 @@
                                             Введите код одержувача
                                         </div>
                                     </div>
+@*                                    <div class="col-md-2">
+                                        <label for="date_beg" class="form-label">Нижня межа дат відправлення</label>
+                                        <input type="date" class="form-control" id="date_beg" value="01.01.2024" required>
+                                        <div class="valid-feedback">
+                                            Введите дату відправлення
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="date_end" class="form-label">Верхня межа дат відправлення</label>
+                                        <input type="date" class="form-control" id="date_end" value="01.03.2024" required>
+                                        <div class="valid-feedback">
+                                            Введите дату відправлення
+                                        </div>
+                                    </div>*@
                                     <div class="col-12">
-                                        <button class="btn btn-primary" type="submit">Submit form</button>
+                                        <button class="btn btn-primary" type="submit">ВЫПОЛНИТЬ</button>
                                     </div>
                                 </form>
                             </div>

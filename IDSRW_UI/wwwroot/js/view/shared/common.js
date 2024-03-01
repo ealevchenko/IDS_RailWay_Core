@@ -489,6 +489,55 @@ var init_buttons = function (buttons_name, list_buttons) {
         };
         this.init();
     };
+    // Инициализация текстового поля "INPUT"
+    form_element.prototype.init_input = function ($element, options) {
+        this.settings = $.extend({
+            default_value: null,
+            fn_change: null,
+        }, options);
+        this.type = element.attr('type');
+        this.$element = $element;
+        this.init = function () {
+            this.update(this.settings.default_value);
+            if (typeof this.settings.fn_change === 'function') {
+                this.$element.on("change", this.settings.fn_change.bind(this));
+            }
+        };
+        this.val = function (value) {
+            if (value !== undefined) {
+                this.$element.val(value);
+                //this.$element.change();
+            } else {
+                if (this.type === 'number') {
+                    return this.$element.val() !== '' ? Number(this.$element.val()) : null;
+                }
+                if (this.type === 'text') {
+                    return this.$element.val() !== '' ? $.trim(String(this.$element.val())) : null;
+                }
+                if (this.type === 'date') {
+                    return this.$element.val() !== '' ? moment(this.$element.val()) : null;
+                }
+                return this.$element.val();
+            };
+        };
+        this.update = function (default_value) {
+            this.$element.val(default_value);
+        };
+        this.show = function () {
+            this.$element.show();
+        };
+        this.hide = function () {
+            this.$element.hide();
+        };
+        this.enable = function () {
+            this.$element.prop("disabled", false);
+        };
+        this.disable = function (clear) {
+            if (clear) this.$element.val('');
+            this.$element.prop("disabled", true);
+        };
+        this.init();
+    };
 
     form_element.prototype.select = function (options) {
         this.settings = $.extend({
@@ -540,6 +589,331 @@ var init_buttons = function (buttons_name, list_buttons) {
 
     App.form_element = form_element;
 
+
+    //================================================================================
+    // Класс валидации элементов формы
+    function validation_form() {
+
+    }
+
+    validation_form.prototype.init = function (options) {
+        this.settings = $.extend({
+            alert: null,
+            elements: null,
+        }, options);
+        this.type_message = 0; // 0- ок 1-warning 2-error
+        this.$alert = null;
+        if (this.settings.alert && this.settings.alert.$alert) {
+            this.$alert = this.settings.alert.$alert;
+        }
+    };
+
+    validation_form.prototype.clear_all = function (not_clear_message) {
+        if (!not_clear_message) this.clear_message();
+        this.clear_error();
+    };
+    // Очистить все ошибки
+    validation_form.prototype.clear_error = function (obj) {
+        if (obj) {
+            obj.removeClass('is-valid is-invalid');
+        } else {
+            if (this.settings.elements && this.settings.elements.length > 0) {
+                this.settings.elements.each(function () {
+                    $(this).removeClass('is-valid is-invalid').nextAll(".invalid-feedback").text('');
+                });
+            };
+        };
+    };
+    // Очистить сообщения
+    validation_form.prototype.clear_message = function () {
+        if (this.$alert) {
+            this.$alert.hide().text('').removeClass('alert-success alert-warning alert-danger');
+            this.type_message = 0;
+        }
+    };
+    // Вывести сообщение об ошибке
+    validation_form.prototype.out_error_message = function (message) {
+        if (this.$alert) {
+            if (this.type_message <= 1) {
+                this.$alert.show().removeClass('alert-success alert-warning').addClass('alert-danger');
+                this.type_message = 2;
+            }
+            if (message) {
+                this.$alert.append(message).append($('<br />'));
+            }
+        }
+    };
+    // Вывести сообщение внимание
+    validation_form.prototype.out_warning_message = function (message) {
+        if (this.$alert) {
+            if (this.type_message <= 0) {
+                this.$alert.show().removeClass('alert-success alert-danger').addClass('alert-warning');
+                this.type_message = 1;
+            }
+            if (message) {
+                this.$alert.append(message).append($('<br />'));
+            }
+        }
+    };
+    // Вывести информационное сообщение
+    validation_form.prototype.out_info_message = function (message) {
+        if (this.$alert) {
+            if (this.type_message === 0) {
+                this.$alert.show().removeClass('alert-warning alert-danger').addClass('alert-success');
+            }
+            if (message) {
+                this.$alert.text(message).append($('<br />'));
+            }
+        }
+    };
+    //
+    validation_form.prototype.set_control_error = function (o, message) {
+        o.removeClass('is-valid').addClass('is-invalid');
+        if (message) {
+            o.nextAll(".invalid-feedback").text(message);
+        } else { o.nextAll(".invalid-feedback").text('') };
+    };
+    // Установить признак Ok
+    validation_form.prototype.set_control_ok = function (o, message) {
+        o.removeClass('is-invalid').addClass('is-valid');
+        if (message) {
+            o.nextAll(".valid-feedback").text(message);
+        } else { o.nextAll(".invalid-feedback").text('') };
+    };
+    // Установить признак ошибка
+    validation_form.prototype.set_object_error = function (o, mes_error) {
+        this.set_control_error(o, mes_error);
+        this.out_error_message(mes_error);
+        return false;
+    };
+    // Установить признак ок
+    validation_form.prototype.set_object_ok = function (o, mes_ok) {
+        this.set_control_ok(o, mes_ok);
+        this.out_info_message(mes_ok);
+        return true;
+    };
+    // --------------------------------------------------------------------------
+    // Установить признак ошибка
+    validation_form.prototype.set_form_element_error = function (o, mes_error, out_message) {
+        this.set_control_error(o.$element, mes_error);
+        if (out_message) this.out_error_message(mes_error);
+        return false;
+    };
+    // Установить признак ок
+    validation_form.prototype.set_form_element_ok = function (o, mes_ok, out_message) {
+        this.set_control_ok(o.$element, mes_ok);
+        if (out_message) this.out_info_message(mes_ok);
+        return true;
+    };
+    // Проверка на условие если true-Ок, false - error
+    validation_form.prototype.check_control_condition = function (result, o, mes_error, mes_ok, out_message) {
+        if (result) {
+            this.set_control_ok(o.$element, mes_ok);
+            if (out_message) this.out_info_message(mes_ok);
+            return true;
+        } else {
+            this.set_control_error(o.$element, mes_error);
+            if (out_message) this.out_error_message(mes_error);
+            return false;
+        }
+    };
+    // Проверка на пустое значение "INPUT"
+    validation_form.prototype.check_control_input_not_null = function (o, mes_error, mes_ok, out_message) {
+        var val = o.val();
+        if (o.val() !== null && o.val() !== '') {
+            this.set_control_ok(o.$element, mes_ok);
+            if (out_message) this.out_info_message(mes_ok);
+            return true;
+        } else {
+            this.set_control_error(o.$element, mes_error);
+            if (out_message) this.out_error_message(mes_error);
+            return false;
+        }
+    };
+    // Проверим Input введенное значение входит в диапазон (пустое значение - не допускается)
+    validation_form.prototype.checkInputOfRange = function (o, min, max, mes_error, mes_ok, out_message) {
+        if (o.val() !== '' && o.val() !== null) {
+            var value = Number(o.val());
+            if (isNaN(value) || value > max || value < min) {
+                this.set_control_error(o.$element, mes_error);
+                if (out_message) this.out_error_message(mes_error);
+                return false;
+            } else {
+                this.set_control_ok(o.$element, mes_ok);
+                if (out_message) this.out_info_message(mes_ok);
+                return true;
+            }
+        } else {
+            this.set_control_error(o.$element, mes_error);
+            if (out_message) this.out_error_message(mes_error);
+            return false;
+        }
+    };
+    // Проверим Input введенное значение входит в диапазон (пустое значение - допускается)
+    validation_form.prototype.checkInputOfRange_IsNull = function (o, min, max, mes_error, mes_ok, out_message) {
+        if (o.val() !== '' && o.val() !== null) {
+            var value = Number(o.val());
+            if (isNaN(value) || value > max || value < min) {
+                this.set_control_error(o.$element, mes_error);
+                if (out_message) this.out_error_message(mes_error);
+                return false;
+            } else {
+                this.set_control_ok(o.$element, mes_ok);
+                if (out_message) this.out_info_message(mes_ok);
+                return true;
+            }
+        } else {
+            this.set_control_ok(o.$element, mes_ok);
+            if (out_message) this.out_info_message(mes_ok);
+            return true;
+        }
+    };
+    // Проверка на пустое значение "SELECT"
+    validation_form.prototype.check_control_select_not_null = function (o, mes_error, mes_ok, out_message) {
+        if (Number(o.val()) >= 0) {
+            this.set_control_ok(o.$element, mes_ok);
+            if (out_message) this.out_info_message(mes_ok);
+            return true;
+        } else {
+            this.set_control_error(o.$element, mes_error);
+            if (out_message) this.out_error_message(mes_error);
+            return false;
+        }
+    };
+    // Проверить элемент "autocomplete" на введенное значение
+    validation_form.prototype.check_control_autocomplete = function (o, mes_error, mes_ok, mes_null, out_message) {
+        if (o.text()) {
+            var s = o.val();
+            var s1 = o.text();
+            if (o.val() !== null) {
+                this.set_control_ok(o.$element, mes_ok);
+                if (out_message) this.out_info_message(mes_ok);
+                return true;
+            } else {
+                this.set_control_error(o.$element, mes_error);
+                if (out_message) this.out_error_message(mes_error);
+                return false;
+            }
+        } else {
+            this.set_control_error(o.$element, mes_null);
+            if (out_message) this.out_error_message(mes_null);
+            return false;
+        }
+    };
+    // Проверить элемент "autocomplete" на введенное значение (c учетом value = null)
+    validation_form.prototype.check_control_autocomplete_is_value_null = function (o, mes_error, mes_ok, mes_null, out_message) {
+        if (o.text()) {
+            var s = o.val();
+            if (o.val() !== undefined) {
+                this.set_control_ok(o.$element, mes_ok);
+                if (out_message) this.out_info_message(mes_ok);
+                return true;
+            } else {
+                this.set_control_error(o.$element, mes_error);
+                if (out_message) this.out_error_message(mes_error);
+                return false;
+            }
+        } else {
+            this.set_control_error(o.$element, mes_null);
+            if (out_message) this.out_error_message(mes_null);
+            return false;
+        }
+    };
+    // Проверить элемент "autocomplete" на введенное значение
+    validation_form.prototype.check_control_autocomplete_null = function (o, mes_error, mes_ok, out_message) {
+        if (o.text()) {
+            if (o.val()) {
+                this.set_control_ok(o.$element, mes_ok);
+                if (out_message) this.out_info_message(mes_ok);
+                return true;
+            } else {
+                this.set_control_error(o.$element, mes_error);
+                if (out_message) this.out_error_message(mes_error);
+                return false;
+            }
+        } else {
+            this.set_control_ok(o.$element, mes_ok);
+            if (out_message) this.out_info_message(mes_ok);
+            return true;
+        }
+    };
+    // Проверить элемент "datetime_input" на введенное значение
+    validation_form.prototype.check_control_datetime_input = function (o, mes_error, mes_ok, out_message) {
+        var datetime = moment(o.val());
+        var element = o.$element ? o.$element : o;
+        if (!datetime.isValid()) {
+            this.set_control_error(element, mes_error);
+            if (out_message) this.out_error_message(mes_error);
+            return false;
+        } else {
+            this.set_control_ok(element, mes_ok);
+            if (out_message) this.out_info_message(mes_ok);
+            return true;
+        }
+    };
+    // Проверить элемент "datetime_input" на введенное значение (с подержкой пустого значения)
+    validation_form.prototype.check_control_datetime_input_null = function (o, mes_error, mes_ok, out_message) {
+        if (o.val() !== null && o.val() !== '') {
+            var datetime = moment(o.val());
+            if (!datetime.isValid()) {
+                this.set_control_error(o.$element, mes_error);
+                if (out_message) this.out_error_message(mes_error);
+                return false;
+            } else {
+                this.set_control_ok(o.$element, mes_ok);
+                if (out_message) this.out_info_message(mes_ok);
+                return true;
+            }
+        } else {
+            this.set_control_ok(o.$element, mes_ok);
+            if (out_message) this.out_info_message(mes_ok);
+            return true;
+        }
+
+    };
+
+    App.validation_form = validation_form;
+
+    //================================================================================
+    // Класс вывода сообщений (Алерт)
+    var alert_form = function ($alert) {
+        if (!$alert) {
+            throw new Error('Не указан элемент $alert');
+        }
+        if ($alert.length === 0) {
+            throw new Error('Элемент $alert - неопределен');
+        }
+        this.$alert = $alert;
+        //this.selector = this.$alert.attr('id');
+        this.clear_message();
+    };
+    // Очистить сообщения
+    alert_form.prototype.clear_message = function () {
+        this.$alert.hide().text('').removeClass('alert-success alert-warning alert-danger');
+    };
+    // Вывести сообщение об ошибке
+    alert_form.prototype.out_error_message = function (message) {
+        this.$alert.show().removeClass('alert-success alert-warning').addClass('alert-danger');
+        if (message) {
+            this.$alert.append(message).append($('<br />'));
+        }
+    };
+    // Вывести сообщение об ошибке
+    alert_form.prototype.out_warning_message = function (message) {
+        this.$alert.show().removeClass('alert-success alert-danger').addClass('alert-warning');
+        if (message) {
+            this.$alert.append(message).append($('<br />'));
+        }
+    };
+    // Вывести информационное сообщение
+    alert_form.prototype.out_info_message = function (message) {
+        this.$alert.show().removeClass('alert-danger alert-warning').addClass('alert-success');
+        if (message) {
+            this.$alert.append(message).append($('<br />'));
+        }
+    };
+
+    App.alert_form = alert_form;
 
     window.App = App;
 
