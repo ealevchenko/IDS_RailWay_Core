@@ -34,9 +34,9 @@ try
 
     app.UseAuthorization();
 
-    //app.UsePathBase("/IDSRW_UI");
+    app.UsePathBase("/IDSRW_UI");
 
-    //app.MapControllers();
+    app.MapControllers();
 
     //app.UseRouting(routes =>
     //{
@@ -65,11 +65,11 @@ try
 
     //app.UseAuthorization();
 
-    app.MapControllerRoute(
-            name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}",
-            defaults: new { controller = "Home", action = "Index" },
-            dataTokens: new { pathBase = "/IDSRW_UI" });
+    //app.MapControllerRoute(
+    //        name: "default",
+    //        pattern: "{controller=Home}/{action=Index}/{id?}",
+    //        defaults: new { controller = "Home", action = "Index" },
+    //        dataTokens: new { pathBase = "/IDSRW_UI" });
     //app.MapAreaControllerRoute(
     //    name: "areas",
     //    areaName: "default",
