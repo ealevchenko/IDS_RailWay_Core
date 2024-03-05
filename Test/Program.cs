@@ -76,7 +76,7 @@ namespace HelloApp
                 TestGIVC tGIVC = new TestGIVC(logger, config);
                 // ====== ЗАПРОСЫ !!! БАБЛО !!! =========
                 //tGIVC.Req0002();
-                //tGIVC.Req1892();
+                tGIVC.Req1892();
                 //tGIVC.Req1091();
                 //tGIVC.Req4373();
                 //tGIVC.Req7002();

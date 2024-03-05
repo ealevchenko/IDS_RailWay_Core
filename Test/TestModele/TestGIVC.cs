@@ -381,9 +381,10 @@ namespace TestCore.TestModele
             if (client_givc != null)
             {
                 //reqDisvag res = client_givc.GetReqDisvag(454606, 8887, 467004, 7932, 161113);
-                reqDisvag res = client_givc.GetReqDisvag("24432974", 481904, 4742, 467004, 7932, 161043);
+                DateTime dt = DateTime.Now;
+                reqDisvag res = client_givc.GetReqDisvag("24432974", 454606, 8887, 467004, 7932, 161113);
                 //reqDisvag res = client_givc.GetReqDisvag("24432974", 7932);
-                string path = @"D:\ГИВС\reqDisvag.txt";
+                string path = @"D:\ГИВС\reqDisvag_"+ dt.ToString("ddMMyyyy_HHmm") + ".txt";
                 using (StreamWriter writer = new StreamWriter(path, false))
                 {
                     string str_field =
