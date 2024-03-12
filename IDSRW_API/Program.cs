@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
 using WebAPI.Repositories;
 using WebAPI.Repositories.Arrival;
+using WebAPI.Repositories.Directory;
 using WebAPI.Repositories.GIVC;
 using NLog;
 using NLog.Web;
+
 
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("init main");
@@ -33,7 +35,11 @@ try
 
     builder.Services.AddScoped<ILongRepository<ArrivalCar>, ArrivalCarRepository>();
     builder.Services.AddScoped<ILongRepository<ArrivalSostav>, ArrivalSostavRepository>();
+    builder.Services.AddScoped<IRepository<DirectoryCargoEtsng>, DirectoryCargoEtsngRepository>();
+    builder.Services.AddScoped<IRepository<DirectoryCargo>, DirectoryCargoRepository>();
+    builder.Services.AddScoped<IRepository<DirectoryCargoGroup>, DirectoryCargoGroupRepository>();
     builder.Services.AddScoped<IRepository<GivcRequest>, GIVCRepository>();
+
     //builder.Services.AddScoped<EF_IDS.Abstract.IRepository<GivcRequest>, EFGivcRequest>();
 
 
