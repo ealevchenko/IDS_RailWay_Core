@@ -46,7 +46,7 @@ namespace WebAPI.Controllers.Directory
         }
         // GET: DirectoryCargo
         [HttpGet("list")]
-        public async Task<ActionResult<IEnumerable<DirectoryCargo>>> GetListDirectoryCargo()
+        public async Task<ActionResult<IEnumerable<Directory_Cargo>>> GetListDirectoryCargo()
         {
             try
             {
