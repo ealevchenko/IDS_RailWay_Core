@@ -1,92 +1,106 @@
-﻿using EF_IDS.Entities;
+﻿using EF_IDS.Concrete;
+using EF_IDS.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 using WebAPI.Repositories;
 using WebAPI.Repositories.Directory;
 
 namespace WebAPI.Controllers.Directory
 {
+
     [Route("[controller]")]
     [ApiController]
     public class DirectoryCargoGroupController : ControllerBase
     {
-        private IRepository<DirectoryCargoGroup> repo;
+        private EFDbContext db;
 
-        // конструктор вводит зарегистрированный репозиторий
-        public DirectoryCargoGroupController(IRepository<DirectoryCargoGroup> repo)
+        public DirectoryCargoGroupController(EFDbContext db)
         {
-            this.repo = repo;
+            this.db = db;
         }
-
-        // GET: api/DirectoryCargoGroup
+        // GET: DirectoryCargoGroup
         [HttpGet]
-        public async Task<IEnumerable<DirectoryCargoGroup>> GetDirectoryCargoGroup()
+        public async Task<ActionResult<IEnumerable<DirectoryCargoGroup>>> GetDirectoryCargoGroup()
         {
-            return await repo.RetrieveAllAsync();
+            return await db.DirectoryCargoGroups.ToListAsync();
         }
-        // GET: api/DirectoryCargoGroup/[id]
-        [HttpGet("{id}", Name = "GetDirectoryCargoGroup")]
-        public async Task<IActionResult> GetDirectoryCargoGroup(int id)
+        // GET: DirectoryCargoGroup
+        [HttpGet("list")]
+        public async Task<ActionResult<IEnumerable<DirectoryCargoGroup>>> GetListDirectoryCargoGroup()
         {
-            DirectoryCargoGroup c = await repo.RetrieveAsync(id);
-            if (c == null)
+            try
             {
-                return NotFound(); // 404 Resource not found
+                //db.Database.CommandTimeout = 100;
+                List<DirectoryCargoGroup> result = await db.DirectoryCargoGroups.FromSql($"select * from [IDS].[Directory_CargoGroup]").ToListAsync();    //i.SqlQuery<Directory_Cargo>($"select * from [IDS].[Directory_Cargo]").ToListAsync();
+                if (result == null)
+                    return NotFound();
+                //db.Database.CommandTimeout = null;               
+                return Ok(result);
             }
-            return new ObjectResult(c); // 200 OK
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
-
-        // POST: api/DirectoryCargoGroup
+        // GET: DirectoryCargoGroup/[id]
+        [HttpGet("{id}")]
+        public async Task<ActionResult<DirectoryCargoGroup>> GetDirectoryCargoGroup(int id)
+        {
+            DirectoryCargoGroup result = await db.DirectoryCargoGroups.FirstOrDefaultAsync(x => x.Id == id);
+            if (result == null)
+                return NotFound();
+            return new ObjectResult(result);
+        }
+        // POST: DirectoryCargoGroup
         // BODY: DirectoryCargoGroup (JSON, XML)
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] DirectoryCargoGroup c)
+        public async Task<ActionResult<DirectoryCargoGroup>> PostDirectoryCargoGroup([FromBody] DirectoryCargoGroup obj)
         {
-            if (c == null)
-            {
-                return BadRequest(); // 400 Bad request
-            }
-            DirectoryCargoGroup added = await repo.CreateAsync(c);
-            return CreatedAtRoute("GetDirectoryCargoGroup", new { id = added.Id }, c); // 201 Created
-        }
-
-        // PUT: api/DirectoryCargoGroup/[id]
-        // BODY: DirectoryCargoGroup (JSON, XML)
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] DirectoryCargoGroup c)
-        {
-            if (c == null || c.Id != id)
-            {
-                return BadRequest(); // 400 Bad request
-            }
-            var existing = await repo.RetrieveAsync(id);
-            if (existing == null)
-            {
-                return NotFound(); // 404 Resource not found
-            }
-            await repo.UpdateAsync(id, c);
-            return new NoContentResult(); // 204 No content
-        }
-
-        // DELETE: api/DirectoryCargoGroup/[id]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var existing = await repo.RetrieveAsync(id);
-            if (existing == null)
-            {
-                return NotFound(); // 404 Resource not found
-            }
-            bool deleted = await repo.DeleteAsync(id);
-            if (deleted)
-            {
-                return new NoContentResult(); // 204 No content
-            }
-            else
+            if (obj == null)
             {
                 return BadRequest();
             }
+            db.DirectoryCargoGroups.Add(obj);
+            await db.SaveChangesAsync();
+            return Ok(obj);
         }
 
+        // PUT DirectoryCargoGroup/
+        // BODY: DirectoryCargoGroup (JSON, XML)
+        [HttpPut]
+        public async Task<ActionResult<DirectoryCargoGroup>> PutDirectoryCargoGroup(DirectoryCargoGroup obj)
+        {
+            if (obj == null)
+            {
+                return BadRequest();
+            }
+            if (!db.DirectoryCargoGroups.Any(x => x.Id == obj.Id))
+            {
+                return NotFound();
+            }
+
+            db.Update(obj);
+            await db.SaveChangesAsync();
+            return Ok(obj);
+        }
+
+        // DELETE DirectoryCargoGroup/[id]
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<DirectoryCargoGroup>> DeleteDirectoryCargoGroup(int id)
+        {
+            DirectoryCargoGroup result = db.DirectoryCargoGroups.FirstOrDefault(x => x.Id == id);
+            if (result == null)
+            {
+                return NotFound();
+            }
+            db.DirectoryCargoGroups.Remove(result);
+            await db.SaveChangesAsync();
+            return Ok(result);
+        }
     }
 }

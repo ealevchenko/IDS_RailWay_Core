@@ -18,7 +18,9 @@ try
 {
 
     var builder = WebApplication.CreateBuilder(args);
-
+    IConfiguration Configuration = builder.Configuration;
+    var connectionString = Configuration["ConnectionStrings:IDS"];
+    builder.Services.AddDbContext<EFDbContext>(x => x.UseSqlServer(connectionString));
     // Add services to the container.
     builder.Services.AddControllers();
     // NLog: Setup NLog for Dependency injection
@@ -27,18 +29,13 @@ try
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
-
-    IConfiguration Configuration = builder.Configuration;
-    var connectionString = Configuration["ConnectionStrings:IDS"];
-
-    builder.Services.AddDbContext<EFDbContext>(x => x.UseSqlServer(connectionString));
-
     builder.Services.AddScoped<ILongRepository<ArrivalCar>, ArrivalCarRepository>();
     builder.Services.AddScoped<ILongRepository<ArrivalSostav>, ArrivalSostavRepository>();
-    builder.Services.AddScoped<IRepository<DirectoryCargoEtsng>, DirectoryCargoEtsngRepository>();
-    builder.Services.AddScoped<IRepository<DirectoryCargo>, DirectoryCargoRepository>();
-    builder.Services.AddScoped<IRepository<DirectoryCargoGroup>, DirectoryCargoGroupRepository>();
+    //builder.Services.AddScoped<IRepository<DirectoryCargoEtsng>, DirectoryCargoEtsngRepository>();
+    //builder.Services.AddScoped<IRepository<DirectoryCargo>, DirectoryCargoRepository>();
+    //builder.Services.AddScoped<IRepository<DirectoryCargoGroup>, DirectoryCargoGroupRepository>();
     builder.Services.AddScoped<IRepository<GivcRequest>, GIVCRepository>();
+
 
     //builder.Services.AddScoped<EF_IDS.Abstract.IRepository<GivcRequest>, EFGivcRequest>();
 
