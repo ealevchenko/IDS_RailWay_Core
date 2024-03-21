@@ -71,51 +71,51 @@ namespace WebAPI.Controllers.Directory
                 return NotFound();
             return new ObjectResult(result);
         }
-        // POST: DirectoryCargo
-        // BODY: DirectoryCargo (JSON, XML)
-        [HttpPost]
-        public async Task<ActionResult<DirectoryCargo>> PostDirectoryCargo([FromBody] DirectoryCargo obj)
-        {
-            if (obj == null)
-            {
-                return BadRequest();
-            }
-            db.DirectoryCargos.Add(obj);
-            await db.SaveChangesAsync();
-            return Ok(obj);
-        }
+        //// POST: DirectoryCargo
+        //// BODY: DirectoryCargo (JSON, XML)
+        //[HttpPost]
+        //public async Task<ActionResult<DirectoryCargo>> PostDirectoryCargo([FromBody] DirectoryCargo obj)
+        //{
+        //    if (obj == null)
+        //    {
+        //        return BadRequest();
+        //    }
+        //    db.DirectoryCargos.Add(obj);
+        //    await db.SaveChangesAsync();
+        //    return Ok(obj);
+        //}
 
-        // PUT DirectoryCargo/
-        // BODY: DirectoryCargo (JSON, XML)
-        [HttpPut]
-        public async Task<ActionResult<DirectoryCargo>> PutDirectoryCargo(DirectoryCargo obj)
-        {
-            if (obj == null)
-            {
-                return BadRequest();
-            }
-            if (!db.DirectoryCargos.Any(x => x.Id == obj.Id))
-            {
-                return NotFound();
-            }
+        //// PUT DirectoryCargo/
+        //// BODY: DirectoryCargo (JSON, XML)
+        //[HttpPut]
+        //public async Task<ActionResult<DirectoryCargo>> PutDirectoryCargo(DirectoryCargo obj)
+        //{
+        //    if (obj == null)
+        //    {
+        //        return BadRequest();
+        //    }
+        //    if (!db.DirectoryCargos.Any(x => x.Id == obj.Id))
+        //    {
+        //        return NotFound();
+        //    }
 
-            db.Update(obj);
-            await db.SaveChangesAsync();
-            return Ok(obj);
-        }
+        //    db.Update(obj);
+        //    await db.SaveChangesAsync();
+        //    return Ok(obj);
+        //}
 
-        // DELETE DirectoryCargo/[id]
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<DirectoryCargo>> DeleteDirectoryCargo(int id)
-        {
-            DirectoryCargo result = db.DirectoryCargos.FirstOrDefault(x => x.Id == id);
-            if (result == null)
-            {
-                return NotFound();
-            }
-            db.DirectoryCargos.Remove(result);
-            await db.SaveChangesAsync();
-            return Ok(result);
-        }
+        //// DELETE DirectoryCargo/[id]
+        //[HttpDelete("{id}")]
+        //public async Task<ActionResult<DirectoryCargo>> DeleteDirectoryCargo(int id)
+        //{
+        //    DirectoryCargo result = db.DirectoryCargos.FirstOrDefault(x => x.Id == id);
+        //    if (result == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    db.DirectoryCargos.Remove(result);
+        //    await db.SaveChangesAsync();
+        //    return Ok(result);
+        //}
     }
 }

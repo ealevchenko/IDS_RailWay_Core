@@ -56,51 +56,51 @@ namespace WebAPI.Controllers.Directory
                 return NotFound();
             return new ObjectResult(result);
         }
-        // POST: DirectoryCargoGroup
-        // BODY: DirectoryCargoGroup (JSON, XML)
-        [HttpPost]
-        public async Task<ActionResult<DirectoryCargoGroup>> PostDirectoryCargoGroup([FromBody] DirectoryCargoGroup obj)
-        {
-            if (obj == null)
-            {
-                return BadRequest();
-            }
-            db.DirectoryCargoGroups.Add(obj);
-            await db.SaveChangesAsync();
-            return Ok(obj);
-        }
+        //// POST: DirectoryCargoGroup
+        //// BODY: DirectoryCargoGroup (JSON, XML)
+        //[HttpPost]
+        //public async Task<ActionResult<DirectoryCargoGroup>> PostDirectoryCargoGroup([FromBody] DirectoryCargoGroup obj)
+        //{
+        //    if (obj == null)
+        //    {
+        //        return BadRequest();
+        //    }
+        //    db.DirectoryCargoGroups.Add(obj);
+        //    await db.SaveChangesAsync();
+        //    return Ok(obj);
+        //}
 
-        // PUT DirectoryCargoGroup/
-        // BODY: DirectoryCargoGroup (JSON, XML)
-        [HttpPut]
-        public async Task<ActionResult<DirectoryCargoGroup>> PutDirectoryCargoGroup(DirectoryCargoGroup obj)
-        {
-            if (obj == null)
-            {
-                return BadRequest();
-            }
-            if (!db.DirectoryCargoGroups.Any(x => x.Id == obj.Id))
-            {
-                return NotFound();
-            }
+        //// PUT DirectoryCargoGroup/
+        //// BODY: DirectoryCargoGroup (JSON, XML)
+        //[HttpPut]
+        //public async Task<ActionResult<DirectoryCargoGroup>> PutDirectoryCargoGroup(DirectoryCargoGroup obj)
+        //{
+        //    if (obj == null)
+        //    {
+        //        return BadRequest();
+        //    }
+        //    if (!db.DirectoryCargoGroups.Any(x => x.Id == obj.Id))
+        //    {
+        //        return NotFound();
+        //    }
 
-            db.Update(obj);
-            await db.SaveChangesAsync();
-            return Ok(obj);
-        }
+        //    db.Update(obj);
+        //    await db.SaveChangesAsync();
+        //    return Ok(obj);
+        //}
 
-        // DELETE DirectoryCargoGroup/[id]
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<DirectoryCargoGroup>> DeleteDirectoryCargoGroup(int id)
-        {
-            DirectoryCargoGroup result = db.DirectoryCargoGroups.FirstOrDefault(x => x.Id == id);
-            if (result == null)
-            {
-                return NotFound();
-            }
-            db.DirectoryCargoGroups.Remove(result);
-            await db.SaveChangesAsync();
-            return Ok(result);
-        }
+        //// DELETE DirectoryCargoGroup/[id]
+        //[HttpDelete("{id}")]
+        //public async Task<ActionResult<DirectoryCargoGroup>> DeleteDirectoryCargoGroup(int id)
+        //{
+        //    DirectoryCargoGroup result = db.DirectoryCargoGroups.FirstOrDefault(x => x.Id == id);
+        //    if (result == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    db.DirectoryCargoGroups.Remove(result);
+        //    await db.SaveChangesAsync();
+        //    return Ok(result);
+        //}
     }
 }
