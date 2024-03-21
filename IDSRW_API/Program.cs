@@ -9,7 +9,7 @@ using WebAPI.Repositories.Directory;
 using WebAPI.Repositories.GIVC;
 using NLog;
 using NLog.Web;
-
+using System.Text.Json.Serialization;
 
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("init main");
@@ -22,7 +22,10 @@ try
     var connectionString = Configuration["ConnectionStrings:IDS"];
     builder.Services.AddDbContext<EFDbContext>(x => x.UseSqlServer(connectionString));
     // Add services to the container.
-    builder.Services.AddControllers();
+    builder.Services.AddControllers().AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles; // игнорируем циклические сылки
+    });
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
