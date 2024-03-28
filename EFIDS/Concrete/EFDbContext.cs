@@ -141,6 +141,7 @@ public partial class EFDbContext : DbContext
     public virtual DbSet<DirectoryWagonManufacturer> DirectoryWagonManufacturers { get; set; }
 
     public virtual DbSet<DirectoryWagonOperation> DirectoryWagonOperations { get; set; }
+    public virtual DbSet<DirectoryWagonOperationsUz> DirectoryWagonOperationsUzs { get; set; }
 
     public virtual DbSet<DirectoryWagonsCondition> DirectoryWagonsConditions { get; set; }
 
