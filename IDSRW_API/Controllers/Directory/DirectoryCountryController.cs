@@ -28,7 +28,7 @@ namespace WebAPI.Controllers.Directory
         {
             return await db.DirectoryCountrys.ToListAsync();
         }
-        // GET: DirectoryCountry
+        // GET: DirectoryCountry/list
         [HttpGet("list")]
         public async Task<ActionResult<IEnumerable<DirectoryCountry>>> GetListDirectoryCountry()
         {
