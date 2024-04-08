@@ -1,5 +1,6 @@
 ﻿using EF_IDS.Concrete;
 using EF_IDS.Entities;
+using EF_IDS.Functions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +30,7 @@ namespace WebAPI.Controllers.Directory
         {
             return await db.DirectoryStations.ToListAsync();
         }
-        // GET: DirectoryStation
+        // GET: DirectoryStation/list
         [HttpGet("list")]
         public async Task<ActionResult<IEnumerable<DirectoryStation>>> GetListDirectoryStation()
         {
@@ -37,6 +38,24 @@ namespace WebAPI.Controllers.Directory
             {
                 //db.Database.CommandTimeout = 100;
                 List<DirectoryStation> result = await db.DirectoryStations.FromSql($"select * from [IDS].[Directory_Station]").ToListAsync();    //i.SqlQuery<Directory_Station>($"select * from [IDS].[Directory_Station]").ToListAsync();
+                if (result == null)
+                    return NotFound();
+                //db.Database.CommandTimeout = null;               
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        // GET: DirectoryStation/status
+        [HttpGet("status")]
+        public async Task<ActionResult<IEnumerable<ViewStatusAllStation>>> GetStatusDirectoryStation()
+        {
+            try
+            {
+                //db.Database.CommandTimeout = 100;
+                List<ViewStatusAllStation> result = await db.getViewStatusAllStation().ToListAsync();//   .FromSql($"select * from [IDS].[get_view_status_all_station]()").ToListAsync();
                 if (result == null)
                     return NotFound();
                 //db.Database.CommandTimeout = null;               

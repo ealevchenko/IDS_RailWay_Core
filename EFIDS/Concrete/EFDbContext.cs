@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using EF_IDS.Entities;
+using EF_IDS.Functions;
 using Microsoft.EntityFrameworkCore;
 
 namespace EF_IDS.Concrete;
@@ -210,12 +211,16 @@ public partial class EFDbContext : DbContext
 
     public virtual DbSet<WebView> WebViews { get; set; }
 
+    public IQueryable<ViewStatusAllStation> getViewStatusAllStation()  => FromExpression(() => getViewStatusAllStation());
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("data source=krr-sql-paclx03;initial catalog=KRR-PA-CNT-Railway;integrated security=True;TrustServerCertificate=true");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasDbFunction(() => getViewStatusAllStation()).HasSchema("IDS").HasName("get_view_status_all_station");
+
         modelBuilder.Entity<ArrivalCar>(entity =>
         {
             entity.HasOne(d => d.IdArrivalNavigation).WithMany(p => p.ArrivalCars).HasConstraintName("FK_ArrivalCars_ArrivalSostav");
