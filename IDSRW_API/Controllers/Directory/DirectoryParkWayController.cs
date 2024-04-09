@@ -16,28 +16,28 @@ namespace WebAPI.Controllers.Directory
 
     [Route("[controller]")]
     [ApiController]
-    public class DirectoryStationController : ControllerBase
+    public class DirectoryParkWayController : ControllerBase
     {
         private EFDbContext db;
 
-        public DirectoryStationController(EFDbContext db)
+        public DirectoryParkWayController(EFDbContext db)
         {
             this.db = db;
         }
-        // GET: DirectoryStation
+        // GET: DirectoryParkWay
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DirectoryStation>>> GetDirectoryStation()
+        public async Task<ActionResult<IEnumerable<DirectoryParkWay>>> GetDirectoryParkWay()
         {
-            return await db.DirectoryStations.ToListAsync();
+            return await db.DirectoryParkWays.ToListAsync();
         }
-        // GET: DirectoryStation/list
+        // GET: DirectoryParkWay/list
         [HttpGet("list")]
-        public async Task<ActionResult<IEnumerable<DirectoryStation>>> GetListDirectoryStation()
+        public async Task<ActionResult<IEnumerable<DirectoryParkWay>>> GetListDirectoryParkWay()
         {
             try
             {
                 //db.Database.CommandTimeout = 100;
-                List<DirectoryStation> result = await db.DirectoryStations.FromSql($"select * from [IDS].[Directory_Station]").ToListAsync();    //i.SqlQuery<Directory_Station>($"select * from [IDS].[Directory_Station]").ToListAsync();
+                List<DirectoryParkWay> result = await db.DirectoryParkWays.FromSql($"select * from [IDS].[Directory_ParkWays]").ToListAsync();    //i.SqlQuery<Directory_Station>($"select * from [IDS].[Directory_Station]").ToListAsync();
                 if (result == null)
                     return NotFound();
                 //db.Database.CommandTimeout = null;               
@@ -48,17 +48,15 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        // GET: DirectoryStation/status
-        [HttpGet("status")]
-        public async Task<ActionResult<IEnumerable<ViewStatusStation>>> GetStatusDirectoryStation()
+        // GET: DirectoryParkWay/status/station/1
+        [HttpGet("status/station/{id_station}")]
+        public async Task<ActionResult<IEnumerable<ViewStatusParkWay>>> getViewStatusAllParkOfStationId(int id_station)
         {
             try
             {
-                //db.Database.CommandTimeout = 100;
-                List<ViewStatusStation> result = await db.getViewStatusAllStation().ToListAsync();//   .FromSql($"select * from [IDS].[get_view_status_all_station]()").ToListAsync();
+                List<ViewStatusParkWay> result = await db.getViewStatusAllParkOfStationId(id_station).ToListAsync();
                 if (result == null)
                     return NotFound();
-                //db.Database.CommandTimeout = null;               
                 return Ok(result);
             }
             catch (Exception e)
@@ -66,13 +64,13 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        // GET: DirectoryStation/status/1
-        [HttpGet("status/{id}")]
-        public async Task<ActionResult<ViewStatusStation>> GetStatusDirectoryStation(int id)
+        // GET: DirectoryParkWay/station/1/park/84
+        [HttpGet("status/station/{id_station}/park/{id_park}")]
+        public async Task<ActionResult<ViewStatusParkWay>> GetStatusDirectoryStation(int id_station, int id_park)
         {
             try
             {
-                ViewStatusStation result = await db.getViewStatusStationOfId(id).FirstOrDefaultAsync();//   .FromSql($"select * from [IDS].[get_view_status_all_station]()").ToListAsync();
+                ViewStatusParkWay result = await db.getViewStatusParkOfId(id_station, id_park).FirstOrDefaultAsync();
                 if (result == null)
                     return NotFound();
                 return new ObjectResult(result);
@@ -82,40 +80,39 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-
-        // GET: DirectoryStation/[id]
+        // GET: DirectoryParkWay/[id]
         [HttpGet("{id}")]
-        public async Task<ActionResult<DirectoryStation>> GetDirectoryStation(int id)
+        public async Task<ActionResult<DirectoryParkWay>> GetDirectoryParkWay(int id)
         {
-            DirectoryStation result = await db.DirectoryStations.FirstOrDefaultAsync(x => x.Id == id);
+            DirectoryParkWay result = await db.DirectoryParkWays.FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);
         }
-        //// POST: DirectoryStation
-        //// BODY: DirectoryStation (JSON, XML)
+        //// POST: DirectoryParkWay
+        //// BODY: DirectoryParkWay (JSON, XML)
         //[HttpPost]
-        //public async Task<ActionResult<DirectoryStation>> PostDirectoryStation([FromBody] DirectoryStation obj)
+        //public async Task<ActionResult<DirectoryParkWay>> PostDirectoryParkWay([FromBody] DirectoryParkWay obj)
         //{
         //    if (obj == null)
         //    {
         //        return BadRequest();
         //    }
-        //    db.DirectoryStations.Add(obj);
+        //    db.DirectoryParkWays.Add(obj);
         //    await db.SaveChangesAsync();
         //    return Ok(obj);
         //}
 
-        //// PUT DirectoryStation/
-        //// BODY: DirectoryStation (JSON, XML)
+        //// PUT DirectoryParkWay/
+        //// BODY: DirectoryParkWay (JSON, XML)
         //[HttpPut]
-        //public async Task<ActionResult<DirectoryStation>> PutDirectoryStation(DirectoryStation obj)
+        //public async Task<ActionResult<DirectoryParkWay>> PutDirectoryParkWay(DirectoryParkWay obj)
         //{
         //    if (obj == null)
         //    {
         //        return BadRequest();
         //    }
-        //    if (!db.DirectoryStations.Any(x => x.Id == obj.Id))
+        //    if (!db.DirectoryParkWays.Any(x => x.Id == obj.Id))
         //    {
         //        return NotFound();
         //    }
@@ -125,16 +122,16 @@ namespace WebAPI.Controllers.Directory
         //    return Ok(obj);
         //}
 
-        //// DELETE DirectoryStation/[id]
+        //// DELETE DirectoryParkWay/[id]
         //[HttpDelete("{id}")]
-        //public async Task<ActionResult<DirectoryStation>> DeleteDirectoryStation(int id)
+        //public async Task<ActionResult<DirectoryParkWay>> DeleteDirectoryParkWay(int id)
         //{
-        //    DirectoryStation result = db.DirectoryStations.FirstOrDefault(x => x.Id == id);
+        //    DirectoryParkWay result = db.DirectoryParkWays.FirstOrDefault(x => x.Id == id);
         //    if (result == null)
         //    {
         //        return NotFound();
         //    }
-        //    db.DirectoryStations.Remove(result);
+        //    db.DirectoryParkWays.Remove(result);
         //    await db.SaveChangesAsync();
         //    return Ok(result);
         //}

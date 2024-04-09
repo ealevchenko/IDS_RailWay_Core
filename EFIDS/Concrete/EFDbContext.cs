@@ -211,8 +211,12 @@ public partial class EFDbContext : DbContext
 
     public virtual DbSet<WebView> WebViews { get; set; }
 
-    public IQueryable<ViewStatusAllStation> getViewStatusAllStation()  => FromExpression(() => getViewStatusAllStation());
-
+    public IQueryable<ViewStatusStation> getViewStatusAllStation()  => FromExpression(() => getViewStatusAllStation());
+    public IQueryable<ViewStatusStation> getViewStatusStationOfId(int id_station)  => FromExpression(() => getViewStatusStationOfId(id_station));
+    public IQueryable<ViewStatusParkWay> getViewStatusAllParkOfStationId(int id_station)  => FromExpression(() => getViewStatusAllParkOfStationId(id_station));
+    public IQueryable<ViewStatusParkWay> getViewStatusParkOfId(int id_station, int id_park)  => FromExpression(() => getViewStatusParkOfId(id_station, id_park));
+    public IQueryable<ViewStatusWay> getViewStatusAllWayOfStationParkId(int id_station, int id_park)  => FromExpression(() => getViewStatusAllWayOfStationParkId(id_station, id_park));
+    public IQueryable<ViewStatusWay> getViewStatusWayOfId(int id_way)  => FromExpression(() => getViewStatusWayOfId(id_way));
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("data source=krr-sql-paclx03;initial catalog=KRR-PA-CNT-Railway;integrated security=True;TrustServerCertificate=true");
@@ -220,6 +224,11 @@ public partial class EFDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDbFunction(() => getViewStatusAllStation()).HasSchema("IDS").HasName("get_view_status_all_station");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusStationOfId), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_status_station_of_id");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusAllParkOfStationId), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_status_all_park_of_station_id");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusParkOfId), new[] { typeof(int), typeof(int)})).HasSchema("IDS").HasName("get_view_status_park_of_id");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusAllWayOfStationParkId), new[] { typeof(int), typeof(int)})).HasSchema("IDS").HasName("get_view_status_all_way_of_station_park_id");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusWayOfId), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_status_way_of_id");
 
         modelBuilder.Entity<ArrivalCar>(entity =>
         {

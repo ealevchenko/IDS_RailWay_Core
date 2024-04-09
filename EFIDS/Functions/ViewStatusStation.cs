@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EF_IDS.Functions;
 
-public class ViewStatusAllStation
+public class ViewStatusStation
 {
     [Key]
     [Column("id")]

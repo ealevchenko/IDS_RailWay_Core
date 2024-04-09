@@ -16,28 +16,28 @@ namespace WebAPI.Controllers.Directory
 
     [Route("[controller]")]
     [ApiController]
-    public class DirectoryStationController : ControllerBase
+    public class DirectoryWayController : ControllerBase
     {
         private EFDbContext db;
 
-        public DirectoryStationController(EFDbContext db)
+        public DirectoryWayController(EFDbContext db)
         {
             this.db = db;
         }
-        // GET: DirectoryStation
+        // GET: DirectoryWay
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DirectoryStation>>> GetDirectoryStation()
+        public async Task<ActionResult<IEnumerable<DirectoryWay>>> GetDirectoryWay()
         {
-            return await db.DirectoryStations.ToListAsync();
+            return await db.DirectoryWays.ToListAsync();
         }
-        // GET: DirectoryStation/list
+        // GET: DirectoryWay/list
         [HttpGet("list")]
-        public async Task<ActionResult<IEnumerable<DirectoryStation>>> GetListDirectoryStation()
+        public async Task<ActionResult<IEnumerable<DirectoryWay>>> GetListDirectoryWay()
         {
             try
             {
                 //db.Database.CommandTimeout = 100;
-                List<DirectoryStation> result = await db.DirectoryStations.FromSql($"select * from [IDS].[Directory_Station]").ToListAsync();    //i.SqlQuery<Directory_Station>($"select * from [IDS].[Directory_Station]").ToListAsync();
+                List<DirectoryWay> result = await db.DirectoryWays.FromSql($"select * from [IDS].[Directory_Ways]").ToListAsync();
                 if (result == null)
                     return NotFound();
                 //db.Database.CommandTimeout = null;               
@@ -48,17 +48,15 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        // GET: DirectoryStation/status
-        [HttpGet("status")]
-        public async Task<ActionResult<IEnumerable<ViewStatusStation>>> GetStatusDirectoryStation()
+        // GET: DirectoryWay/status/station/1/park/84
+        [HttpGet("status/station/{id_station}/park/{id_park}")]
+        public async Task<ActionResult<IEnumerable<ViewStatusWay>>> GetViewStatusAllWayOfStationParkId(int id_station, int id_park)
         {
             try
             {
-                //db.Database.CommandTimeout = 100;
-                List<ViewStatusStation> result = await db.getViewStatusAllStation().ToListAsync();//   .FromSql($"select * from [IDS].[get_view_status_all_station]()").ToListAsync();
+                List<ViewStatusWay> result = await db.getViewStatusAllWayOfStationParkId(id_station, id_park).ToListAsync();
                 if (result == null)
                     return NotFound();
-                //db.Database.CommandTimeout = null;               
                 return Ok(result);
             }
             catch (Exception e)
@@ -66,13 +64,13 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        // GET: DirectoryStation/status/1
-        [HttpGet("status/{id}")]
-        public async Task<ActionResult<ViewStatusStation>> GetStatusDirectoryStation(int id)
+        // GET: DirectoryWay/way/1
+        [HttpGet("status/way/{id_way}")]
+        public async Task<ActionResult<ViewStatusWay>> GetViewStatusWayOfId(int id_way)
         {
             try
             {
-                ViewStatusStation result = await db.getViewStatusStationOfId(id).FirstOrDefaultAsync();//   .FromSql($"select * from [IDS].[get_view_status_all_station]()").ToListAsync();
+                ViewStatusWay result = await db.getViewStatusWayOfId(id_way).FirstOrDefaultAsync();
                 if (result == null)
                     return NotFound();
                 return new ObjectResult(result);
@@ -82,40 +80,39 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-
-        // GET: DirectoryStation/[id]
+        // GET: DirectoryWay/[id]
         [HttpGet("{id}")]
-        public async Task<ActionResult<DirectoryStation>> GetDirectoryStation(int id)
+        public async Task<ActionResult<DirectoryWay>> GetDirectoryWay(int id)
         {
-            DirectoryStation result = await db.DirectoryStations.FirstOrDefaultAsync(x => x.Id == id);
+            DirectoryWay result = await db.DirectoryWays.FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);
         }
-        //// POST: DirectoryStation
-        //// BODY: DirectoryStation (JSON, XML)
+        //// POST: DirectoryWay
+        //// BODY: DirectoryWay (JSON, XML)
         //[HttpPost]
-        //public async Task<ActionResult<DirectoryStation>> PostDirectoryStation([FromBody] DirectoryStation obj)
+        //public async Task<ActionResult<DirectoryWay>> PostDirectoryWay([FromBody] DirectoryWay obj)
         //{
         //    if (obj == null)
         //    {
         //        return BadRequest();
         //    }
-        //    db.DirectoryStations.Add(obj);
+        //    db.DirectoryWays.Add(obj);
         //    await db.SaveChangesAsync();
         //    return Ok(obj);
         //}
 
-        //// PUT DirectoryStation/
-        //// BODY: DirectoryStation (JSON, XML)
+        //// PUT DirectoryWay/
+        //// BODY: DirectoryWay (JSON, XML)
         //[HttpPut]
-        //public async Task<ActionResult<DirectoryStation>> PutDirectoryStation(DirectoryStation obj)
+        //public async Task<ActionResult<DirectoryWay>> PutDirectoryWay(DirectoryWay obj)
         //{
         //    if (obj == null)
         //    {
         //        return BadRequest();
         //    }
-        //    if (!db.DirectoryStations.Any(x => x.Id == obj.Id))
+        //    if (!db.DirectoryWays.Any(x => x.Id == obj.Id))
         //    {
         //        return NotFound();
         //    }
@@ -125,16 +122,16 @@ namespace WebAPI.Controllers.Directory
         //    return Ok(obj);
         //}
 
-        //// DELETE DirectoryStation/[id]
+        //// DELETE DirectoryWay/[id]
         //[HttpDelete("{id}")]
-        //public async Task<ActionResult<DirectoryStation>> DeleteDirectoryStation(int id)
+        //public async Task<ActionResult<DirectoryWay>> DeleteDirectoryWay(int id)
         //{
-        //    DirectoryStation result = db.DirectoryStations.FirstOrDefault(x => x.Id == id);
+        //    DirectoryWay result = db.DirectoryWays.FirstOrDefault(x => x.Id == id);
         //    if (result == null)
         //    {
         //        return NotFound();
         //    }
-        //    db.DirectoryStations.Remove(result);
+        //    db.DirectoryWays.Remove(result);
         //    await db.SaveChangesAsync();
         //    return Ok(result);
         //}
