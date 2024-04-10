@@ -66,7 +66,7 @@ namespace WebAPI.Controllers.Directory
         }
         // GET: DirectoryParkWay/station/1/park/84
         [HttpGet("status/station/{id_station}/park/{id_park}")]
-        public async Task<ActionResult<ViewStatusParkWay>> GetStatusDirectoryStation(int id_station, int id_park)
+        public async Task<ActionResult<ViewStatusParkWay>> getViewStatusParkOfId(int id_station, int id_park)
         {
             try
             {
