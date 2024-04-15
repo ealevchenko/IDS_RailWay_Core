@@ -42,5 +42,23 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // GET: WSD/view/total_balance
+        [HttpGet("view/total_balance")]
+        public async Task<ActionResult<IEnumerable<ViewTotalBalance>>> GetViewTotalBalance()
+        {
+            try
+            {
+                List<ViewTotalBalance> result = await db.getViewTotalBalance().ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
     }
 }
