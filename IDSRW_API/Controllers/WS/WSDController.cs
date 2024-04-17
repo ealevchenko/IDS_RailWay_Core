@@ -59,6 +59,21 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-
+        // GET: WSD/view/operators/station/8
+        [HttpGet("view/operators/station/{id_station}")]
+        public async Task<ActionResult<IEnumerable<ViewOperatorsStation>>> GetViewOperatorsOfStation(int id_station)
+        {
+            try
+            {
+                List<ViewOperatorsStation> result = await db.getViewOperatorsOfStation(id_station).ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
     }
 }
