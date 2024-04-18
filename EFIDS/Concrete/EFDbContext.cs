@@ -221,6 +221,9 @@ public partial class EFDbContext : DbContext
     public IQueryable<ViewCarWay> getViewWagonsOfIdWay(int id_way)  => FromExpression(() => getViewWagonsOfIdWay(id_way));
     public IQueryable<ViewTotalBalance> getViewTotalBalance()  => FromExpression(() => getViewTotalBalance());
     public IQueryable<ViewOperatorsStation> getViewOperatorsOfStation(int id_station)  => FromExpression(() => getViewOperatorsOfStation(id_station));
+    public IQueryable<ViewOperatorsOuterWay> getViewOperatorsSendOfIdStation(int id_station)  => FromExpression(() => getViewOperatorsSendOfIdStation(id_station));
+    public IQueryable<ViewOperatorsOuterWay> getViewOperatorsArrivalOfIdStation(int id_station)  => FromExpression(() => getViewOperatorsArrivalOfIdStation(id_station));
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("data source=krr-sql-paclx03;initial catalog=KRR-PA-CNT-Railway;integrated security=True;TrustServerCertificate=true");
@@ -236,8 +239,8 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOfIdWay), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_wagons_of_id_way");
         modelBuilder.HasDbFunction(() => getViewTotalBalance()).HasSchema("IDS").HasName("get_total_balance");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsOfStation), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_operators_of_id_station");       
-        
-        
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsSendOfIdStation), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_operators_send_of_id_station");               
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsArrivalOfIdStation), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_operators_arrival_of_id_station");                   
         
         modelBuilder.Entity<ArrivalCar>(entity =>
         {

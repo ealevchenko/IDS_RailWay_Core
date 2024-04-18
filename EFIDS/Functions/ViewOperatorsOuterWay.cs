@@ -7,26 +7,18 @@ using Microsoft.EntityFrameworkCore;
 namespace EFIDS.Functions;
 
 [Keyless]
-public class ViewOperatorsStation
+public class ViewOperatorsOuterWay
 {
-    [Column("id_way")]
-    public int? IdWay { get; set; }
+    [Column("id")]
+    public int? Id { get; set; }
 
-    [Column("current_way_amkr_num_ru")]
-    [StringLength(20)]
-    public string? CurrentWayAmkrNumRu { get; set; }
+    [Column("name_outer_way_ru")]
+    [StringLength(150)]
+    public string? NameOuterWayRu { get; set; }
 
-    [Column("current_way_amkr_num_en")]
-    [StringLength(20)]
-    public string? CurrentWayAmkrNumEn { get; set; }
-
-    [Column("current_way_amkr_abbr_ru")]
-    [StringLength(50)]
-    public string? CurrentWayAmkrAbbrRu { get; set; }
-
-    [Column("current_way_amkr_abbr_en")]
-    [StringLength(50)]
-    public string? CurrentWayAmkrAbbrEn { get; set; }
+    [Column("name_outer_way_en")]
+    [StringLength(150)]
+    public string? NameOuterWayEn { get; set; }
 
     [Column("id_operator")]
     public int? IdOperator { get; set; }
