@@ -39,9 +39,9 @@ public class ViewOperatorsStation
     [StringLength(20)]
     public string? OperatorAbbrEn { get; set; }
 
-    [Column("wagon_operators_color")]
+    [Column("operator_color")]
     [StringLength(10)]
-    public string? WagonOperatorsColor { get; set; }
+    public string? OperatorColor { get; set; }
 
     [Column("count_operators")]
     public int? CountOperators { get; set; }
