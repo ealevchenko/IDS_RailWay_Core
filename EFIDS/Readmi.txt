@@ -2,3 +2,6 @@
 1. в папке EF_IDS -> Открыть в терминале
 2. В терминале набрать :
 dotnet-ef dbcontext scaffold "data source=krr-sql-paclx03;initial catalog=KRR-PA-CNT-Railway;integrated security=True;TrustServerCertificate=true" Microsoft.EntityFrameworkCore.SqlServer --schema IDS --data-annotations -o Models
+
+3. Если только несколько таблиц, набрать: 
+dotnet-ef dbcontext scaffold "data source=krr-sql-paclx03;initial catalog=KRR-PA-CNT-Railway;integrated security=True;TrustServerCertificate=true" Microsoft.EntityFrameworkCore.SqlServer --table operators_of_out_way --table operators_of_station --data-annotations -o Models
