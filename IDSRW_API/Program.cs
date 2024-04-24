@@ -51,18 +51,14 @@ try
         options.FallbackPolicy = options.DefaultPolicy;
     });
 
-    //builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
-    //   .AddNegotiate();
-
-    //builder.Services.AddAuthorization(options =>
-    //{
-    //    // By default, all incoming requests will be authorized according to the default policy.
-    //    options.FallbackPolicy = options.DefaultPolicy;
-    //});
-
+    // настраиваем CORS
 
 
     var app = builder.Build();
+
+    app.UseCors(builder => builder.WithOrigins("http://localhost:53848")
+                                 .AllowCredentials());
+
 
     // Configure the HTTP request pipeline.
     //if (app.Environment.IsDevelopment())
