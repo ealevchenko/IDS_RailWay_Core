@@ -28,7 +28,10 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryStation>>> GetDirectoryStation()
         {
-            return await db.DirectoryStations.ToListAsync();
+            return await db.DirectoryStations
+                .AsNoTracking()
+                .Include(x => x.DirectoryWays)
+                .ToListAsync();
         }
         // GET: DirectoryStation/list
         [HttpGet("list")]
@@ -87,7 +90,10 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("{id}")]
         public async Task<ActionResult<DirectoryStation>> GetDirectoryStation(int id)
         {
-            DirectoryStation result = await db.DirectoryStations.FirstOrDefaultAsync(x => x.Id == id);
+            DirectoryStation result = await db.DirectoryStations
+                .AsNoTracking()
+                .Include(x=>x.DirectoryWays)
+                .FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);
