@@ -107,5 +107,23 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // GET: WSD/view/wagons/outer_way/station_on/8
+        [HttpGet("view/wagons/outer_way/station_on/{id_station}")]
+        public async Task<ActionResult<IEnumerable<ViewWagonsOfOuterWay>>> getViewOpenWagonsOfOuterWaysStationOn(int id_station)
+        {
+            try
+            {
+                List<ViewWagonsOfOuterWay> result = await db.getViewOpenWagonsOfOuterWaysStationOn(id_station).ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
     }
 }
