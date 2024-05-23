@@ -306,6 +306,7 @@
         public int moved { get; set; }
         public int skip { get; set; }
         public int error { get; set; }
+
         public List<ResultWagon> listResult = new List<ResultWagon>();
 
         public ResultTransfer(int count)

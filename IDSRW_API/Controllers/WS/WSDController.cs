@@ -154,7 +154,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/arrival
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/arrival")]
-        public async Task<ActionResult> PostArrivalWagonsOfStationAMKR([FromBody] OperationArrivalWagons value)
+        public async Task<ActionResult<ResultTransfer>> PostArrivalWagonsOfStationAMKR([FromBody] OperationArrivalWagons value)
         {
             try
             {
