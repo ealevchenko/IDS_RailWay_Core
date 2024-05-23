@@ -296,6 +296,77 @@
             this.add++;
         }
     }
+    /// <summary>
+    /// Класс данных результата выполнения переноса
+    /// </summary>
+    public class ResultTransfer
+    {
+        public int result { get; set; } // Глобальный ресурс выполнения всего переноса
+        public int count { get; set; }
+        public int moved { get; set; }
+        public int skip { get; set; }
+        public int error { get; set; }
+        public List<ResultWagon> listResult = new List<ResultWagon>();
+
+        public ResultTransfer(int count)
+        {
+            this.count = count;
+            this.result = 0;
+            this.moved = 0;
+            this.skip = 0;
+            this.error = 0;
+            this.listResult.Clear();
+        }
+
+        public void SetMovedResult(int result)
+        {
+            if (result < 0)
+            {
+                AddError(result); return;
+            }
+            if (result > 0)
+            {
+                AddMoved(); return;
+            }
+            AddSkip();
+            return;
+        }
+        public void SetMovedResult(int result, int num)
+        {
+            listResult.Add(new ResultWagon() { num = num, result = result });
+
+            if (result < 0)
+            {
+                AddError(result); return;
+            }
+            if (result > 0)
+            {
+                AddMoved(); return;
+            }
+            AddSkip();
+            return;
+        }
+        public void SetResult(int code)
+        {
+            this.result = code;
+        }
+        public void AddMoved()
+        {
+            this.moved++;
+        }
+        public void AddSkip()
+        {
+            this.skip++;
+        }
+        public void AddError(int err_code)
+        {
+            this.error++;
+        }
+        public void AddError()
+        {
+            this.error++;
+        }
+    }
     public class IDS_Base
     {
 

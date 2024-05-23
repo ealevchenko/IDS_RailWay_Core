@@ -11,19 +11,45 @@ using System.ComponentModel.DataAnnotations;
 using WebAPI.Repositories;
 using WebAPI.Repositories.Directory;
 using EFIDS.Functions;
+using IDS_;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using WebAPI.Controllers.GIVC;
 
 namespace WebAPI.Controllers.Directory
 {
+
+    #region ОПЕРАЦИЯ ПРИНЯТЬ (Обновленный АРМ)
+    public class OperationArrivalWagons
+    {
+        public int id_outer_way { get; set; }
+        public List<ListOperationWagon> wagons { get; set; }
+        public int id_way_on { get; set; }
+        public bool head { get; set; }
+        public DateTime lead_time { get; set; }
+        public string locomotive1 { get; set; }
+        public string locomotive2 { get; set; }
+        //public string user { get; set; }
+    }
+    #endregion
 
     [Route("[controller]")]
     [ApiController]
     public class WSDController : ControllerBase
     {
         private EFDbContext db;
+        private readonly ILogger<WSDController> _logger;
+        private readonly IConfiguration _configuration;
+        EventId _eventId = new EventId(0);
+        EventId _eventId_ids_wir = new EventId(0);
 
-        public WSDController(EFDbContext db)
+        public WSDController(EFDbContext db, ILogger<WSDController> logger, IConfiguration configuration)
         {
             this.db = db;
+            _eventId_ids_wir = int.Parse(_configuration["EventID:IDS_WIR"]);
+            _logger = logger;
+            _configuration = configuration;
+            _logger.LogDebug(1, "NLog injected into WSDController");
         }
 
         // GET: WSD/view/wagon/way/115
@@ -125,5 +151,28 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        // POST: WSD/operation/arrival
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/arrival")]
+        public async Task<ActionResult> PostArrivalWagonsOfStationAMKR([FromBody] OperationArrivalWagons value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultTransfer result = ids_wir.ArrivalWagonsOfStation(value.id_outer_way, value.wagons, value.id_way_on, value.head, value.lead_time, value.locomotive1, value.locomotive2, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
     }
 }
