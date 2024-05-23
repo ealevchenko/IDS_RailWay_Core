@@ -46,9 +46,9 @@ namespace WebAPI.Controllers.Directory
         public WSDController(EFDbContext db, ILogger<WSDController> logger, IConfiguration configuration)
         {
             this.db = db;
-            _eventId_ids_wir = int.Parse(_configuration["EventID:IDS_WIR"]);
             _logger = logger;
             _configuration = configuration;
+            _eventId_ids_wir = int.Parse(_configuration["EventID:IDS_WIR"]);
             _logger.LogDebug(1, "NLog injected into WSDController");
         }
 
