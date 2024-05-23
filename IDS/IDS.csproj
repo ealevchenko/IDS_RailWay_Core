@@ -17,4 +17,8 @@
     <ProjectReference Include="..\GIVC_Client\GIVC.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Helper\" />
+  </ItemGroup>
+
 </Project>
