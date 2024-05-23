@@ -528,7 +528,7 @@ namespace IDS_
                 if (way.WayClose != null) return (int)errors_base.way_is_close;    // Путь закрыт
                 int id_station_on = way.IdStation;
                 // Получим текущее положение вагона
-                WagonInternalMovement wim = wagon.GetLastMovement();
+                WagonInternalMovement wim = wagon.GetLastMovement(ref context);
                 if (wim == null) return (int)errors_base.not_open_wir;                  // В базе данных нет открытой записи по WagonInternalRoutes (Внутреннее перемещение вагонов)
                 if (wim.IdOuterWay != id_outer_way) return (int)errors_base.wagon_not_outerway; // вагон  не стоит на указаном перегоне
                                                                                                   // Проверим вагон уже стоит ?
@@ -537,11 +537,11 @@ namespace IDS_
                 string note_sostav = "Состав:" + wim.NumSostav + "- принят";
 
                 // Установим и закроем операцию принять -6              
-                WagonInternalOperation new_operation = wagon.SetOpenOperation(6, lead_time.AddMinutes(-10), null, null, locomotive1, locomotive2, note_sostav, user).SetCloseOperation(lead_time, null, user);
+                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, 6, lead_time.AddMinutes(-10), null, null, locomotive1, locomotive2, note_sostav, user).SetCloseOperation(lead_time, null, user);
                 if (new_operation == null) return (int)errors_base.err_create_wio_db;   // Ошибка создания новой операции над вагоном.
 
                 // Установим и вагон на путь станции
-                WagonInternalMovement new_movement = wagon.SetStationWagon(id_station_on, id_way_on, lead_time, position_on, null, user, true);
+                WagonInternalMovement new_movement = wagon.SetStationWagon(ref context, id_station_on, id_way_on, lead_time, position_on, null, user, true);
 
                 if (new_movement == null) return (int)errors_base.err_create_wim_db;   // Ошибка создания новой позиции вагона.
                                                                                        // Зададим сылку на операцию
@@ -585,7 +585,14 @@ namespace IDS_
                 // Пройдемся по вагонам отсортировав их по позиции
                 foreach (ListOperationWagon sw in wagons.OrderBy(w => w.position).ToList())
                 {
-                    List_wir.Add(new WagonInternalRoutesPosition() { wir = context.WagonInternalRoutes.Where(r => r.Id == sw.wir_id).FirstOrDefault(), new_position = sw.position });
+                    List_wir.Add(new WagonInternalRoutesPosition() { 
+                         wir = context.WagonInternalRoutes
+                        .Where(r => r.Id == sw.wir_id)
+                        //.AsNoTracking()
+                        //.Include(x => x.WagonInternalMovements)
+                        //.Include(x => x.WagonInternalOperations)
+                        .FirstOrDefault(), 
+                        new_position = sw.position });
                 }
                 if (List_wir != null && List_wir.Count() > 0)
                 {

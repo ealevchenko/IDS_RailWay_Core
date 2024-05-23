@@ -28,8 +28,8 @@ namespace WebAPI.Controllers.Directory
         public bool head { get; set; }
         public DateTime lead_time { get; set; }
         public string locomotive1 { get; set; }
-        public string locomotive2 { get; set; }
-        //public string user { get; set; }
+        public string? locomotive2 { get; set; }
+
     }
     #endregion
 

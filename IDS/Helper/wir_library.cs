@@ -16,7 +16,7 @@ namespace IDS.Helper
             return context.WagonInternalRoutes.Where(r => r.Num == num).OrderByDescending(w => w.Id).FirstOrDefault();
         }
 
-        public static long? CloseWagon(this WagonInternalRoute wir, DateTime date_end, string note, string user)
+        public static long? CloseWagon(this WagonInternalRoute wir, EFDbContext context, DateTime date_end, string note, string user)
         {
             if (wir == null) return null;
             if (wir.Close == null)
@@ -24,20 +24,20 @@ namespace IDS.Helper
                 wir.Note = note != null ? note : wir.Note;
                 wir.Close = DateTime.Now;
                 wir.CloseUser = user;
-                wir.GetLastMovement().CloseMovement(date_end, note, user);
-                wir.GetLastOperation().CloseOperation(date_end, note, user);
+                wir.GetLastMovement(ref context).CloseMovement(date_end, note, user);
+                wir.GetLastOperation(ref context).CloseOperation(date_end, note, user);
                 // Далее добавить закрытие перемещений по требованию
             }
             return wir.Id;
         }
 
-        public static WagonInternalMovement SetStationWagon(this WagonInternalRoute wir, int id_station, int id_way, DateTime date_start, int position, string note, string user, bool check_replay)
+        public static WagonInternalMovement SetStationWagon(this WagonInternalRoute wir, ref EFDbContext context, int id_station, int id_way, DateTime date_start, int position, string note, string user, bool check_replay)
         {
             WagonInternalMovement wim_new = null;
             if (wir != null && wir.Close == null)
             {
                 // Получим последнее положение
-                WagonInternalMovement wim = wir.GetLastMovement();
+                WagonInternalMovement wim = wir.GetLastMovement(ref context);
                 // Исключим попытку поставить дублирования записи постановки на путь
                 if (wim == null || (wim != null && (wim.IdStation != id_station || wim.IdWay != id_way || wim.Position != position || wim.IdOuterWay != null)))
                 {
@@ -75,11 +75,11 @@ namespace IDS.Helper
         /// <param name="note"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public static WagonInternalRoute SetStationWagon_old(this WagonInternalRoute wir, int id_station, int id_way, DateTime date_start, int position, string note, string user)
+        public static WagonInternalRoute SetStationWagon_old(this WagonInternalRoute wir, ref EFDbContext context, int id_station, int id_way, DateTime date_start, int position, string note, string user)
         {
             if (wir != null && wir.Close == null)
             {
-                WagonInternalMovement wim = wir.GetLastMovement();
+                WagonInternalMovement wim = wir.GetLastMovement(ref context);
                 // Исключим попытку поставить дублирования записи постановки на путь
                 if (wim == null || (wim != null && (wim.IdStation != id_station || wim.IdWay != id_way || wim.Position != position)))
                 {
@@ -117,13 +117,13 @@ namespace IDS.Helper
         /// <param name="note"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public static WagonInternalMovement SetSendingWagon(this WagonInternalRoute wir, int id_outer_ways, DateTime date_start, int position, string num_sostav, string note, string user)
+        public static WagonInternalMovement SetSendingWagon(this WagonInternalRoute wir, ref EFDbContext context, int id_outer_ways, DateTime date_start, int position, string num_sostav, string note, string user)
         {
             WagonInternalMovement wim_new = null;
             if (wir != null && wir.Close == null)
             {
                 // Получим последнее положение
-                WagonInternalMovement wim = wir.GetLastMovement();
+                WagonInternalMovement wim = wir.GetLastMovement(ref context);
                 // Исключим попытку поставить дублирования записи постановки на путь
                 if (wim != null && wim.IdOuterWay != id_outer_ways)
                 {
@@ -150,56 +150,13 @@ namespace IDS.Helper
             }
             return wim_new;
         }
-        // TODO: Удалить 
-        /// <summary>
-        /// Установить вагон на путь отправки
-        /// </summary>
-        /// <param name="wir"></param>
-        /// <param name="id_outer_ways"></param>
-        /// <param name="date_start"></param>
-        /// <param name="position"></param>
-        /// <param name="note"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public static WagonInternalRoute SetSendingWagon_old(this WagonInternalRoute wir, int id_outer_ways, DateTime date_start, int position, string note, string user)
-        {
-            if (wir != null && wir.Close == null)
-            {
-                // Получим последнее положение
-                WagonInternalMovement wim = wir.GetLastMovement();
-                // Исключим попытку поставить дублирования записи постановки на путь
-                if (wim != null && wim.IdOuterWay != id_outer_ways)
-                {
-                    WagonInternalMovement wim_new = new WagonInternalMovement()
-                    {
-                        Id = 0,
-                        IdStation = wim.IdStation,
-                        IdWay = wim.IdWay,
-                        WayStart = wim.WayStart,
-                        WayEnd = wim.WayEnd == null ? date_start : wim.WayEnd,
-                        IdOuterWay = (int?)id_outer_ways,
-                        OuterWayStart = date_start,
-                        OuterWayEnd = null,
-                        Position = position,
-                        Create = DateTime.Now,
-                        CreateUser = user,
-                        Note = note,
-                        ParentId = wim.CloseMovement(date_start, null, user),
-                    };
-                    wir.WagonInternalMovements.Add(wim_new);
-                }
-
-            }
-            return wir;
-        }
-
-        public static WagonInternalOperation SetOpenOperation(this WagonInternalRoute wir, int id_operation, DateTime date_start, int? id_condition, int? id_loading_status, string locomotive1, string locomotive2, string note, string user)
+        public static WagonInternalOperation SetOpenOperation(this WagonInternalRoute wir, ref EFDbContext context, int id_operation, DateTime date_start, int? id_condition, int? id_loading_status, string locomotive1, string locomotive2, string note, string user)
         {
             WagonInternalOperation wio_new = null;
 
             if (wir != null && wir.Close == null)
             {
-                WagonInternalOperation wio_last = wir.GetLastOperation();
+                WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
                 wio_new = new WagonInternalOperation()
                 {
                     Id = 0,
@@ -242,7 +199,7 @@ namespace IDS.Helper
             if (wir == null) return null;
             if (wir.Close == null)
             {
-                WagonInternalOperation wio = wir.GetLastOperation();
+                WagonInternalOperation wio = wir.GetLastOperation(ref context);
                 if (wio == null) return null;
 
                 return wio.IdOperation == 9 ? true : false;
@@ -290,10 +247,11 @@ namespace IDS.Helper
         /// </summary>
         /// <param name="wir"></param>
         /// <returns></returns>
-        public static WagonInternalMovement GetLastMovement(this WagonInternalRoute wir)
+        public static WagonInternalMovement GetLastMovement(this WagonInternalRoute wir, ref EFDbContext context)
         {
             if (wir.WagonInternalMovements == null) return null;
-            return wir.WagonInternalMovements.OrderByDescending(m => m.Id).FirstOrDefault();
+            WagonInternalMovement wim = context.WagonInternalMovements.Where(m => m.IdWagonInternalRoutes == wir.Id).OrderByDescending(c => c.Id).FirstOrDefault();
+            return wim;
         }
         /// <summary>
         /// Закрыть запись позиции вагона
@@ -333,10 +291,10 @@ namespace IDS.Helper
         /// </summary>
         /// <param name="wir"></param>
         /// <returns></returns>
-        public static int? GetCurrentStation(this WagonInternalRoute wir)
+        public static int? GetCurrentStation(this WagonInternalRoute wir, ref EFDbContext context)
         {
             if (wir == null || wir.WagonInternalMovements == null) return null;
-            WagonInternalMovement wim = wir.GetLastMovement();
+            WagonInternalMovement wim = wir.GetLastMovement(ref context);
             return wim != null ? (int?)wim.IdStation : null;
         }
         /// <summary>
@@ -371,12 +329,12 @@ namespace IDS.Helper
 
         #endregion
 
-
         #region Методы работы с операциями над вагонами
-        public static WagonInternalOperation GetLastOperation(this WagonInternalRoute wir)
+        public static WagonInternalOperation GetLastOperation(this WagonInternalRoute wir, ref EFDbContext context)
         {
             if (wir.WagonInternalOperations == null) return null;
-            return wir.WagonInternalOperations.OrderByDescending(o => o.Id).FirstOrDefault();
+            WagonInternalOperation wio = context.WagonInternalOperations.Where(m => m.IdWagonInternalRoutes == wir.Id).OrderByDescending(c => c.Id).FirstOrDefault();
+            return wio;
         }
 
         public static long? CloseOperation(this WagonInternalOperation wio, DateTime date_end, string note, string user)

@@ -24,7 +24,7 @@ try
     // Add services to the container.
     builder.Services.AddControllers().AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles; // игнорируем циклические сылки
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles; //Preserve; // игнорируем циклические сылки
     });
     // NLog: Setup NLog for Dependency injection
     builder.Logging.ClearProviders();
