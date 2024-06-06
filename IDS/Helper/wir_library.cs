@@ -1,5 +1,6 @@
 ﻿using EF_IDS.Concrete;
 using EF_IDS.Entities;
+using IDS_;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -227,6 +228,41 @@ namespace IDS.Helper
             }
             return list_result;
         }
+        /// <summary>
+        /// Истроия передвижения вагона имеет признак схода или повреждения
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="id_wir"></param>
+        /// <returns></returns>
+        public static bool isDerailmentOperation(this EFDbContext context, long id_wir)
+        {
+            WagonInternalOperation? wio = context.WagonInternalOperations.Where(o => o.IdWagonInternalRoutes == id_wir && (o.IdCondition == 76 || o.IdCondition == 74)).FirstOrDefault();
+            return wio != null;
+        }
+        /// <summary>
+        /// Поиск id_wir возвратного вагона
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="id_wir"></param>
+        /// <returns></returns>
+        public static long GetIDWIR(this EFDbContext context, long id_wir)
+        {
+            WagonInternalRoute? wir = context.WagonInternalRoutes.Where(r => r.Id == id_wir).FirstOrDefault();
+            if (wir == null) return (int)errors_base.not_wir_db;
+            ArrivalCar? arr_car = context.ArrivalCars.Where(c => c.Id == wir.IdArrivalCar).FirstOrDefault();
+            if (arr_car == null) return (int)errors_base.not_arrival_cars_db;
+            ArrivalUzVagon? arr_uz_vag = context.ArrivalUzVagons.Where(v => v.Id == arr_car.IdArrivalUzVagon).FirstOrDefault();
+            if (arr_uz_vag == null) return (int)errors_base.not_arrival_uz_vagon;
+            if (arr_uz_vag.CargoReturns != null && arr_uz_vag.CargoReturns == true)
+            {
+                if (wir.ParentId == null) return wir.Id;
+                return context.GetIDWIR((long)wir.ParentId);
+            }
+            else {
+                return wir.Id;
+            }
+        }
+
         #endregion
 
 
