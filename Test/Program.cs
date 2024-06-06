@@ -21,6 +21,7 @@ using GIVC;
 using System.Reflection;
 using NLog.Fluent;
 using TestCore.TestModele;
+using Test.TestModele;
 
 namespace HelloApp
 {
@@ -66,17 +67,17 @@ namespace HelloApp
                     .Build();
 
                 //WebClientGIVC client_givc = new WebClientGIVC(logger, config);
-                IDS_GIVC ids_givc = new IDS_GIVC(logger, config);
+                //IDS_GIVC ids_givc = new IDS_GIVC(logger, config);
                 //int res_cl = ids_givc.RequestToGIVC(new parameters_reguest() { type_requests = "req8858", nom_vag="63208540",  date_beg = "13.02.2024", date_end = "14.02.2024" }, null);
                 //int res_cl = ids_givc.RequestToGIVC(new parameters_reguest() { type_requests = "req0002", esr_form = 4000, nom_sost = 677, esr_nazn = 4670 }, null);
                 //int res_cl = ids_givc.RequestToGIVC(new parameters_reguest() { type_requests = "req0002", esr_form = 4000, nom_sost = 664, esr_nazn = 4670 }, null);
                 //int res_cl = ids_givc.RequestToGIVC(new parameters_reguest() { type_requests = "reqDisvag", kod_stan_form = 481904, kod_gro = 4742, kod_stan_nazn = 467004, kod_grp = 7932, kod_gruz = 161043 }, null);
 
                 #region TestGIVC УЗ ГИВЦ
-                TestGIVC tGIVC = new TestGIVC(logger, config);
+                //TestGIVC tGIVC = new TestGIVC(logger, config);
                 // ====== ЗАПРОСЫ !!! БАБЛО !!! =========
                 //tGIVC.Req0002();
-                tGIVC.Req1892();
+                //tGIVC.Req1892();
                 //tGIVC.Req1091();
                 //tGIVC.Req4373();
                 //tGIVC.Req7002();
@@ -88,7 +89,11 @@ namespace HelloApp
                 //tGIVC.reference1892();
                 #endregion
 
-
+                #region Test_IDS_WIR Тесты wir
+                Test_IDS_WIR twir = new Test_IDS_WIR(logger, config);
+                //twir.CalcUsageFeeOfCar(); // Тест расчет платы по вагону
+                twir.CalcUsageFeeCarsOfWay(); // Тест расчет платы по вагонам на пути
+                #endregion
                 //+++++++++++++++++++++++++++++++ req1892 ++++++++++++++++++++++++++++++
                 //WebClientGIVC client_givc = new WebClientGIVC(logger, config);
                 //req1892 res = client_givc.GetReq1892(467004, 467201, 7932, 7932);
