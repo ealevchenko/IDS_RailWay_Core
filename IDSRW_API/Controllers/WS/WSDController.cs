@@ -151,6 +151,30 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        #region РАСЧЕТ ПЛАТЫ ЗА ПОЛЬЗОВАНИЕ (АРМ)
+
+        // GET: WSD/view/calc_wagon/way/1042
+        [HttpGet("view/calc_wagon/way/{id_way}")]
+        public async Task<ActionResult<IEnumerable<ResultCalcWagonUsageFee>>> getCalcUsageFeeCarsOfWay(int id_way)
+        {
+            try
+            {
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+
+                List<ResultCalcWagonUsageFee> result = ids_wir.CalcUsageFeeCarsOfWay(id_way);
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        #endregion
+
+
         // POST: WSD/operation/arrival
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/arrival")]
