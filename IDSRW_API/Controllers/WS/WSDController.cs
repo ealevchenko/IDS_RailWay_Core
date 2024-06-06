@@ -155,13 +155,13 @@ namespace WebAPI.Controllers.Directory
 
         // GET: WSD/view/calc_wagon/way/1042
         [HttpGet("view/calc_wagon/way/{id_way}")]
-        public async Task<ActionResult<IEnumerable<ResultCalcWagonUsageFee>>> getCalcUsageFeeCarsOfWay(int id_way)
+        public async Task<ActionResult<IEnumerable<CalcWagonUsageFee>>> getCalcUsageFeeCarsOfWay(int id_way)
         {
             try
             {
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
 
-                List<ResultCalcWagonUsageFee> result = ids_wir.CalcUsageFeeCarsOfWay(id_way);
+                List<CalcWagonUsageFee> result = ids_wir.CalcUsageFeeCarsOfWay(id_way);
                 if (result == null)
                     return NotFound();
                 return Ok(result);
