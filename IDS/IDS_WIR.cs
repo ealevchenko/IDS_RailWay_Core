@@ -885,7 +885,20 @@ namespace IDS_
                             cwuf.IdOperator = oper_wag.ParentId != null ? oper_wag.ParentId : oper_wag.Id;
                         }
                     }
+                    // Взведем в исходное состояние (исключим ошибку если нет условий расчета)
+                    cwuf.UzWagon = false;// Вагоны ЦТЛ
+                    cwuf.CountStage = 0;
+                    cwuf.IdCurrency = 0;
+                    cwuf.Rate = 0;
+                    cwuf.ExchangeRate = 0;
+                    cwuf.Coefficient = 0;
+                    cwuf.GraceTime = 0;
 
+                    TimeSpan tm = (DateTime)cwuf.DateOutgoing - (DateTime)cwuf.DateAdoption; // за первый период
+                    cwuf.Downtime = (int)tm.TotalMinutes;
+                    cwuf.UseTime = 0;
+                    cwuf.CalcTime = 0;
+                    cwuf.CalcFeeAmount = 0;
                     // Получим периоды для расчетов
                     List<UsageFeePeriod> list_uf_period_outgoing = context.UsageFeePeriods
                         .AsNoTracking()
@@ -893,10 +906,10 @@ namespace IDS_
                         .Include(detali => detali.UsageFeePeriodDetalis) // документ по вагону
                         .OrderByDescending(c => c.Id)
                         .ToList();
-                    UsageFeePeriod? arr_perriod = list_uf_period_outgoing.Where(o => o.Start <= cwuf.DateAdoption && o.Stop >= cwuf.DateAdoption).FirstOrDefault();
-                    UsageFeePeriod? out_perriod = list_uf_period_outgoing.Where(o => o.Start <= cwuf.DateOutgoing && o.Stop >= cwuf.DateOutgoing).FirstOrDefault();
                     // Если периодов нет выйдем с расчета
                     if (list_uf_period_outgoing == null || list_uf_period_outgoing.Count() == 0) return cwuf;
+                    UsageFeePeriod? arr_perriod = list_uf_period_outgoing.Where(o => o.Start <= cwuf.DateAdoption && o.Stop >= cwuf.DateAdoption).FirstOrDefault();
+                    UsageFeePeriod? out_perriod = list_uf_period_outgoing.Where(o => o.Start <= cwuf.DateOutgoing && o.Stop >= cwuf.DateOutgoing).FirstOrDefault();
                     // Если периодов нет выйдем с расчета
                     if ((arr_perriod == null && out_perriod == null)) { cwuf.error = (int)errors_base.not_dt_calc_usage_fee; return cwuf; }
                     // Периоды определены. Сформируем список
@@ -918,7 +931,7 @@ namespace IDS_
                     List<DirectoryBankRate> list_bank = context.DirectoryBankRates.Where(b => b.Date == date).ToList();
                     if (list_bank == null || list_bank.Count() < 2) { cwuf.error = (int)errors_base.not_list_exchange_rate; return cwuf; }
                     List<Wagon_Usage_Fee_Period> list_period_setup = new List<Wagon_Usage_Fee_Period>();
-                    cwuf.UzWagon = false;// Вагоны ЦТЛ
+                    
                     foreach (UsageFeePeriod ufp in list_period_where)
                     {
                         cwuf.UzWagon = (ufp.HourAfter30 != null && ufp.HourAfter30 == true ? true : false); // Определим вагоны ЦТЛ
@@ -955,7 +968,7 @@ namespace IDS_
                     int calc_hour_period = 0;                           // Время расчетное (часов)
                     int calc_time = 0;                                  // Расчетное время
                     decimal calc_fee_amount = 0;                        // Расчетная сумма
-                    int cammon_minut_period = 0;                        // Общее время простоя
+                    //int cammon_minut_period = 0;                        // Общее время простоя
                     TimeSpan tm_period;
                     if (list_period_setup.Count() > 0)
                     {
@@ -1175,8 +1188,7 @@ namespace IDS_
                     cwuf.UseTime = calc_hour_period;
                     cwuf.GraceTime = grace_time;
                     cwuf.CalcTime = calc_time;
-                    TimeSpan tm = (DateTime)cwuf.DateOutgoing - (DateTime)cwuf.DateAdoption; // за первый период
-                    cwuf.Downtime = (int)tm.TotalMinutes;
+
                     int cfa_res = (int)(calc_fee_amount * 100);
                     decimal calc_fee_amount_res = (decimal)(cfa_res / 100.0);
                     cwuf.CalcFeeAmount = Math.Round(calc_fee_amount_res, 1, MidpointRounding.AwayFromZero);
