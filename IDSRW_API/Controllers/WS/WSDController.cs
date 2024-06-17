@@ -171,7 +171,29 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-
+        /// <summary>
+        /// Расчет платы за пользование по отправленному составу
+        /// </summary>
+        /// <param name="id_sostav"></param>
+        /// <returns></returns>
+        // GET: WSD/view/calc_wagon/outgoing/sostav/293584
+        [HttpGet("view/calc_wagon/outgoing/sostav/{id_sostav}")]
+        public async Task<ActionResult<IEnumerable<ResultUpdateIDWagon>>> getCalcUsageFeeOfOutgoingSostav(int id_sostav)
+        {
+            try
+            {
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateIDWagon result = ids_wir.CalcUsageFeeOfOutgoingSostav(id_sostav);
+                List<ResultIDWagon> list_res = result.listResult.ToList();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         #endregion
 
 
