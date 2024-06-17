@@ -184,7 +184,7 @@ namespace WebAPI.Controllers.Directory
             {
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
                 ResultUpdateIDWagon result = ids_wir.CalcUsageFeeOfOutgoingSostav(id_sostav);
-                List<ResultIDWagon> list_res = result.listResult.ToList();
+                //List<ResultIDWagon> list_res = result.listResult.ToList();
                 if (result == null)
                     return NotFound();
                 return Ok(result);
