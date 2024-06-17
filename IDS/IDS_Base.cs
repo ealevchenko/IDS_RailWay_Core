@@ -199,6 +199,12 @@
         public int num { get; set; }
         public int result { get; set; }
     }
+    public class ResultIDWagon
+    {
+        public long id { get; set; }
+        public int num { get; set; }
+        public int result { get; set; }
+    }
     /// <summary>
     /// Класс данных результата выполнения обнавлений
     /// </summary>
@@ -269,6 +275,126 @@
         public void SetSkipResult(int result, int num)
         {
             listResult.Add(new ResultWagon() { num = num, result = result });
+
+            if (result < 0)
+            {
+                AddError(result); return;
+            }
+            AddSkip(); return;
+        }
+        public void SetResult(int code)
+        {
+            this.result = code;
+        }
+        public void AddUpdate()
+        {
+            this.update++;
+        }
+        public void AddSkip()
+        {
+            this.skip++;
+        }
+        public void AddError(int err_code)
+        {
+            this.error++;
+        }
+        public void AddError()
+        {
+            this.error++;
+        }
+        public void AddClose()
+        {
+            this.close++;
+        }
+        public void AddInsert()
+        {
+            this.add++;
+        }
+    }
+    /// <summary>
+    /// Класс данных результата выполнения обнавлений по id
+    /// </summary>
+    public class ResultUpdateIDWagon
+    {
+        public int result { get; set; } // Глобальный ресурс выполнения всего переноса
+        public int count { get; set; }
+        public int update { get; set; }
+        public int skip { get; set; }
+        public int error { get; set; }
+        public int close { get; set; }
+        public int add { get; set; }
+
+        public long id { get; set; }
+
+        public List<ResultIDWagon> listResult = new List<ResultIDWagon>();
+
+        public ResultUpdateIDWagon(long id, int count)
+        {
+            this.count = count;
+            this.result = 0;
+            this.update = 0;
+            this.skip = 0;
+            this.error = 0;
+            this.close = 0;
+            this.add = 0;
+            this.id = id;
+            this.listResult.Clear();
+        }
+
+        public void SetUpdateResult(int result)
+        {
+            if (result < 0)
+            {
+                AddError(result); return;
+            }
+            if (result > 0)
+            {
+                AddUpdate(); return;
+            }
+            AddSkip();
+            return;
+        }
+        public void SetUpdateResult(long id, int result, int num)
+        {
+            listResult.Add(new ResultIDWagon() { id = id, num = num, result = result });
+
+            if (result < 0)
+            {
+                AddError(result); return;
+            }
+            if (result > 0)
+            {
+                AddUpdate(); return;
+            }
+            AddSkip(); return;
+        }
+        public void SetInsertResult(long id, int result, int num)
+        {
+            listResult.Add(new ResultIDWagon() { id = id, num = num, result = result });
+
+            if (result < 0)
+            {
+                AddError(result); return;
+            }
+            if (result > 0)
+            {
+                AddInsert(); return;
+            }
+            AddSkip(); return;
+        }
+        public void SetSkipResult(long id, int result, int num)
+        {
+            listResult.Add(new ResultIDWagon() { id = id, num = num, result = result });
+
+            if (result < 0)
+            {
+                AddError(result); return;
+            }
+            AddSkip(); return;
+        }
+        public void SetErrorResult(long id, int result, int num)
+        {
+            listResult.Add(new ResultIDWagon() { id = id, num = num, result = result });
 
             if (result < 0)
             {

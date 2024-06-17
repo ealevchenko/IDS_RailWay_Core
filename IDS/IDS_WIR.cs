@@ -47,6 +47,10 @@ namespace IDS_
         public bool? Route { get; set; }
         public bool? InpCargo { get; set; }
         public bool? OutCargo { get; set; }
+        public int? IdCargoArr { get; set; }
+        public int? IdCargoOut { get; set; }
+        public int? CodeStnFrom { get; set; }
+        public int? CodeStnTo { get; set; }
         public bool? Derailment { get; set; }
         public int? CountStage { get; set; }
         public int? IdCurrency { get; set; }
@@ -778,20 +782,25 @@ namespace IDS_
         /// <param name="id_wir"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public CalcWagonUsageFee CalcUsageFeeOfCar(long id_wir)
+        public CalcWagonUsageFee CalcUsageFeeOfWIR(long id_wir)
         {
             CalcWagonUsageFee cwuf = new CalcWagonUsageFee() { IdWir = id_wir, error = 0 };
             try
             {
                 using (EFDbContext context = new EFDbContext(this.options))
                 {
-                    WagonInternalRoute? wir = context.WagonInternalRoutes.AsNoTracking().Where(r => r.Id == id_wir).FirstOrDefault();
+                    WagonInternalRoute? wir = context.WagonInternalRoutes
+                        .AsNoTracking()
+                        .Where(r => r.Id == id_wir).FirstOrDefault();
                     if (wir == null) { cwuf.error = (int)errors_base.not_wir_db; return cwuf; }
                     cwuf.Derailment = context.isDerailmentOperation(id_wir); // проверим признак схода
                                                                              // Получить id_wir прибытия с учетом (если был возврат)
                     long id_wir_arrival = context.GetIDWIR(wir.Id);
                     // Прибытие
-                    WagonInternalRoute? wir_arrival = context.WagonInternalRoutes.AsNoTracking().Where(w => w.Id == id_wir_arrival).FirstOrDefault();
+                    WagonInternalRoute? wir_arrival = context.WagonInternalRoutes
+                        .AsNoTracking()
+                        .Where(w => w.Id == id_wir_arrival)
+                        .FirstOrDefault();
                     if (wir_arrival == null) { cwuf.error = (int)errors_base.not_wir_db; return cwuf; }
                     // Подгружаем состав, аренду и груз
                     ArrivalCar? arr_car = context.ArrivalCars
@@ -802,12 +811,16 @@ namespace IDS_
                             .ThenInclude(uzvag => uzvag.IdWagonsRentArrivalNavigation)
                         .Include(car => car.IdArrivalUzVagonNavigation)
                             .ThenInclude(uzvag => uzvag.IdCargoNavigation)
+                        .Include(car => car.IdArrivalUzVagonNavigation)
+                            .ThenInclude(sost => sost.IdDocumentNavigation)
                         .FirstOrDefault();
                     if (arr_car == null) { cwuf.error = (int)errors_base.not_arrival_cars_db; return cwuf; }
                     ArrivalSostav? arr_sostav = arr_car.IdArrivalNavigation;
                     if (arr_sostav == null) { cwuf.error = (int)errors_base.not_arrival_sostav_db; return cwuf; }
                     ArrivalUzVagon? arr_uz_vag = arr_car.IdArrivalUzVagonNavigation;
                     if (arr_uz_vag == null) { cwuf.error = (int)errors_base.not_inp_uz_vag_db; return cwuf; }
+                    ArrivalUzDocument? arr_uz_sost = arr_car.IdArrivalUzVagonNavigation.IdDocumentNavigation;
+                    if (arr_uz_sost == null) { cwuf.error = (int)errors_base.not_inp_uz_doc_db; return cwuf; }
                     // номер вагона
                     cwuf.Num = arr_car.Num;
                     cwuf.IdGenus = (int)arr_uz_vag.IdGenus;
@@ -816,6 +829,8 @@ namespace IDS_
                     cwuf.DateOutgoing = DateTime.Now;
                     // признак гружен по прибытию
                     cwuf.InpCargo = (arr_uz_vag.IdCargoNavigation != null ? list_groups_cargo.Find(x => x == arr_uz_vag.IdCargoNavigation.IdGroup) == 0 : false);
+                    cwuf.IdCargoArr = (arr_uz_vag.IdCargoNavigation != null ? arr_uz_vag.IdCargoNavigation.Id : null);
+                    cwuf.CodeStnFrom = (arr_uz_sost != null ? arr_uz_sost.CodeStnFrom : null);
                     cwuf.OutCargo = false;
                     // оператор
                     cwuf.IdOperator = arr_uz_vag.IdWagonsRentArrivalNavigation != null ? arr_uz_vag.IdWagonsRentArrivalNavigation.IdOperator : null;
@@ -830,6 +845,8 @@ namespace IDS_
                             .ThenInclude(uzvag => uzvag.IdWagonsRentOutgoingNavigation) // аренда по документу на вагону
                         .Include(car => car.IdOutgoingUzVagonNavigation) // документ по вагону
                             .ThenInclude(uzvag => uzvag.IdCargoNavigation) // груз по документу на вагону
+                        .Include(car => car.IdOutgoingUzVagonNavigation) // документ по вагону
+                            .ThenInclude(doc_uz => doc_uz.IdDocumentNavigation) // документ
                         .FirstOrDefault();
                     // Проверим отправка есть тогда расчет платы окончательный, если нет считаем по текущему времени
                     if (out_car != null)
@@ -845,8 +862,11 @@ namespace IDS_
                             }
                             // Груз по отправке
                             DirectoryCargo? outg_cargo = out_uz_vag.IdCargoNavigation;
+                            OutgoingUzDocument out_doc_uz = out_uz_vag.IdDocumentNavigation;
                             // признак гружен по отправке 
                             cwuf.OutCargo = (outg_cargo != null ? list_groups_cargo.Find(x => x == outg_cargo.IdGroup) == 0 : false);
+                            cwuf.IdCargoOut = (outg_cargo != null ? outg_cargo.Id : null);
+                            cwuf.CodeStnTo = (out_uz_vag.IdDocumentNavigation != null ? out_uz_vag.IdDocumentNavigation.CodeStnTo : null);
                         }
                         OutgoingSostav? out_sostav = out_car.IdOutgoingNavigation;
                         if (out_sostav != null)
@@ -869,7 +889,9 @@ namespace IDS_
                     // Получим периоды для расчетов
                     List<UsageFeePeriod> list_uf_period_outgoing = context.UsageFeePeriods
                         .AsNoTracking()
-                        .Where(p => p.IdOperator == cwuf.IdOperator && p.IdGenus == cwuf.IdGenus).OrderByDescending(c => c.Id)
+                        .Where(p => p.IdOperator == cwuf.IdOperator && p.IdGenus == cwuf.IdGenus)
+                        .Include(detali => detali.UsageFeePeriodDetalis) // документ по вагону
+                        .OrderByDescending(c => c.Id)
                         .ToList();
                     UsageFeePeriod? arr_perriod = list_uf_period_outgoing.Where(o => o.Start <= cwuf.DateAdoption && o.Stop >= cwuf.DateAdoption).FirstOrDefault();
                     UsageFeePeriod? out_perriod = list_uf_period_outgoing.Where(o => o.Start <= cwuf.DateOutgoing && o.Stop >= cwuf.DateOutgoing).FirstOrDefault();
@@ -888,6 +910,9 @@ namespace IDS_
                             list_period_where.Add(out_perriod);
                         }
                     }
+                    // Детальный период
+                    //UsageFeePeriod ufp_last = list_period_where.Last();
+                    //UsageFeePeriodDetali ufpd_last = 
                     // Расчеты
                     DateTime date = DateTime.Now.Date;
                     List<DirectoryBankRate> list_bank = context.DirectoryBankRates.Where(b => b.Date == date).ToList();
@@ -923,6 +948,7 @@ namespace IDS_
                     int remaining_minutes_period = 0;                   // Остаток минут
                     int sum_remaining_minutes_period = 0;               // Остаток минут (суммируемый)
                     int grace_time = 0;                                 // Льготное время
+                    int grace_detali_time = 0;                          // Льготное время (детальное условие)
                     SettlementRate curr_rate = new SettlementRate();    // Ставка, курс и валюта (с учетом схода)
                     float coefficient_route = 1;                        // коэффициент маршрута, для всех по умолчанию 1;
                     // -----
@@ -933,7 +959,28 @@ namespace IDS_
                     TimeSpan tm_period;
                     if (list_period_setup.Count() > 0)
                     {
-                        // Опредеим расчет ЦТЛ или собсьвенники
+                        UsageFeePeriod ufp_last = list_period_where.Last();
+                        // Проверим детальные настройки
+
+                        List<UsageFeePeriodDetali> ufpds = ufp_last.UsageFeePeriodDetalis.ToList();
+                        if (ufpds!=null && ufpds.Count()>0) {
+                            // есть детальные настройки, пройдемся
+                            foreach (UsageFeePeriodDetali det in ufpds) {
+                                if (det.CodeStnFrom!= null) {
+                                    grace_detali_time = det.CodeStnFrom == cwuf.CodeStnFrom ? (int)det.GraceTime : 0;
+                                }
+                                if (det.IdCargoArrival!= null) {
+                                    grace_detali_time = det.IdCargoArrival == cwuf.IdCargoArr ? (int)det.GraceTime : 0;
+                                }
+                                if (det.CodeStnTo!= null) {
+                                    grace_detali_time = det.CodeStnTo == cwuf.CodeStnTo ? (int)det.GraceTime : 0;
+                                }
+                                if (det.IdCargoOutgoing!= null) {
+                                    grace_detali_time = det.IdCargoOutgoing == cwuf.IdCargoOut ? (int)det.GraceTime : 0;
+                                }
+                            }
+                        }
+                        // Опредеим расчет ЦТЛ или собственники
                         if (!(bool)cwuf.UzWagon)
                         {
                             // Вагоны собственники (Считаем без периодов берем по последнему)
@@ -975,7 +1022,8 @@ namespace IDS_
                                 coefficient_route = (float)wufp.coefficient_not_route;
                             }
                             calc_hour_period = hour_period;
-                            int hour_calc = (hour_period - grace_time);
+                            int hour_calc = (hour_period - grace_time - grace_detali_time);
+                            if (hour_calc < 0) hour_calc = 0;
                             // пересчет времени с учетом uz_wagon
                             var remainder = (hour_calc % 24);
                             if (remainder > 0)
@@ -998,6 +1046,7 @@ namespace IDS_
                             foreach (Wagon_Usage_Fee_Period wufp in list_period_setup)
                             {
                                 grace_time = 0;                 // сбросим льготный период
+                                //grace_detali_time = 0;          // сбросим льготный период
                                 curr_rate.exchange_rate = 1;    // сбросим курс
                                 curr_rate.rate_currency = 0;    // сбросим ставку
                                 coefficient_route = 1;          // сбросим коэффициент
@@ -1037,6 +1086,8 @@ namespace IDS_
                                         tm_period = (DateTime)wufp.stop.AddSeconds(1).AddMinutes(1) - (DateTime)wufp.start; // за промежуточный период период
                                         stage = 2;
                                     }
+                                    // Льготное время 
+
                                 }
                                 // просчитаем интервал
                                 hour_period = (int)Math.Truncate(tm_period.TotalHours);
@@ -1073,7 +1124,8 @@ namespace IDS_
                                         {
                                             // первый и последний период
                                             calc_hour_period = hour_period;
-                                            int hour_calc = (hour_period - grace_time);
+                                            int hour_calc = (hour_period - grace_time - grace_detali_time);
+                                            if (hour_calc < 0) hour_calc = 0;
                                             // пересчет времени с учетом uz_wagon
                                             calc_time = hour_calc; // округлим до целых суток
                                             calc_fee_amount = (rate_currency_hour * calc_time * (decimal)coefficient_route) * curr_rate.exchange_rate;
@@ -1100,7 +1152,7 @@ namespace IDS_
                                     case 3:
                                         {
                                             // последний период
-                                            int hour_calc = hour_period;
+                                            int hour_calc = (hour_period - grace_detali_time);
                                             // Если небыло округления а сумма остатков >=0 тогда добавим час
                                             if (sum_remaining_minutes_period >= 30 && !rounding)
                                             {
@@ -1138,6 +1190,11 @@ namespace IDS_
                 return cwuf;
             }
         }
+        /// <summary>
+        /// Получить расчет платы за пользование по вагонам на пути
+        /// </summary>
+        /// <param name="id_way"></param>
+        /// <returns></returns>
         public List<CalcWagonUsageFee> CalcUsageFeeCarsOfWay(int id_way)
         {
             try
@@ -1146,7 +1203,8 @@ namespace IDS_
                 using (EFDbContext context = new(this.options))
                 {
                     List<WagonInternalMovement> list_wim = context.WagonInternalMovements
-                        .AsNoTracking().Where(w => w.IdWay == id_way & w.WayEnd == null)
+                        .AsNoTracking()
+                        .Where(w => w.IdWay == id_way & w.WayEnd == null)
                         .Include(wir => wir.IdWagonInternalRoutesNavigation) // wir
                             .ThenInclude(wag => wag.NumNavigation) // вагоны
                             .ThenInclude(rent => rent.DirectoryWagonsRents.Where(r => r.RentEnd == null).OrderByDescending(c => c.Id)) // аренда
@@ -1165,7 +1223,7 @@ namespace IDS_
                                     DirectoryOperatorsWagon? oper = rent.IdOperatorNavigation;
                                     if (oper != null && oper.Paid)
                                     {
-                                        results.Add(CalcUsageFeeOfCar(wim.IdWagonInternalRoutes));
+                                        results.Add(CalcUsageFeeOfWIR(wim.IdWagonInternalRoutes));
                                     }
                                 }
                             }
@@ -1180,6 +1238,174 @@ namespace IDS_
                 return null;
             }
         }
+        /// <summary>
+        /// Получить расчет платы за пользование по вагонам (через список id_wir)
+        /// </summary>
+        /// <param name="list_id_wir"></param>
+        /// <returns></returns>
+        public ResultUpdateIDWagon CalcUsageFeeOfListWir(List<long> list_id_wir)
+        {
+            ResultUpdateIDWagon result = new ResultUpdateIDWagon(0, list_id_wir.Count());
+            try
+            {
+                if (list_id_wir == null || list_id_wir.Count() == 0)
+                {
+                    result.result = (int)errors_base.not_input_list_wagons; // Ошибка нет списка вагонов
+                    return result;
+                }
+                string user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                using (EFDbContext context = new(this.options))
+                {
+                    foreach (long id in list_id_wir)
+                    {
+                        CalcWagonUsageFee res = CalcUsageFeeOfWIR(id);
+                        if (res.error < 0)
+                        {
+                            result.SetErrorResult(id, res.error, res.Num != null ? (int)res.Num : 0);
+                        }
+                        else if (res.error == 0)
+                        {
+                            WagonUsageFee wuf = context.WagonUsageFees
+                                .Where(w => w.IdWir == res.IdWir && w.Num == res.Num)
+                                .FirstOrDefault();
+                            if (wuf != null)
+                            {
+                                // Обновим
+                                wuf.IdOperator = (int)res.IdOperator;
+                                wuf.IdGenus = (int)res.IdGenus;
+                                wuf.DateAdoption = (DateTime)res.DateAdoption;
+                                wuf.DateOutgoing = (DateTime)res.DateOutgoing;
+                                wuf.Route = (bool)res.Route;
+                                wuf.InpCargo = (bool)res.InpCargo;
+                                wuf.OutCargo = (bool)res.OutCargo;
+                                wuf.Derailment = (bool)res.Derailment;// сход
+                                wuf.CountStage = (int)res.CountStage; // Количество стадий расчета
+                                wuf.IdCurrency = (int)res.IdCurrency;
+                                wuf.Rate = (decimal)res.Rate;
+                                wuf.ExchangeRate = (decimal)res.ExchangeRate;
+                                wuf.Coefficient = (double)res.Coefficient;
+                                wuf.UseTime = (int)res.UseTime;
+                                wuf.GraceTime = (int)res.GraceTime;
+                                wuf.CalcTime = (int)res.CalcTime; //calc_time
+                                wuf.CalcFeeAmount = (decimal)res.CalcFeeAmount;
+                                wuf.Downtime = res.Downtime;
+                                wuf.Change = DateTime.Now;
+                                wuf.ChangeUser = user;
+                            }
+                            else
+                            {
+                                // Добавим
+                                wuf = new WagonUsageFee()
+                                {
+                                    Id = 0,
+                                    IdWir = res.IdWir,
+                                    Num = (int)res.Num,
+                                    IdOperator = (int)res.IdOperator,
+                                    IdGenus = (int)res.IdGenus,
+                                    DateAdoption = (DateTime)res.DateAdoption,
+                                    DateOutgoing = (DateTime)res.DateOutgoing,
+                                    Route = (bool)res.Route,
+                                    InpCargo = (bool)res.InpCargo,
+                                    OutCargo = (bool)res.OutCargo,
+                                    Derailment = (bool)res.Derailment,
+                                    CountStage = (int)res.CountStage,
+                                    IdCurrency = (int)res.IdCurrency,
+                                    Rate = (decimal)res.Rate,
+                                    ExchangeRate = (decimal)res.ExchangeRate,
+                                    Coefficient = (double)res.Coefficient,
+                                    UseTime = (int)res.UseTime,
+                                    GraceTime = (int)res.GraceTime,
+                                    CalcTime = (int)res.CalcTime,
+                                    CalcFeeAmount = (decimal)res.CalcFeeAmount,
+                                    Downtime = res.Downtime,
+                                    Note = null,
+                                    Create = DateTime.Now,
+                                    CreateUser = user,
+                                };
+                                context.WagonUsageFees.Add(wuf);
+                            }
+                            int res_save = context.SaveChanges();
+                            if (res_save < 0)
+                            {
+                                result.SetErrorResult(id, res_save, res.Num != null ? (int)res.Num : 0);
+                            }
+                            else
+                            {
+                                if (wuf.Id == 0)
+                                {
+                                    result.SetInsertResult(id, res_save, res.Num != null ? (int)res.Num : 0);
+                                }
+                                else
+                                {
+                                    result.SetUpdateResult(id, res_save, res.Num != null ? (int)res.Num : 0);
+                                }
+                            }
+                        }
+                    }
+                }
+                return result;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "CalcUsageFeeOfListWir(list_id_wir={0})", list_id_wir);
+                result.result = (int)errors_base.global; // Глобальная ошибка
+                return result;
+            }
+        }
+        /// <summary>
+        /// Расчет платы за пользование по сданному составу
+        /// </summary>
+        /// <param name="id_sostav"></param>
+        /// <returns></returns>
+        public ResultUpdateIDWagon CalcUsageFeeOfOutgoingSostav(long id_sostav)
+        {
+            ResultUpdateIDWagon result = new ResultUpdateIDWagon(id_sostav, 0);
+            try
+            {
+                using (EFDbContext context = new(this.options))
+                {
+                    OutgoingSostav out_sostav = context.OutgoingSostavs
+                            .AsNoTracking()
+                            .Where(s => s.Id == id_sostav)
+                            .Include(cars => cars.OutgoingCars.Where(p => p.PositionOutgoing != null)) // cars
+                                .ThenInclude(wir => wir.WagonInternalRoutes)
+                            .FirstOrDefault();
+
+                    if (out_sostav == null)
+                    {
+                        result.result = (int)errors_base.not_outgoing_sostav_db;    // В базе данных нет записи состава для оправки
+                        return result;
+                    }
+                    if (out_sostav.DateOutgoing == null)
+                    {
+                        result.result = (int)errors_base.error_status_outgoing_sostav;     // Ошибка статуса состава (Статус не позволяет сделать эту операцию)
+                        return result;
+                    }
+                    if (out_sostav.OutgoingCars == null || out_sostav.OutgoingCars.Count() == 0)
+                    {
+                        result.result = (int)errors_base.not_outgoing_cars_db; // В базе данных нет записи по вагонам для отправки
+                        return result;
+                    }
+                    //List<OutgoingCar> cars = out_sostav.OutgoingCars.ToList();
+                    List<long> lost_id_wir = new List<long>();
+                    foreach (OutgoingCar car in out_sostav.OutgoingCars)
+                    {
+                        lost_id_wir.Add(car.WagonInternalRoutes.FirstOrDefault().Id);
+                    }
+                    result = CalcUsageFeeOfListWir(lost_id_wir);
+                    result.id = id_sostav;
+                }
+                return result;
+
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "CalcUsageFeeOfOutgoingSostav(id_sostav={0})", id_sostav);
+                result.result = (int)errors_base.global; // Глобальная ошибка
+                return result;
+            }
+        }
+
         #endregion
 
 
