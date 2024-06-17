@@ -97,9 +97,12 @@ public partial class UsageFeePeriod
     public virtual DirectoryOperatorsWagon IdOperatorNavigation { get; set; } = null!;
 
     [InverseProperty("Parent")]
-    public virtual ICollection<UsageFeePeriod> InverseParent { get; } = new List<UsageFeePeriod>();
+    public virtual ICollection<UsageFeePeriod> InverseParent { get; set; } = new List<UsageFeePeriod>();
 
     [ForeignKey("ParentId")]
     [InverseProperty("InverseParent")]
     public virtual UsageFeePeriod? Parent { get; set; }
+
+    [InverseProperty("IdUsageFeePeriodNavigation")]
+    public virtual ICollection<UsageFeePeriodDetali> UsageFeePeriodDetalis { get; set; } = new List<UsageFeePeriodDetali>();
 }

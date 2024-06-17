@@ -52,10 +52,10 @@ public partial class DirectoryCargo
     public int? IdOutGroup { get; set; }
 
     [InverseProperty("IdCargoNavigation")]
-    public virtual ICollection<ArrivalUzVagonCont> ArrivalUzVagonConts { get; } = new List<ArrivalUzVagonCont>();
+    public virtual ICollection<ArrivalUzVagonCont> ArrivalUzVagonConts { get; set; } = new List<ArrivalUzVagonCont>();
 
     [InverseProperty("IdCargoNavigation")]
-    public virtual ICollection<ArrivalUzVagon> ArrivalUzVagons { get; } = new List<ArrivalUzVagon>();
+    public virtual ICollection<ArrivalUzVagon> ArrivalUzVagons { get; set; } = new List<ArrivalUzVagon>();
 
     [ForeignKey("IdCargoEtsng")]
     [InverseProperty("DirectoryCargos")]
@@ -70,8 +70,14 @@ public partial class DirectoryCargo
     public virtual DirectoryCargoOutGroup? IdOutGroupNavigation { get; set; }
 
     [InverseProperty("IdCargoNavigation")]
-    public virtual ICollection<OutgoingUzVagonCont> OutgoingUzVagonConts { get; } = new List<OutgoingUzVagonCont>();
+    public virtual ICollection<OutgoingUzVagonCont> OutgoingUzVagonConts { get; set; } = new List<OutgoingUzVagonCont>();
 
     [InverseProperty("IdCargoNavigation")]
-    public virtual ICollection<OutgoingUzVagon> OutgoingUzVagons { get; } = new List<OutgoingUzVagon>();
+    public virtual ICollection<OutgoingUzVagon> OutgoingUzVagons { get; set; } = new List<OutgoingUzVagon>();
+
+    [InverseProperty("IdCargoArrivalNavigation")]
+    public virtual ICollection<UsageFeePeriodDetali> UsageFeePeriodDetaliIdCargoArrivalNavigations { get; set; } = new List<UsageFeePeriodDetali>();
+
+    [InverseProperty("IdCargoOutgoingNavigation")]
+    public virtual ICollection<UsageFeePeriodDetali> UsageFeePeriodDetaliIdCargoOutgoingNavigations { get; set; } = new List<UsageFeePeriodDetali>();
 }

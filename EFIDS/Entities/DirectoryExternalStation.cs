@@ -42,21 +42,27 @@ public partial class DirectoryExternalStation
     public bool? Port { get; set; }
 
     [InverseProperty("CodeStnFromNavigation")]
-    public virtual ICollection<ArrivalUzDocument> ArrivalUzDocumentCodeStnFromNavigations { get; } = new List<ArrivalUzDocument>();
+    public virtual ICollection<ArrivalUzDocument> ArrivalUzDocumentCodeStnFromNavigations { get; set; } = new List<ArrivalUzDocument>();
 
     [InverseProperty("CodeStnToNavigation")]
-    public virtual ICollection<ArrivalUzDocument> ArrivalUzDocumentCodeStnToNavigations { get; } = new List<ArrivalUzDocument>();
+    public virtual ICollection<ArrivalUzDocument> ArrivalUzDocumentCodeStnToNavigations { get; set; } = new List<ArrivalUzDocument>();
 
     [ForeignKey("CodeInlandrailway")]
     [InverseProperty("DirectoryExternalStations")]
     public virtual DirectoryInlandRailway CodeInlandrailwayNavigation { get; set; } = null!;
 
     [InverseProperty("CodeStnFromNavigation")]
-    public virtual ICollection<OutgoingUzDocument> OutgoingUzDocumentCodeStnFromNavigations { get; } = new List<OutgoingUzDocument>();
+    public virtual ICollection<OutgoingUzDocument> OutgoingUzDocumentCodeStnFromNavigations { get; set; } = new List<OutgoingUzDocument>();
 
     [InverseProperty("CodeStnToNavigation")]
-    public virtual ICollection<OutgoingUzDocument> OutgoingUzDocumentCodeStnToNavigations { get; } = new List<OutgoingUzDocument>();
+    public virtual ICollection<OutgoingUzDocument> OutgoingUzDocumentCodeStnToNavigations { get; set; } = new List<OutgoingUzDocument>();
 
     [InverseProperty("CodeStnToNavigation")]
-    public virtual ICollection<OutgoingUzVagon> OutgoingUzVagons { get; } = new List<OutgoingUzVagon>();
+    public virtual ICollection<OutgoingUzVagon> OutgoingUzVagons { get; set; } = new List<OutgoingUzVagon>();
+
+    [InverseProperty("CodeStnFromNavigation")]
+    public virtual ICollection<UsageFeePeriodDetali> UsageFeePeriodDetaliCodeStnFromNavigations { get; set; } = new List<UsageFeePeriodDetali>();
+
+    [InverseProperty("CodeStnToNavigation")]
+    public virtual ICollection<UsageFeePeriodDetali> UsageFeePeriodDetaliCodeStnToNavigations { get; set; } = new List<UsageFeePeriodDetali>();
 }

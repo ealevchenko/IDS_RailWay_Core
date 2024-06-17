@@ -193,7 +193,7 @@ public partial class EFDbContext : DbContext
     public virtual DbSet<Setting> Settings { get; set; }
 
     public virtual DbSet<UsageFeePeriod> UsageFeePeriods { get; set; }
-
+    public virtual DbSet<UsageFeePeriodDetali> UsageFeePeriodDetalis { get; set; }
     public virtual DbSet<UzDoc> UzDocs { get; set; }
 
     public virtual DbSet<UzDocOut> UzDocOuts { get; set; }
@@ -828,6 +828,19 @@ public partial class EFDbContext : DbContext
                 .HasConstraintName("FK_Usage_Fee_Period_Directory_OperatorsWagons");
 
             entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent).HasConstraintName("FK_Usage_Fee_Period_Usage_Fee_Period");
+        });
+
+        modelBuilder.Entity<UsageFeePeriodDetali>(entity =>
+        {
+            entity.HasOne(d => d.CodeStnFromNavigation).WithMany(p => p.UsageFeePeriodDetaliCodeStnFromNavigations).HasConstraintName("FK_Usage_Fee_Period_Detali_Directory_ExternalStation");
+
+            entity.HasOne(d => d.CodeStnToNavigation).WithMany(p => p.UsageFeePeriodDetaliCodeStnToNavigations).HasConstraintName("FK_Usage_Fee_Period_Detali_Directory_ExternalStation1");
+
+            entity.HasOne(d => d.IdCargoArrivalNavigation).WithMany(p => p.UsageFeePeriodDetaliIdCargoArrivalNavigations).HasConstraintName("FK_Usage_Fee_Period_Detali_Directory_Cargo");
+
+            entity.HasOne(d => d.IdCargoOutgoingNavigation).WithMany(p => p.UsageFeePeriodDetaliIdCargoOutgoingNavigations).HasConstraintName("FK_Usage_Fee_Period_Detali_Directory_Cargo1");
+
+            entity.HasOne(d => d.IdUsageFeePeriodNavigation).WithMany(p => p.UsageFeePeriodDetalis).HasConstraintName("FK_Usage_Fee_Period_Detali_Usage_Fee_Period");
         });
 
         modelBuilder.Entity<WagonInternalMovement>(entity =>
