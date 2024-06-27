@@ -27,7 +27,7 @@ namespace Test.TestModele
         /// </summary>
         public void CalcUsageFeeOfCar()
         {
-            ids_wir.CalcUsageFeeOfCar(861475);
+            ids_wir.CalcUsageFeeOfWIR(862636);
         }
         /// <summary>
         /// Тест расчет платы по вагонам на пути
@@ -35,6 +35,22 @@ namespace Test.TestModele
         public void CalcUsageFeeCarsOfWay()
         {
             ids_wir.CalcUsageFeeCarsOfWay(1042);
+        }
+        /// <summary>
+        /// Тест расчет платы по отправленому составу
+        /// </summary>
+        public void CalcUsageFeeOfOutgoingSostav()
+        {
+            ids_wir.CalcUsageFeeOfOutgoingSostav(293643);
+        }
+        /// <summary>
+        /// Расчет платы за пользование по сданным составам за выбранный период
+        /// </summary>
+        public void IDS_WIR_CalcUsageFeeOfOutgoingSostavOfPeriod()
+        {
+            DateTime start = new DateTime(2024, 3, 6, 0, 0, 0);
+            DateTime stop = new DateTime(2024, 6, 19, 23, 59, 59);
+            List<ResultUpdateIDWagon> res = ids_wir.CalcUsageFeeOfOutgoingSostav(start, stop);
         }
     }
 }
