@@ -789,7 +789,7 @@ namespace IDS_
                     {
                         List_wir.Add(new WagonInternalRoutesPosition()
                         {
-                            wir = context.WagonInternalRoutes.Where(r => r.Id == sw.wir_id).AsNoTracking().FirstOrDefault(),
+                            wir = context.WagonInternalRoutes.Where(r => r.Id == sw.wir_id).FirstOrDefault(),
                             new_position = sw.position
                         });
                     }
