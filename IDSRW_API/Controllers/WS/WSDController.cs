@@ -19,7 +19,7 @@ using WebAPI.Controllers.GIVC;
 namespace WebAPI.Controllers.Directory
 {
 
-    #region ОПЕРАЦИЯ ПРИНЯТЬ (Обновленный АРМ)
+    #region ОПЕРАЦИЯ ПРИНЯТЬ (АРМ)
     public class OperationArrivalWagons
     {
         public int id_outer_way { get; set; }
@@ -30,6 +30,18 @@ namespace WebAPI.Controllers.Directory
         public string locomotive1 { get; set; }
         public string? locomotive2 { get; set; }
 
+    }
+    #endregion
+
+    #region ОПЕРАЦИЯ ОТПРАВИТЬ (АРМ)
+    public class OperationOutgoingWagons
+    {
+        public int id_way_from { get; set; }
+        public List<ListOperationWagon> wagons { get; set; }
+        public int id_outer_way { get; set; }
+        public DateTime lead_time { get; set; }
+        public string locomotive1 { get; set; }
+        public string? locomotive2 { get; set; }
     }
     #endregion
 
@@ -153,7 +165,7 @@ namespace WebAPI.Controllers.Directory
 
         #region РАСЧЕТ ПЛАТЫ ЗА ПОЛЬЗОВАНИЕ (АРМ)
 
-        // GET: WSD/view/calc_wagon/way/1042
+        // GET: WSD/view/calc_wagon/way/821933
         [HttpGet("view/calc_wagon/way/{id_way}")]
         public async Task<ActionResult<IEnumerable<CalcWagonUsageFee>>> getCalcUsageFeeCarsOfWay(int id_way)
         {
@@ -176,7 +188,7 @@ namespace WebAPI.Controllers.Directory
         /// </summary>
         /// <param name="id_sostav"></param>
         /// <returns></returns>
-        // GET: WSD/view/calc_wagon/outgoing/sostav/293584
+        // GET: WSD/view/calc_wagon/outgoing/sostav/282860
         [HttpGet("view/calc_wagon/outgoing/sostav/{id_sostav}")]
         public async Task<ActionResult<IEnumerable<ResultUpdateIDWagon>>> getCalcUsageFeeOfOutgoingSostav(int id_sostav)
         {
@@ -196,7 +208,7 @@ namespace WebAPI.Controllers.Directory
         }
         #endregion
 
-
+        #region ОПЕРАЦИИ НАД ВАГОНАМИ (АРМ)
         // POST: WSD/operation/arrival
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/arrival")]
@@ -212,7 +224,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultTransfer result = ids_wir.ArrivalWagonsOfStation(value.id_outer_way, value.wagons, value.id_way_on, value.head, value.lead_time, value.locomotive1, value.locomotive2, user);
+                ResultTransfer result = ids_wir.ArrivalWagonsOfStationAMKR(value.id_outer_way, value.wagons, value.id_way_on, value.head, value.lead_time, value.locomotive1, value.locomotive2, user);
                 return Ok(result);
             }
             catch (Exception e)
@@ -220,5 +232,32 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // POST: WSD/operation/outgoing
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/outgoing")]
+        public async Task<ActionResult<ResultTransfer>> PostOutgoingWagonsOfStationAMKR([FromBody] OperationOutgoingWagons value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultTransfer result = ids_wir.OutgoingWagonsOfStationAMKR(value.id_way_from, value.wagons, value.id_outer_way, value.lead_time, value.locomotive1, value.locomotive2, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }        
+        
+        #endregion    
+    
     }
 }

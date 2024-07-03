@@ -179,7 +179,6 @@ namespace IDS.Helper
             }
             return wio_new;
         }
-
         public static WagonInternalOperation SetCloseOperation(this WagonInternalOperation wio, DateTime date_end, string note, string user)
         {
             if (wio != null && wio.Close == null)
