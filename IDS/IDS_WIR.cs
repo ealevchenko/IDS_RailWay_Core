@@ -518,7 +518,7 @@ namespace IDS_
         /// <param name="id_way"></param>
         /// <param name="position_start"></param>
         /// <returns></returns>
-        public int RenumberingWagons(EFDbContext context, int id_way, int position_start)
+        public int RenumberingWagons(ref EFDbContext context, int id_way, int position_start)
         {
             try
             {
@@ -558,136 +558,6 @@ namespace IDS_
                 .FirstOrDefault();
             return wim;
         }
-
-        /// <summary>
-        /// Открыть операцию над вагоном
-        /// </summary>
-        /// <param name="wir"></param>
-        /// <param name="context"></param>
-        /// <param name="id_operation"></param>
-        /// <param name="date_start"></param>
-        /// <param name="id_condition"></param>
-        /// <param name="id_loading_status"></param>
-        /// <param name="locomotive1"></param>
-        /// <param name="locomotive2"></param>
-        /// <param name="note"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public WagonInternalOperation SetOpenOperation(WagonInternalRoute wir, EFDbContext context, int id_operation, DateTime date_start, int? id_condition, int? id_loading_status, string locomotive1, string locomotive2, string note, string user)
-        {
-            WagonInternalOperation wio_new = null;
-
-            if (wir != null && wir.Close == null)
-            {
-                WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
-                wio_new = new WagonInternalOperation()
-                {
-                    Id = 0,
-                    IdOperation = id_operation,
-                    OperationStart = date_start,
-                    IdCondition = (id_condition != null ? (int)id_condition : (wio_last != null ? wio_last.IdCondition : 0)),
-                    ConChange = (id_condition == null && wio_last != null ? wio_last.ConChange : null),
-                    ConChangeUser = (id_condition == null && wio_last != null ? wio_last.ConChangeUser : null),
-                    IdLoadingStatus = (id_loading_status != null ? (int)id_loading_status : (wio_last != null ? wio_last.IdLoadingStatus : 0)),
-                    Locomotive1 = locomotive1,
-                    Locomotive2 = locomotive2,
-                    Note = note,
-                    Create = DateTime.Now,
-                    CreateUser = user,
-                    ParentId = wio_last.CloseOperation(date_start, null, user)
-                };
-
-                wir.WagonInternalOperations.Add(wio_new);
-            }
-            return wio_new;
-        }
-        /// <summary>
-        /// Закрыть операции
-        /// </summary>
-        /// <param name="wio"></param>
-        /// <param name="date_end"></param>
-        /// <param name="note"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public long? CloseOperation(WagonInternalOperation wio, DateTime date_end, string? note, string user)
-        {
-            if (wio == null) return null;
-            if (wio.Close == null)
-            {
-                wio.OperationEnd = wio.OperationEnd == null ? date_end : wio.OperationEnd;
-                wio.Note = note != null ? note : wio.Note;
-                wio.Close = date_end;
-                wio.CloseUser = user;
-            }
-            return wio.Id;
-        }
-        /// <summary>
-        /// Закрыть позицию вагона
-        /// </summary>
-        /// <param name="wim"></param>
-        /// <param name="date_end"></param>
-        /// <param name="note"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public long? CloseMovement(WagonInternalMovement wim, DateTime date_end, string? note, string user)
-        {
-            if (wim == null) return null;
-            if (wim.Close == null)
-            {
-                // Определим какой путь закрывать Внутрений или внешний
-                if (wim.IdOuterWay == null)
-                {
-                    // Закроем внутрений
-                    wim.WayEnd = wim.WayEnd == null ? date_end : wim.WayEnd;
-                    //wim.station_end = wim.station_end == null ? date_end : wim.station_end;
-
-                }
-                else
-                {
-                    // Закроем внешний путь
-                    wim.OuterWayEnd = wim.OuterWayEnd == null ? date_end : wim.OuterWayEnd;
-                }
-
-                wim.Note = note != null ? note : wim.Note;
-                wim.Close = DateTime.Now;
-                wim.CloseUser = user;
-            }
-            return wim.Id;
-        }
-        public WagonInternalMovement? SetSendingWagon(WagonInternalRoute wir, EFDbContext context, int id_outer_ways, DateTime date_start, int position, string num_sostav, string? note, string user)
-        {
-            WagonInternalMovement? wim_new = null;
-            if (wir != null && wir.Close == null)
-            {
-                // Получим последнее положение
-                WagonInternalMovement? wim = GetLastMovement(wir, context);
-                // Исключим попытку поставить дублирования записи постановки на путь
-                if (wim != null && wim.IdOuterWay != id_outer_ways)
-                {
-                    wim_new = new WagonInternalMovement()
-                    {
-                        Id = 0,
-                        IdStation = wim.IdStation,
-                        IdWay = wim.IdWay,
-                        WayStart = wim.WayStart,
-                        WayEnd = wim.WayEnd == null ? date_start : wim.WayEnd,
-                        Position = position,
-                        IdOuterWay = (int?)id_outer_ways,
-                        OuterWayStart = date_start,
-                        OuterWayEnd = null,
-                        Create = DateTime.Now,
-                        CreateUser = user,
-                        NumSostav = num_sostav,
-                        Note = note,
-                        ParentId = CloseMovement(wim, date_start, null, user),
-                    };
-                    wir.WagonInternalMovements.Add(wim_new);
-                }
-
-            }
-            return wim_new;
-        }
-
 
         #region  Операция "Принять вагон на АМКР"
 
@@ -790,7 +660,7 @@ namespace IDS_
                     List<WagonInternalRoute> wagon_position = List_wir.OrderBy(w => w.new_position).Select(w => w.wir).ToList();
 
                     //Подготовим путь приема(перестроим позиции)
-                    int res_renum = RenumberingWagons(context, id_way_on, (head == true ? (wagons.Count() + 1) : 1));
+                    int res_renum = RenumberingWagons(ref context, id_way_on, (head == true ? (wagons.Count() + 1) : 1));
                     // Определим позицию переноса вагонов
                     int position = head == true ? 1 : context.GetNextPosition(id_way_on);
 
@@ -845,7 +715,7 @@ namespace IDS_
         /// <param name="locomotive2"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public int SendWagon(EFDbContext context, int id_way_from, int id_outer_ways, int position_on, DateTime lead_time, WagonInternalRoute wagon, string num_sostav, string locomotive1, string locomotive2, string user)
+        public int SendWagon(ref EFDbContext context, int id_way_from, int id_outer_ways, int position_on, DateTime lead_time, WagonInternalRoute wagon, string num_sostav, string locomotive1, string locomotive2, string user)
         {
             try
             {
@@ -868,12 +738,12 @@ namespace IDS_
                                                                                                 // Вагон не стоит, переставим.
 
                 // Установим и закроем операцию отправления -5              
-                WagonInternalOperation new_operation = SetOpenOperation(wagon, context, 5, lead_time.AddMinutes(-10), null, null, locomotive1, locomotive2, "Состав:" + num_sostav, user);
+                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, 5, lead_time.AddMinutes(-10), null, null, locomotive1, locomotive2, "Состав:" + num_sostav, user);
                 if (new_operation == null) return (int)errors_base.err_create_wio_db;   // Ошибка создания новой операции над вагоном.
-                long? id = CloseOperation(new_operation, lead_time, null, user);
+                long? id = new_operation.CloseOperation(lead_time, null, user);
 
                 // Установим и вагон на внешний путь
-                WagonInternalMovement? new_movement = SetSendingWagon(wagon, context, id_outer_ways, lead_time, position_on, num_sostav, null, user);
+                WagonInternalMovement? new_movement = wagon.SetSendingWagon(ref context, id_outer_ways, lead_time, position_on, num_sostav, null, user);
                 if (new_movement == null) return (int)errors_base.err_create_wim_db;   // Ошибка создания новой позиции вагона.
                                                                                        // Зададим сылку на операцию
                 new_movement.IdWioNavigation = new_operation;
@@ -911,7 +781,8 @@ namespace IDS_
                 string num_sostav = id_outer_way.ToString() + '-' + lead_time.ToString("ddMMyyyyHHmmss");
 
                 List<WagonInternalRoutesPosition> List_wir = new List<WagonInternalRoutesPosition>();
-                using (EFDbContext context = new EFDbContext(this.options))
+                EFDbContext context = new EFDbContext(this.options);
+                //using (EFDbContext context = new EFDbContext(this.options))
                 {
                     // Пройдемся по вагонам отсортировав их по позиции
                     foreach (ListOperationWagon sw in wagons.OrderBy(w => w.position).ToList())
@@ -929,7 +800,7 @@ namespace IDS_
                         int position = 1;
                         foreach (WagonInternalRoute wagon in wagon_position)
                         {
-                            int result = SendWagon(context, id_way_from, id_outer_way, position, lead_time, wagon, num_sostav, locomotive1, locomotive2, user);
+                            int result = SendWagon(ref context, id_way_from, id_outer_way, position, lead_time, wagon, num_sostav, locomotive1, locomotive2, user);
                             rt.SetMovedResult(result, wagon.Num);
                             position++;
                         }
@@ -946,7 +817,7 @@ namespace IDS_
                             _logger.LogWarning(mess);
                             DateTime stop = DateTime.Now;
                             _logger.LogDebug(String.Format("Операция отправки вагонов на станцию АМКР."), start, stop, rt.result);
-                            int result_rnw = RenumberingWagons(context, id_way_from, 1);
+                            int result_rnw = RenumberingWagons(ref context, id_way_from, 1);
                             if (result_rnw > 0)
                             {
                                 // Применим перенумерацию
@@ -1777,7 +1648,6 @@ namespace IDS_
         }
 
         #endregion
-
 
     }
 }

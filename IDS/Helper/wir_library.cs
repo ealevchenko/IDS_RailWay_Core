@@ -372,7 +372,7 @@ namespace IDS.Helper
             return wio;
         }
 
-        public static long? CloseOperation(this WagonInternalOperation wio, DateTime date_end, string note, string user)
+        public static long? CloseOperation(this WagonInternalOperation wio, DateTime date_end, string? note, string user)
         {
             if (wio == null) return null;
             if (wio.Close == null)
