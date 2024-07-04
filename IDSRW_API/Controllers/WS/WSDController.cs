@@ -162,6 +162,23 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+        
+        // GET: WSD/view/wagons/outer_way/station_from/8
+        [HttpGet("view/wagons/outer_way/station_from/{id_station}")]
+        public async Task<ActionResult<IEnumerable<ViewWagonsOfOuterWay>>> getViewOpenWagonsOfOuterWaysStationFrom(int id_station)
+        {
+            try
+            {
+                List<ViewWagonsOfOuterWay> result = await db.getViewOpenWagonsOfOuterWaysStationFrom(id_station).ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
 
         #region РАСЧЕТ ПЛАТЫ ЗА ПОЛЬЗОВАНИЕ (АРМ)
 
