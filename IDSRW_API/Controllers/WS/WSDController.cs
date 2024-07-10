@@ -45,6 +45,20 @@ namespace WebAPI.Controllers.Directory
     }
     #endregion
 
+    #region ОПЕРАЦИЯ ВЕРНУТЬ (Обновленный АРМ)
+    public class OperationReturnWagons
+    {
+        public int id_outer_way { get; set; }
+        public List<ListOperationWagon> wagons { get; set; }
+        public int id_way { get; set; }
+        public bool head { get; set; }
+        public DateTime? lead_time { get; set; }
+        public string locomotive1 { get; set; }
+        public string? locomotive2 { get; set; }
+        public bool type_return { get; set; }
+    }
+    #endregion
+
     [Route("[controller]")]
     [ApiController]
     public class WSDController : ControllerBase
@@ -162,7 +176,7 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        
+
         // GET: WSD/view/wagons/outer_way/station_from/8
         [HttpGet("view/wagons/outer_way/station_from/{id_station}")]
         public async Task<ActionResult<IEnumerable<ViewWagonsOfOuterWay>>> getViewOpenWagonsOfOuterWaysStationFrom(int id_station)
@@ -272,9 +286,32 @@ namespace WebAPI.Controllers.Directory
             {
                 return BadRequest(e.Message);
             }
-        }        
-        
-        #endregion    
-    
+        }
+
+        // POST: WSD/operation/outgoing
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/return")]
+        public async Task<ActionResult<ResultTransfer>> PostReturnWagonsOfStationAMKR([FromBody] OperationReturnWagons value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultTransfer result = ids_wir.ReturnWagonsOfStationAMKR(value.id_outer_way, value.wagons, value.id_way, value.head, value.lead_time, value.locomotive1, value.locomotive2, value.type_return, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        #endregion
+
     }
 }
