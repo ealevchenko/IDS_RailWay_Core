@@ -857,7 +857,7 @@ namespace IDS_
         /// <param name="type_return"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public int ReturnWagon(ref EFDbContext context, int id_outer_way, int id_way, int position_on, DateTime? lead_time, WagonInternalRoute wagon, string locomotive1, string? locomotive2, bool type_return, string user)
+        public int ReturnWagon(ref EFDbContext context, int id_outer_way, int id_way, int position_on, DateTime? lead_time, WagonInternalRoute wagon, string? locomotive1, string? locomotive2, bool type_return, string user)
         {
             try
             {
@@ -933,7 +933,7 @@ namespace IDS_
         /// <param name="type_return"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public ResultTransfer ReturnWagonsOfStationAMKR(int id_outer_way, List<ListOperationWagon> wagons, int id_way, bool head, DateTime? lead_time, string locomotive1, string? locomotive2, bool type_return, string user)
+        public ResultTransfer ReturnWagonsOfStationAMKR(int id_outer_way, List<ListOperationWagon> wagons, int id_way, bool head, DateTime? lead_time, string? locomotive1, string? locomotive2, bool type_return, string user)
         {
             DateTime start = DateTime.Now;
             ResultTransfer rt = new ResultTransfer(wagons.Count());

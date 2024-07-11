@@ -53,7 +53,7 @@ namespace WebAPI.Controllers.Directory
         public int id_way { get; set; }
         public bool head { get; set; }
         public DateTime? lead_time { get; set; }
-        public string locomotive1 { get; set; }
+        public string? locomotive1 { get; set; }
         public string? locomotive2 { get; set; }
         public bool type_return { get; set; }
     }
