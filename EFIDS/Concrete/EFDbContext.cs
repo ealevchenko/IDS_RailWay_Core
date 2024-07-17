@@ -217,6 +217,7 @@ public partial class EFDbContext : DbContext
     public IQueryable<ViewStatusParkWay> getViewStatusAllParkOfStationId(int id_station)  => FromExpression(() => getViewStatusAllParkOfStationId(id_station));
     public IQueryable<ViewStatusParkWay> getViewStatusParkOfId(int id_station, int id_park)  => FromExpression(() => getViewStatusParkOfId(id_station, id_park));
     public IQueryable<ViewStatusWay> getViewStatusAllWayOfStationParkId(int id_station, int id_park)  => FromExpression(() => getViewStatusAllWayOfStationParkId(id_station, id_park));
+    public IQueryable<ViewStatusWay> getViewStatusAllWayOfStationId(int id_station)  => FromExpression(() => getViewStatusAllWayOfStationId(id_station));
     public IQueryable<ViewStatusWay> getViewStatusWayOfId(int id_way)  => FromExpression(() => getViewStatusWayOfId(id_way));
     public IQueryable<ViewCarWay> getViewWagonsOfIdWay(int id_way)  => FromExpression(() => getViewWagonsOfIdWay(id_way));
     public IQueryable<ViewTotalBalance> getViewTotalBalance()  => FromExpression(() => getViewTotalBalance());
@@ -237,6 +238,7 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusAllParkOfStationId), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_status_all_park_of_station_id");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusParkOfId), new[] { typeof(int), typeof(int)})).HasSchema("IDS").HasName("get_view_status_park_of_id");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusAllWayOfStationParkId), new[] { typeof(int), typeof(int)})).HasSchema("IDS").HasName("get_view_status_all_way_of_station_park_id");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusAllWayOfStationId), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_status_all_way_of_station_id");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusWayOfId), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_status_way_of_id");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOfIdWay), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_wagons_of_id_way");
         modelBuilder.HasDbFunction(() => getViewTotalBalance()).HasSchema("IDS").HasName("get_total_balance");

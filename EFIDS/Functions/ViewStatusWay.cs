@@ -69,6 +69,9 @@ public class ViewStatusWay
     [Column("output_dissolution")]
     public bool? OutputDissolution { get; set; }
 
+    [Column("station_dissolution")]
+    public int? StationDissolution { get; set; }
+
     [Column("way_close", TypeName = "datetime")]
     public DateTime? WayClose { get; set; }
 

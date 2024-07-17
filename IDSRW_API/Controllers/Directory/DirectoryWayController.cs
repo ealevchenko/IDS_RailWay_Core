@@ -48,6 +48,22 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+        // GET: DirectoryWay/status/station/1
+        [HttpGet("status/station/{id_station}")]
+        public async Task<ActionResult<IEnumerable<ViewStatusWay>>> GetViewStatusAllWayOfStationId(int id_station)
+        {
+            try
+            {
+                List<ViewStatusWay> result = await db.getViewStatusAllWayOfStationId(id_station).ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         // GET: DirectoryWay/status/station/1/park/84
         [HttpGet("status/station/{id_station}/park/{id_park}")]
         public async Task<ActionResult<IEnumerable<ViewStatusWay>>> GetViewStatusAllWayOfStationParkId(int id_station, int id_park)
