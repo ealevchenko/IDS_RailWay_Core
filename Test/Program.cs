@@ -95,7 +95,8 @@ namespace HelloApp
                 //twir.CalcUsageFeeCarsOfWay(); // Тест расчет платы по вагонам на пути
                 //twir.CalcUsageFeeOfOutgoingSostav(); // Тест расчет платы по отправленому составу
                 //twir.IDS_WIR_CalcUsageFeeOfOutgoingSostavOfPeriod(); // Расчет платы за пользование по сданным составам за выбранный период
-                twir.ChangeDivisionOutgoingWagons(); // Расчет платы за пользование по сданным составам за выбранный период
+                //twir.ChangeDivisionOutgoingWagons(); // 
+                //twir.ChangeVesgOutgoingWagons(); // 
                 #endregion
                 //+++++++++++++++++++++++++++++++ req1892 ++++++++++++++++++++++++++++++
                 //WebClientGIVC client_givc = new WebClientGIVC(logger, config);
