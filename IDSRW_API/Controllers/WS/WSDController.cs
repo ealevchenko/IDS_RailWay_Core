@@ -67,6 +67,13 @@ namespace WebAPI.Controllers.Directory
         public List<int> nums { get; set; }
         public int id_division { get; set; }
     }
+    public class AdmChangeVesgOutgoingWagons
+    {
+        public int num_doc { get; set; }
+        public int num_vag { get; set; }
+        public int vesg { get; set; }
+    }
+
     #endregion
 
     [Route("[controller]")]
@@ -342,6 +349,37 @@ namespace WebAPI.Controllers.Directory
                 {
                     IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
                     int result = ids_wir.ChangeDivisionOutgoingWagons(value.num_doc, value.nums, value.id_division);
+                    return Ok(result);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        // POST: WSD/admin/change/vesg/outgoing
+        // BODY: WSD (JSON, XML)
+        [HttpPost("admin/change/vesg/outgoing")]
+        public async Task<ActionResult<ResultTransfer>> PostAdmChangeVesgOutgoingWagons([FromBody] AdmChangeVesgOutgoingWagons value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                if (user == "EUROPE\\ealevchenko" || user == "EUROPE\\lvgubarenko")
+                {
+                    IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                    int result = ids_wir.ChangeVesgOutgoingWagons(value.num_doc, value.num_vag, value.vesg);
                     return Ok(result);
                 }
                 else

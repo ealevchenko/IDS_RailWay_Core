@@ -1809,6 +1809,13 @@ namespace IDS_
         #endregion
 
         #region АДМИНИСТРИРОВАНИЕ
+        /// <summary>
+        /// Правка цеха погрузки
+        /// </summary>
+        /// <param name="num_doc"></param>
+        /// <param name="nums"></param>
+        /// <param name="id_division"></param>
+        /// <returns></returns>
         public int ChangeDivisionOutgoingWagons(int num_doc, List<int> nums, int id_division)
         {
             try
@@ -1845,6 +1852,51 @@ namespace IDS_
             catch (Exception e)
             {
                 _logger.LogError(_eventId, e, "ChangeDivisionOutgoingWagons(num_doc={0}, nums={1}, id_division={2})", num_doc, nums, id_division);
+                return (int)errors_base.global;
+            }
+        }
+        /// <summary>
+        /// Правка веса груза
+        /// </summary>
+        /// <param name="num_doc"></param>
+        /// <param name="num_vag"></param>
+        /// <param name="vesg"></param>
+        /// <returns></returns>
+        public int ChangeVesgOutgoingWagons(int num_doc, int num_vag, int vesg)
+        {
+            try
+            {
+                int result = 0;
+                using (EFDbContext context = new(this.options))
+                {
+                    OutgoingSostav? sostav = context.OutgoingSostavs
+                       //.AsNoTracking()
+                       .Where(s => s.NumDoc == num_doc)
+                       .Include(cars => cars.OutgoingCars) // OutgoingCar
+                       .ThenInclude(vag => vag.IdOutgoingUzVagonNavigation) // OutgoingUzVagon
+                       .OrderByDescending(c=>c.Id)
+                       .FirstOrDefault();
+                    if (sostav == null) return (int)errors_base.not_outgoing_sostav_db;
+                    foreach (OutgoingCar vag in sostav.OutgoingCars)
+                    {
+                        if (vag.Num == num_vag)
+                        {
+                            OutgoingUzVagon? vag_uz = vag.IdOutgoingUzVagonNavigation;
+                            if (vag_uz != null)
+                            {
+                                vag_uz.Vesg = vesg;
+                            }
+
+                        }
+
+                    }
+                    result = context.SaveChanges();
+                }
+                return result;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "ChangeVesgOutgoingWagons(num_doc={0}, num_vag={1}, vesg={2})", num_doc, num_vag, vesg);
                 return (int)errors_base.global;
             }
         }
