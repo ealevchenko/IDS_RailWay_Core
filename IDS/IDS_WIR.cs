@@ -21,6 +21,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.ConstrainedExecution;
 using System.Data;
+using System.Collections;
 
 namespace IDS_
 {
@@ -880,8 +881,8 @@ namespace IDS_
                 if (wio == null) return (int)errors_base.not_wio_db;    // В базе данных нет записи по WagonInternalOperation (Внутреннее перемещение вагонов)
                 // Проверка на операцию возврат или отмена
                 if (wio.IdOperation == 11 || wio.IdOperation == 12) return (int)errors_base.already_wio; // вагон  не стоит на указаном перегоне
-                                                                                                           // Проверим вагон уже стоит ?
-                                                                                                           //if (wim.id_way == id_way_on && wim.position == position_on) return 0; // Вагон уже принят пропустить операцию
+                                                                                                         // Проверим вагон уже стоит ?
+                                                                                                         //if (wim.id_way == id_way_on && wim.position == position_on) return 0; // Вагон уже принят пропустить операцию
 
                 // Вагон не принят, выполнить операцию.
                 string note_sostav = "Состав:" + wim.NumSostav + "-" + (type_return ? " отмена" : " возврат");
@@ -906,7 +907,7 @@ namespace IDS_
                 if (new_operation == null) return (int)errors_base.err_create_wio_db;   // Ошибка создания новой операции над вагоном.
 
                 // Установим и вагон на путь станции без проверки 
-                WagonInternalMovement new_movement = wagon.SetStationWagon(ref context,id_station_on, id_way, lead_time_stop, position_on, null, user, false);
+                WagonInternalMovement new_movement = wagon.SetStationWagon(ref context, id_station_on, id_way, lead_time_stop, position_on, null, user, false);
                 if (new_movement == null) return (int)errors_base.err_create_wim_db;   // Ошибка создания новой позиции вагона.
                                                                                        // Зададим сылку на операцию
                 new_movement.IdWioNavigation = new_operation;
@@ -1805,7 +1806,48 @@ namespace IDS_
                 return result;
             }
         }
+        #endregion
 
+        #region АДМИНИСТРИРОВАНИЕ
+        public int ChangeDivisionOutgoingWagons(int num_doc, List<int> nums, int id_division)
+        {
+            try
+            {
+                int result = 0;
+                using (EFDbContext context = new(this.options))
+                {
+                    OutgoingSostav? sostav = context.OutgoingSostavs
+                       //.AsNoTracking()
+                       .Where(s => s.NumDoc == num_doc)
+                       .Include(cars => cars.OutgoingCars) // OutgoingCar
+                       .ThenInclude(vag => vag.IdOutgoingUzVagonNavigation) // OutgoingUzVagon
+                       .OrderByDescending(c=>c.Id)
+                       .FirstOrDefault();
+                    if (sostav == null) return (int)errors_base.not_outgoing_sostav_db;
+                    foreach (OutgoingCar vag in sostav.OutgoingCars)
+                    {
+                        int index = nums.IndexOf(vag.Num);
+                        if (index >= 0)
+                        {
+                            OutgoingUzVagon? vag_uz = vag.IdOutgoingUzVagonNavigation;
+                            if (vag_uz != null)
+                            {
+                                vag_uz.IdDivision = id_division;
+                            }
+
+                        }
+
+                    }
+                    result = context.SaveChanges();
+                }
+                return result;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "ChangeDivisionOutgoingWagons(num_doc={0}, nums={1}, id_division={2})", num_doc, nums, id_division);
+                return (int)errors_base.global;
+            }
+        }
         #endregion
 
     }

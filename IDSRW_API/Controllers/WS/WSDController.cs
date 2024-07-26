@@ -15,6 +15,7 @@ using IDS_;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using WebAPI.Controllers.GIVC;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace WebAPI.Controllers.Directory
 {
@@ -56,6 +57,15 @@ namespace WebAPI.Controllers.Directory
         public string? locomotive1 { get; set; }
         public string? locomotive2 { get; set; }
         public bool type_return { get; set; }
+    }
+    #endregion
+
+    #region ОПЕРАЦИЯ АДМ
+    public class AdmDivisionOutgoingWagons
+    {
+        public int num_doc { get; set; }
+        public List<int> nums { get; set; }
+        public int id_division { get; set; }
     }
     #endregion
 
@@ -313,5 +323,38 @@ namespace WebAPI.Controllers.Directory
         }
         #endregion
 
+        #region АДМИНИСТРИРОВАНИЕ
+        // POST: WSD/admin/change/division/outgoing
+        // BODY: WSD (JSON, XML)
+        [HttpPost("admin/change/division/outgoing")]
+        public async Task<ActionResult<ResultTransfer>> PostAdmChangeDivisionOutgoingWagons([FromBody] AdmDivisionOutgoingWagons value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                if (user == "EUROPE\\ealevchenko" || user == "EUROPE\\lvgubarenko")
+                {
+                    IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                    int result = ids_wir.ChangeDivisionOutgoingWagons(value.num_doc, value.nums, value.id_division);
+                    return Ok(result);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        #endregion
     }
 }
