@@ -503,6 +503,45 @@
             this.error++;
         }
     }
+    /// <summary>
+    /// Класс данных результатов выполнения нескольких переносов.
+    /// </summary>
+    public class ListResultTransfer
+    {
+        public int result { get; set; } // Глобальный ресурс выполнения всего переноса
+        public int count { get; set; }
+        public int moved { get; set; }
+        public int skip { get; set; }
+        public int error { get; set; }
+        public List<ResultTransfer> list_rs = new List<ResultTransfer>();
+
+        public ListResultTransfer()
+        {
+            this.count = 0;
+            this.result = 0;
+            this.moved = 0;
+            this.skip = 0;
+            this.error = 0;
+            list_rs.Clear();
+        }
+
+        public void AddResultTransfer(ResultTransfer rs)
+        {
+            if (rs == null) return;
+            list_rs.Add(rs);
+            this.count += rs.count;
+            this.result = rs.result < 0 ? rs.result : (this.result + rs.result); // Заменим если ошибка
+            this.moved += rs.moved;
+            this.skip += rs.skip;
+            this.error += rs.error;
+            return;
+        }
+        public void SetResult(int code)
+        {
+            this.result = code;
+        }
+
+    }
     public class IDS_Base
     {
 
