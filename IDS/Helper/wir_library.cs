@@ -76,37 +76,37 @@ namespace IDS.Helper
         /// <param name="note"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public static WagonInternalRoute SetStationWagon_old(this WagonInternalRoute wir, ref EFDbContext context, int id_station, int id_way, DateTime date_start, int position, string note, string user)
-        {
-            if (wir != null && wir.Close == null)
-            {
-                WagonInternalMovement wim = wir.GetLastMovement(ref context);
-                // Исключим попытку поставить дублирования записи постановки на путь
-                if (wim == null || (wim != null && (wim.IdStation != id_station || wim.IdWay != id_way || wim.Position != position)))
-                {
-                    WagonInternalMovement wim_new = new WagonInternalMovement()
-                    {
-                        Id = 0,
-                        //id_wagon_internal_routes = wir.Id,
-                        IdStation = id_station,
-                        //station_start = date_start,
-                        IdWay = id_way,
-                        WayStart = date_start,
-                        IdOuterWay = null,
-                        OuterWayStart = null,
-                        OuterWayEnd = null,
-                        Position = position,
-                        Create = DateTime.Now,
-                        CreateUser = user,
-                        Note = note,
-                        ParentId = wim.CloseMovement(date_start, null, user)
-                    };
-                    wir.WagonInternalMovements.Add(wim_new);
-                }
+        //public static WagonInternalRoute SetStationWagon_old(this WagonInternalRoute wir, ref EFDbContext context, int id_station, int id_way, DateTime date_start, int position, string note, string user)
+        //{
+        //    if (wir != null && wir.Close == null)
+        //    {
+        //        WagonInternalMovement wim = wir.GetLastMovement(ref context);
+        //        // Исключим попытку поставить дублирования записи постановки на путь
+        //        if (wim == null || (wim != null && (wim.IdStation != id_station || wim.IdWay != id_way || wim.Position != position)))
+        //        {
+        //            WagonInternalMovement wim_new = new WagonInternalMovement()
+        //            {
+        //                Id = 0,
+        //                //id_wagon_internal_routes = wir.Id,
+        //                IdStation = id_station,
+        //                //station_start = date_start,
+        //                IdWay = id_way,
+        //                WayStart = date_start,
+        //                IdOuterWay = null,
+        //                OuterWayStart = null,
+        //                OuterWayEnd = null,
+        //                Position = position,
+        //                Create = DateTime.Now,
+        //                CreateUser = user,
+        //                Note = note,
+        //                ParentId = wim.CloseMovement(date_start, null, user)
+        //            };
+        //            wir.WagonInternalMovements.Add(wim_new);
+        //        }
 
-            }
-            return wir;
-        }
+        //    }
+        //    return wir;
+        //}
         /// <summary>
         /// Установить вагон на путь отправки
         /// </summary>
