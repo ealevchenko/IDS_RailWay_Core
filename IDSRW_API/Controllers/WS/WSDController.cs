@@ -60,6 +60,17 @@ namespace WebAPI.Controllers.Directory
     }
     #endregion
 
+    #region ОПЕРАЦИЯ РОСПУСК (Обновленный АРМ)
+    public class OperationDissolutionWagons
+    {
+        public int id_way_from { get; set; }
+        public List<ListDissolutionWagon> list_dissolution { get; set; }
+        public DateTime date_start { get; set; }
+        public DateTime date_stop { get; set; }
+        public string locomotive1 { get; set; }
+    }
+    #endregion
+
     #region ОПЕРАЦИЯ АДМ
     public class AdmDivisionOutgoingWagons
     {
@@ -328,6 +339,32 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // POST: WSD/operation/dissolution
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/dissolution")]
+        public async Task<ActionResult<ListResultTransfer>> PostDissolutionWagonsOfStationAMKR([FromBody] OperationDissolutionWagons value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ListResultTransfer result = ids_wir.DissolutionWagonsOfStationAMKR(value.id_way_from, value.list_dissolution, value.date_start, value.date_stop, value.locomotive1, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+
         #endregion
 
         #region АДМИНИСТРИРОВАНИЕ
