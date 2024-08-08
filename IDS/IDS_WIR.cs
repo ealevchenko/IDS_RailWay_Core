@@ -1295,7 +1295,7 @@ namespace IDS_
             catch (Exception e)
             {
                 _logger.LogError(e, String.Format("DislocationWagons(context={0}, id_way_from={1}, wagons={2}, id_way_on={3}, head={4}, lead_time={5}, locomotive1={6}, locomotive2={7}, wagon_outgoing={8}, user={9})",
-                    context, id_way_from, wagons, id_way_on, head, lead_time,  locomotive1, locomotive2, wagon_outgoing, user));
+                    context, id_way_from, wagons, id_way_on, head, lead_time, locomotive1, locomotive2, wagon_outgoing, user));
                 rt.SetResult(-1);
                 return rt;// Возвращаем id=-1 , Ошибка
             }
@@ -1335,25 +1335,38 @@ namespace IDS_
                 if (List_wir != null && List_wir.Count() > 0)
                 {
                     rt = DislocationWagons(ref context, id_way_from, List_wir, id_way_on, head, lead_time, locomotive1, locomotive2, false, user);
-                }
-                // 
-                if (rt.error == 0)
-                {
-                    //rt.SetResult(context.SaveChanges());
                     // Если операция успешна, перенумеруем позиции на пути с которого ушли вагоны
                     if (rt.result > 0)
                     {
-                        string mess = String.Format("Операция дислокации вагонов на станции АМКР. Код выполнения = {0}. Путь отправки = {1}, путь приема = {2}, голова = {3}, время выполнения операции = {4}, локомотив-1 = {5}, локомотив-2 = {6}. Результат переноса [выбрано для переноса = {7}, перенесено = {8}, пропущено = {9}, ошибок переноса = {10}].",
-                            rt.result, id_way_from, id_way_on, head, lead_time, locomotive1, locomotive2, rt.count, rt.moved, rt.skip, rt.error);
-                        _logger.LogWarning(mess);
-                        DateTime stop = DateTime.Now;
-                        _logger.LogDebug(String.Format("Операция принять состав на станцию АМКР."), start, stop, rt.result);
+                        // Перенумеруем
+                        int result_rnw = RenumberingWagons(ref context, id_way_from, 1);
+                        if (result_rnw > 0)
+                        {
+                            // Применим перенумерацию
+                            context.SaveChanges();
+                        }
                     }
+                    if (rt.error > 0)
+                    {
+                        rt.SetResult((int)errors_base.cancel_save_changes);
+                    }
+                    //if (rt.error == 0)
+                    //{
+                    //    //if (rt.result > 0)
+                    //    //{
+
+                    //    //}
+                    //}
+                    //else
+                    //{
+                    //    rt.SetResult((int)errors_base.cancel_save_changes);
+                    //}
                 }
-                else
-                {
-                    rt.SetResult((int)errors_base.cancel_save_changes);
-                }
+                string mess = String.Format("Операция дислокации вагонов на станции АМКР. Код выполнения = {0}. Путь отправки = {1}, путь приема = {2}, голова = {3}, время выполнения операции = {4}, локомотив-1 = {5}, локомотив-2 = {6}. Результат переноса [выбрано для переноса = {7}, перенесено = {8}, пропущено = {9}, ошибок переноса = {10}].",
+                    rt.result, id_way_from, id_way_on, head, lead_time, locomotive1, locomotive2, rt.count, rt.moved, rt.skip, rt.error);
+                _logger.LogWarning(mess);
+                DateTime stop = DateTime.Now;
+                _logger.LogDebug(String.Format("Операция принять состав на станцию АМКР."), start, stop, rt.result);
                 return rt;
             }
             catch (Exception e)
