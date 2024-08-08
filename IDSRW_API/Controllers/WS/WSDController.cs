@@ -71,6 +71,19 @@ namespace WebAPI.Controllers.Directory
     }
     #endregion
 
+    #region ОПЕРАЦИЯ ДИСЛОКАЦИИ (Обновленный АРМ)
+    public class OperationDislocationWagons
+    {
+        public int id_way_from { get; set; }
+        public List<ListOperationWagon> wagons { get; set; }
+        public int id_way_on { get; set; }
+        public bool head { get; set; }
+        public DateTime lead_time { get; set; }
+        public string? locomotive1 { get; set; }
+        public string locomotive2 { get; set; }
+    }
+    #endregion
+
     #region ОПЕРАЦИЯ АДМ
     public class AdmDivisionOutgoingWagons
     {
@@ -364,6 +377,29 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        // POST: WSD/operation/dislocation
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/dislocation")]
+        public async Task<ActionResult<ResultTransfer>> PostDislocationWagonsOfStationAMKR([FromBody] OperationDislocationWagons value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultTransfer result = ids_wir.DislocationWagonsOfStationAMKR(value.id_way_from, value.wagons, value.id_way_on, value.head, value.lead_time, value.locomotive1, value.locomotive2, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
 
         #endregion
 
