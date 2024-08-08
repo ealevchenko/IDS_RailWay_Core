@@ -1272,7 +1272,7 @@ namespace IDS_
                     // Подготовим путь приема (перестроим позиции)
                     int res_renum = RenumberingWagons(ref context, id_way_on, start_position);
                     // Определим позицию переноса вагонов
-                    int position = head == false ? 1 : context.GetNextPosition(id_way_on);
+                    int position = head == true ? 1 : context.GetNextPosition(id_way_on);
 
                     foreach (WagonInternalRoute wagon in wagons)
                     {
@@ -1339,7 +1339,7 @@ namespace IDS_
                 // 
                 if (rt.error == 0)
                 {
-                    rt.SetResult(context.SaveChanges());
+                    //rt.SetResult(context.SaveChanges());
                     // Если операция успешна, перенумеруем позиции на пути с которого ушли вагоны
                     if (rt.result > 0)
                     {
