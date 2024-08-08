@@ -665,9 +665,9 @@ namespace IDS_
                 {
                     // Выполним сортировку позиций по возрастанию
                     List<WagonInternalRoute> wagon_position = List_wir.OrderBy(w => w.new_position).Select(w => w.wir).ToList();
-
+                    int start_position = (head == true ? (wagons.Count() + 1) : 1);
                     //Подготовим путь приема(перестроим позиции)
-                    int res_renum = RenumberingWagons(ref context, id_way_on, (head == true ? (wagons.Count() + 1) : 1));
+                    int res_renum = RenumberingWagons(ref context, id_way_on, start_position);
                     // Определим позицию переноса вагонов
                     int position = head == true ? 1 : context.GetNextPosition(id_way_on);
 
@@ -1268,8 +1268,9 @@ namespace IDS_
                 {
                     //// Определим сортировку (реверс)
                     //List<WagonInternalRoute> wagon_position = reverse == true ? wagons.OrderByDescending(w => w.GetLastMovement().position).ToList() : wagons.OrderBy(w => w.GetLastMovement().position).ToList();
+                    int start_position = (head == true ? (wagons.Count() + 1) : 1);
                     // Подготовим путь приема (перестроим позиции)
-                    int res_renum = RenumberingWagons(ref context, id_way_on, (head == false ? (wagons.Count() + 1) : 1));
+                    int res_renum = RenumberingWagons(ref context, id_way_on, start_position);
                     // Определим позицию переноса вагонов
                     int position = head == false ? 1 : context.GetNextPosition(id_way_on);
 

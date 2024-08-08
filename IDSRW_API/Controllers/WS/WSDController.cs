@@ -79,8 +79,8 @@ namespace WebAPI.Controllers.Directory
         public int id_way_on { get; set; }
         public bool head { get; set; }
         public DateTime lead_time { get; set; }
-        public string? locomotive1 { get; set; }
-        public string locomotive2 { get; set; }
+        public string locomotive1 { get; set; }
+        public string? locomotive2 { get; set; }
     }
     #endregion
 
