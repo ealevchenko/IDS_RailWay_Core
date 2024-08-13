@@ -226,6 +226,7 @@ public partial class EFDbContext : DbContext
     public IQueryable<ViewOperatorsOuterWay> getViewOperatorsArrivalOfIdStation(int id_station)  => FromExpression(() => getViewOperatorsArrivalOfIdStation(id_station));
     public IQueryable<ViewWagonsOfOuterWay> getViewOpenWagonsOfOuterWaysStationOn(int id_station)  => FromExpression(() => getViewOpenWagonsOfOuterWaysStationOn(id_station));
     public IQueryable<ViewWagonsOfOuterWay> getViewOpenWagonsOfOuterWaysStationFrom(int id_station)  => FromExpression(() => getViewOpenWagonsOfOuterWaysStationFrom(id_station));
+    public IQueryable<ViewOutgoingSostav> getViewOutgoingSostav()  => FromExpression(() => getViewOutgoingSostav());
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
@@ -247,6 +248,9 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsArrivalOfIdStation), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_operators_arrival_of_id_station");                   
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOpenWagonsOfOuterWaysStationOn), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_open_wagons_of_outer_ways_station_on");         
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOpenWagonsOfOuterWaysStationFrom), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_open_wagons_of_outer_ways_station_from");         
+        
+        modelBuilder.HasDbFunction(() => getViewOutgoingSostav()).HasSchema("IDS").HasName("get_outgoing_sostav");        
+        
         modelBuilder.Entity<ArrivalCar>(entity =>
         {
             entity.HasOne(d => d.IdArrivalNavigation).WithMany(p => p.ArrivalCars).HasConstraintName("FK_ArrivalCars_ArrivalSostav");

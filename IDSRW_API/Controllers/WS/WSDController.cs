@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace WebAPI.Controllers.Directory
 {
-
     #region ОПЕРАЦИЯ ПРИНЯТЬ (АРМ)
     public class OperationArrivalWagons
     {
@@ -118,6 +117,34 @@ namespace WebAPI.Controllers.Directory
             _eventId_ids_wir = int.Parse(_configuration["EventID:IDS_WIR"]);
             _logger.LogDebug(1, "NLog injected into WSDController");
         }
+
+        #region ОТПРАВЛЕННЫЕ СОСТАВЫ (АРМ)
+
+        /// <summary>
+        /// Получить открытые отправленные составы
+        /// </summary>
+        /// <param name="id_way"></param>
+        /// <returns></returns>
+        // GET: WSD/view/open/outgoing/sostav/way/217
+        [HttpGet("view/open/outgoing/sostav/way/{id_way}")]
+        public async Task<ActionResult<IEnumerable<ViewOutgoingSostav>>> GetViewOutgoingSostavOfIdWay(int id_way)
+        {
+            try
+            {
+                List<ViewOutgoingSostav> result = await db.getViewOutgoingSostav()
+                    .AsNoTracking()
+                    .Where(w => w.IdWayFrom == id_way && w.DateDepartureAmkr == null && w.Status > 0 && w.Status < 3)
+                    .ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        #endregion
 
         // GET: WSD/view/wagon/way/115
         [HttpGet("view/wagon/way/{id_way}")]
