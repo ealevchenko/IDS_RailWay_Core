@@ -127,7 +127,7 @@ namespace WebAPI.Controllers.Directory
         /// <returns></returns>
         // GET: WSD/view/open/outgoing/sostav/way/217
         [HttpGet("view/open/outgoing/sostav/way/{id_way}")]
-        public async Task<ActionResult<IEnumerable<ViewOutgoingSostav>>> GetViewOutgoingSostavOfIdWay(int id_way)
+        public async Task<ActionResult<IEnumerable<ViewOutgoingSostav>>> GetViewOpenOutgoingSostavOfIdWay(int id_way)
         {
             try
             {
@@ -144,6 +144,28 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+        /// <summary>
+        /// Получить вагоны по отправленному составу по id составу
+        /// </summary>
+        /// <param name="id_station"></param>
+        /// <returns></returns>
+        // GET: WSD/view/wagon/outgoing/sostav/id/324179
+        [HttpGet("view/wagon/outgoing/sostav/id/{id_station}")]
+        public async Task<ActionResult<IEnumerable<ViewCarWay>>> GetViewWagonsOutgoingSostavOfIdSostav(int id_station)
+        {
+            try
+            {
+                List<ViewCarWay> result = await db.getViewWagonsOutgoingSostavOfIdSostav(id_station).ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         #endregion
 
         // GET: WSD/view/wagon/way/115
@@ -162,6 +184,8 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+
 
         // GET: WSD/view/total_balance
         [HttpGet("view/total_balance")]

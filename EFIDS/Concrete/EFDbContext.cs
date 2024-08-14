@@ -219,6 +219,7 @@ public partial class EFDbContext : DbContext
     public IQueryable<ViewStatusWay> getViewStatusAllWayOfStationParkId(int id_station, int id_park)  => FromExpression(() => getViewStatusAllWayOfStationParkId(id_station, id_park));
     public IQueryable<ViewStatusWay> getViewStatusAllWayOfStationId(int id_station)  => FromExpression(() => getViewStatusAllWayOfStationId(id_station));
     public IQueryable<ViewStatusWay> getViewStatusWayOfId(int id_way)  => FromExpression(() => getViewStatusWayOfId(id_way));
+    // Получить вагоны на пути (id пути)
     public IQueryable<ViewCarWay> getViewWagonsOfIdWay(int id_way)  => FromExpression(() => getViewWagonsOfIdWay(id_way));
     public IQueryable<ViewTotalBalance> getViewTotalBalance()  => FromExpression(() => getViewTotalBalance());
     public IQueryable<ViewOperatorsStation> getViewOperatorsOfStation(int id_station)  => FromExpression(() => getViewOperatorsOfStation(id_station));
@@ -227,6 +228,8 @@ public partial class EFDbContext : DbContext
     public IQueryable<ViewWagonsOfOuterWay> getViewOpenWagonsOfOuterWaysStationOn(int id_station)  => FromExpression(() => getViewOpenWagonsOfOuterWaysStationOn(id_station));
     public IQueryable<ViewWagonsOfOuterWay> getViewOpenWagonsOfOuterWaysStationFrom(int id_station)  => FromExpression(() => getViewOpenWagonsOfOuterWaysStationFrom(id_station));
     public IQueryable<ViewOutgoingSostav> getViewOutgoingSostav()  => FromExpression(() => getViewOutgoingSostav());
+    // Получить вагоны по отправленному составу по id составу
+    public IQueryable<ViewCarWay> getViewWagonsOutgoingSostavOfIdSostav(int id_station) => FromExpression(() => getViewWagonsOutgoingSostavOfIdSostav(id_station));
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
@@ -248,9 +251,9 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsArrivalOfIdStation), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_operators_arrival_of_id_station");                   
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOpenWagonsOfOuterWaysStationOn), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_open_wagons_of_outer_ways_station_on");         
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOpenWagonsOfOuterWaysStationFrom), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_open_wagons_of_outer_ways_station_from");         
-        
-        modelBuilder.HasDbFunction(() => getViewOutgoingSostav()).HasSchema("IDS").HasName("get_outgoing_sostav");        
-        
+        modelBuilder.HasDbFunction(() => getViewOutgoingSostav()).HasSchema("IDS").HasName("get_outgoing_sostav");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOutgoingSostavOfIdSostav), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_wagons_outgoing_sostav_of_id_sostav");
+
         modelBuilder.Entity<ArrivalCar>(entity =>
         {
             entity.HasOne(d => d.IdArrivalNavigation).WithMany(p => p.ArrivalCars).HasConstraintName("FK_ArrivalCars_ArrivalSostav");
