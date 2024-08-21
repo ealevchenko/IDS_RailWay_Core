@@ -1379,6 +1379,386 @@ namespace IDS_
         }
         #endregion
 
+        #region  Операция "Предъявление состава"
+        /// <summary>
+        /// Выполнить операцию пръедявить состав
+        /// </summary>
+        /// <param name="id_way_from"></param>
+        /// <param name="id_sostav"></param>
+        /// <param name="list_provide"></param>
+        /// <param name="lead_time"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public ResultTransfer ProvideWagonsOfStationAMKR(int id_way_from, long? id_sostav, List<ListOperationWagon> list_provide, DateTime lead_time, string user)
+        {
+            ResultTransfer res = new ResultTransfer(0);
+            DateTime start = DateTime.Now;
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                EFDbContext context = new EFDbContext();
+                {
+                    DirectoryWay? way = context.DirectoryWays.Where(w => w.Id == id_way_from).FirstOrDefault();
+                    if (way != null)
+                    {
+                        // Этот путь имеет выход на УЗ
+                        if (way.CrossingUz == true)
+                        {
+                            List<long> list_id = list_provide.ToList().OrderBy(p => p.position).Select(p => p.wir_id).ToList();
+                            res = AddUpdateOutgoingSostav(ref context, way.IdStation, id_way_from, id_sostav, lead_time, list_id, user);
+                        }
+                        else
+                        {
+                            res.SetResult((int)errors_base.way_not_crossing_uz); // Путь не имеет выход на УЗ
+                        }
+                    }
+                    else
+                    {
+                        res.SetResult((int)errors_base.not_dir_way_of_db); // Указаного пути нет!
+                    }
+                    string mess = String.Format("Операция формирования состава для предъявления на УЗ. Код выполнения = {0}. Станция отправки = {1}, путь отправки = {2}, время операции = {3}. Результат [определено вагонов = {4}, сформировано = {5}, ошибок формирования = {6}].",
+                        res.result, (way != null ? (int?)way.IdStation : null), id_way_from, lead_time, res.count, res.moved, res.error);
+                    _logger.LogWarning(mess);
+                    DateTime stop = DateTime.Now;
+                    _logger.LogDebug(String.Format("Операция формирования состава для предъявления на УЗ."), start, stop, res.result);
+
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("ProvideWagonsOfStationAMKR(id_way_from={0}, id_sostav={1}, list_provide={2}, lead_time={3}, user={4})",
+                    id_way_from, id_sostav, list_provide, lead_time, user));
+                res.SetResult((int)errors_base.global); // Глобальная ошибка
+            }
+            return res;
+        }
+        /// <summary>
+        /// Выполнить операцию правки даты и времени предявления состава на УЗ
+        /// </summary>
+        /// <param name="id_sostav"></param>
+        /// <param name="lead_time"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int DateTimeProvideWagonsOfStationAMKR(long? id_sostav, DateTime lead_time, string user)
+        {
+            DateTime start = DateTime.Now;
+            try
+            {
+                int res = 0;
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                EFDbContext context = new EFDbContext();
+                {
+                    OutgoingSostav? sostav = context
+                        .OutgoingSostavs
+                        .Where(s => s.Id == id_sostav)
+                        .Include(cars => cars.OutgoingCars)
+                        .FirstOrDefault();
+                    if (sostav == null)
+                    {
+                        return (int)errors_base.not_outgoing_sostav_db;
+                    }
+                    // правим дату
+                    sostav.DateDepartureAmkr = lead_time;
+                    sostav.ChangeUser = user;
+                    sostav.Change = DateTime.Now;
+                    // Сограним
+                    res = context.SaveChanges();
+
+                    string mess = String.Format("Операция правки даты и времени предъявления состава на УЗ. Код выполнения = {0}. Станция отправки = {1}, путь отправки = {2}, время операции = {3}.",
+                        res, sostav.IdStationFrom, sostav.IdWayFrom, lead_time);
+                    _logger.LogWarning(mess);
+                    DateTime stop = DateTime.Now;
+                    _logger.LogDebug(String.Format("Операция правки даты и времени предъявления состава на УЗ."), start, stop, res);
+                }
+                return res;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("DateTimeProvideWagonsOfStationAMKR(id_sostav={0}, lead_time={1}, user={2})", id_sostav, lead_time, user));
+                return (int)errors_base.global;
+            }
+         }
+
+        #endregion
+
+        /// <summary>
+        /// Создать класс OutgoingCar
+        /// </summary>
+        /// <param name="num"></param>
+        /// <param name="position"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public OutgoingCar? CreateOutgoingCars(int num, int position, string user)
+        {
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                OutgoingCar car = new OutgoingCar()
+                {
+                    Id = 0,
+                    //IdOutgoing = 0,
+                    Num = num,
+                    Position = position,
+                    PositionOutgoing = null,
+                    NumDoc = null,
+                    Note = null,
+                    DateOutgoingAct = null,
+                    Outgoing = null,
+                    OutgoingUser = null,
+                    Create = DateTime.Now,
+                    CreateUser = user,
+                    IdOutgoingUzVagon = null,
+                    IdOutgoingDetention = null,
+                    IdReasonDiscrepancyAmkr = null,
+                    IdReasonDiscrepancyUz = null,
+                    IdOutgoingReturnStart = null,
+                    IdOutgoingReturnStop = null,
+                    ParentWirId = null,
+                    NoteVagonnik = null,
+                    Vagonnik = null,
+                    VagonnikUser = null,
+                };
+                return car;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("CreateOutgoingCars(num={0}, position={1}, user={2})",
+                num, position, user));
+                return null;
+            }
+        }
+        /// <summary>
+        /// Добавить отправленный вагон
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="out_sostav"></param>
+        /// <param name="id_way"></param>
+        /// <param name="position"></param>
+        /// <param name="wagon"></param>
+        /// <param name="lead_time"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int AddOutgoingCars(ref EFDbContext context, OutgoingSostav out_sostav, int id_way, int position, WagonInternalRoute wagon, DateTime lead_time, string user)
+        {
+            try
+            {
+                if (context == null)
+                {
+                    context = new EFDbContext();
+                }
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+
+                if (wagon == null) return (int)errors_base.not_wir_db;
+                // Определим станцию и путь приема
+                DirectoryWay? way = context.DirectoryWays.Where(w => w.Id == id_way).FirstOrDefault();
+                if (way == null) return (int)errors_base.not_dir_way_of_db;                     // Нет пути
+                if (way.CrossingUz != true) return (int)errors_base.way_not_crossing_uz;       // Путь без выхода на уз
+
+                // Получим текущее положение вагона
+                WagonInternalMovement wim = wagon.GetLastMovement(ref context);
+                if (wim == null) return (int)errors_base.not_wim_db;
+                // Определим станцию на которой стоит вагон
+                DirectoryWay? way_wagon = context.DirectoryWays.Where(w => w.Id == wim.IdWay).FirstOrDefault();
+                if (way_wagon == null) return (int)errors_base.not_dir_way_of_db;                        // Нет пути
+                if (way_wagon.CrossingUz != true) return (int)errors_base.way_not_crossing_uz;       // Путь без выхода на уз
+
+                WagonInternalOperation wio = wagon.GetLastOperation(ref context);
+                if (wio == null) return (int)errors_base.not_wio_db;
+                if (wio.IdOperation == 9) return (int)errors_base.look_operation;                      // Операция над вагонами заблокирована (Вагон предъявлен на УЗ)
+
+                // Проверка пройдена -------------
+                // Создать вагон
+                OutgoingCar? out_car = CreateOutgoingCars(wagon.Num, position, user);
+                // Добавим в состав
+                out_sostav.OutgoingCars.Add(out_car);
+                string note = null;
+                // Добавим сылку на выходной вагон
+                wagon.IdOutgoingCarNavigation = out_car;
+                // Откроем операцию предявить на уз 
+                wagon.SetOpenOperation(ref context, 9, lead_time, null, null, null, null, note, user);
+                //context.Update(wagon); // Обновим контекст
+                return 1;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("AddOutgoingCars(context={0}, out_sostav={1}, id_way={2}, position={3}, wagon={4},  lead_time={5}, user={6})",
+                    context, out_sostav, id_way, position, wagon, lead_time, user));
+                return (int)errors_base.global;
+            }
+        }
+        /// <summary>
+        /// Создать состав для отправки
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="id_station_from"></param>
+        /// <param name="id_way_from"></param>
+        /// <param name="lead_time"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public OutgoingSostav? CreateOutgoingSostav(ref EFDbContext context, int id_station_from, int id_way_from, DateTime lead_time, string user)
+        {
+            try
+            {
+                if (context == null)
+                {
+                    context = new EFDbContext();
+                }
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                DateTime start_date = new DateTime(DateTime.Now.Year, 1, 1, 0, 0, 0);
+                // Определим номер документа
+                OutgoingSostav? sostav = context
+                    .OutgoingSostavs
+                    .Where(s => s.IdStationFrom == id_station_from && s.DateReadinessAmkr >= start_date)
+                    .OrderByDescending(c => c.NumDoc)
+                    .FirstOrDefault();
+                int num_doc = sostav != null ? sostav.NumDoc + 1 : 1;
+                // Определим существует состав
+                OutgoingSostav? new_out_sostav = context
+                    .OutgoingSostavs.Where(s => s.IdStationFrom == id_station_from && s.IdWayFrom == id_way_from && s.DateReadinessAmkr == lead_time && s.IdStationOn == null)
+                    .OrderByDescending(c => c.NumDoc).FirstOrDefault();
+
+                if (new_out_sostav == null)
+                {
+                    // Создадим запись состав для отправки OutgoingSostav
+                    new_out_sostav = new OutgoingSostav()
+                    {
+                        Id = 0,
+                        NumDoc = num_doc,
+                        IdStationFrom = id_station_from,
+                        IdWayFrom = id_way_from,
+                        IdStationOn = null,
+                        DateReadinessAmkr = lead_time,
+                        DateEndInspectionAcceptanceDelivery = null,
+                        DateEndInspectionLoader = null,
+                        DateEndInspectionVagonnik = null,
+                        DateShowWagons = null,
+                        DateReadinessUz = null,
+                        DateOutgoing = null,
+                        DateOutgoingAct = null,
+                        DateDepartureAmkr = null,
+                        CompositionIndex = null,
+                        Status = 0,
+                        Note = null,
+                        Create = DateTime.Now,
+                        CreateUser = user,
+                        RouteSign = null,
+                    };
+                }
+                return new_out_sostav;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("CreateOutgoingSostav(context={0}, id_station_from={1}, id_way_from={2}, lead_time={3}, user={4})",
+                    context, id_station_from, id_way_from, lead_time, user));
+                return null;
+            }
+        }
+        /// <summary>
+        /// Добавить или обновить состав отправки
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="id_station_from"></param>
+        /// <param name="id_way_from"></param>
+        /// <param name="id_sostav"></param>
+        /// <param name="lead_time"></param>
+        /// <param name="list"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public ResultTransfer AddUpdateOutgoingSostav(ref EFDbContext context, int id_station_from, int id_way_from, long? id_sostav, DateTime lead_time, List<long> list, string user)
+        {
+            ResultTransfer res = new ResultTransfer(list.Count());
+            try
+            {
+                OutgoingSostav? sostav = null;
+                // Определим состав отправки
+                if (id_sostav == null)
+                {
+                    sostav = CreateOutgoingSostav(ref context, id_station_from, id_way_from, lead_time, user);
+                }
+                else
+                {
+                    sostav = context
+                        .OutgoingSostavs
+                        .Where(s => s.Id == id_sostav)
+                        .Include(cars => cars.OutgoingCars)
+                        .FirstOrDefault();
+                }
+                if (sostav != null)
+                {
+                    // Определим максимальную позиции
+                    int position = sostav.OutgoingCars != null && sostav.OutgoingCars.Count() > 0 ? sostav.OutgoingCars.Max(x => x.Position) : 0;
+                    foreach (long id_wir in list.ToList())
+                    {
+                        position++;
+                        WagonInternalRoute? wir = context
+                            .WagonInternalRoutes
+                            .Where(r => r.Id == id_wir)
+                            .FirstOrDefault();
+                        int result = 0;
+                        if (wir != null)
+                        {
+                            if (wir.IdOutgoingCar == null)
+                            {
+                                result = AddOutgoingCars(ref context, sostav, id_way_from, position, wir, lead_time, user); // Получим результат выполнения операции
+                            }
+                            else
+                            {
+                                result = (int)errors_base.outgoing_cars_wir; // Записи по WagonInternalRoutes - уже имеет ссылку на отправку
+                            }
+                            context.OutgoingSostavs.Add(sostav);
+                            // Сохраним рзультат выполнения
+                            res.SetMovedResult(result, wir.Num);
+                        }
+                        else
+                        {
+                            result = (int)errors_base.not_wir_db; // В базе данных нет записи по WagonInternalRoutes (Внутренее перемещение вагонов)
+                        }
+                    }
+                }
+                else
+                {
+                    res.SetResult((int)errors_base.not_outgoing_sostav_db);
+                }
+                // Если нет ошибок, сохраним изменения в базе
+                if (res.error == 0)
+                {
+                    res.SetResult(context.SaveChanges());
+                }
+                else
+                {
+                    res.SetResult((int)errors_base.cancel_save_changes);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("AddUpdateOutgoingSostav(context={0}, id_station_from={1}, id_way_from={2}, position={3}, lead_time={4}, list={5}, user={6})",
+                    context, id_station_from, id_way_from, id_sostav, lead_time, list, user));
+                res.SetResult((int)errors_base.global); // Глобальная ошибка
+            }
+            return res;
+        }
+
+
         #endregion
 
         #region РАСЧЕТ ПЛАТЫ ЗА ПОЛЬЗОВАНИЕ - АРМ ДИСПЕТЧЕРА
@@ -1936,6 +2316,7 @@ namespace IDS_
                 List<CalcWagonUsageFee> results = new List<CalcWagonUsageFee>();
                 using (EFDbContext context = new(this.options))
                 {
+                    context.Database.SetCommandTimeout(300);
                     List<WagonInternalMovement> list_wim = context.WagonInternalMovements
                         .AsNoTracking()
                         .Where(w => w.IdWay == id_way & w.WayEnd == null)
@@ -1963,6 +2344,7 @@ namespace IDS_
                             }
                         }
                     }
+                    context.Database.SetCommandTimeout(0);
                 }
                 return results;
             }
@@ -2281,3 +2663,62 @@ namespace IDS_
 
     }
 }
+
+//public ResultTransfer InsertOutgoingSostav(ref EFDbContext context, int id_station_from, int id_way_from, int position, DateTime lead_time, List<long> list, string user)
+//{
+//    ResultTransfer res = new ResultTransfer(list.Count());
+//    try
+//    {
+//        OutgoingSostav? new_sostav = CreateOutgoingSostav(ref context, id_station_from, id_way_from, lead_time, user);
+//        if (new_sostav != null)
+//        {
+//            foreach (long id_wir in list.ToList())
+//            {
+//                position++;
+//                WagonInternalRoute? wir = context
+//                    .WagonInternalRoutes
+//                    .Where(r => r.Id == id_wir)
+//                    .FirstOrDefault();
+//                int result = 0;
+//                if (wir != null)
+//                {
+//                    if (wir.IdOutgoingCar == null)
+//                    {
+//                        result = InsertOutgoingCars(ref context, new_sostav, id_way_from, position, wir, lead_time, user); // Получим результат выполнения операции
+//                    }
+//                    else
+//                    {
+//                        result = (int)errors_base.outgoing_cars_wir; // Записи по WagonInternalRoutes - уже имеет ссылку на отправку
+//                    }
+//                    context.OutgoingSostavs.Add(new_sostav);
+//                    // Сохраним рзультат выполнения
+//                    res.SetMovedResult(result, wir.Num);
+//                }
+//                else
+//                {
+//                    result = (int)errors_base.not_wir_db; // В базе данных нет записи по WagonInternalRoutes (Внутренее перемещение вагонов)
+//                }
+//            }
+//        }
+//        else
+//        {
+//            res.SetResult((int)errors_base.not_outgoing_sostav_db);
+//        }
+//        // Если нет ошибок, сохраним изменения в базе
+//        if (res.error == 0)
+//        {
+//            res.SetResult(context.SaveChanges());
+//        }
+//        else
+//        {
+//            res.SetResult((int)errors_base.cancel_save_changes);
+//        }
+//    }
+//    catch (Exception e)
+//    {
+//        _logger.LogError(e, String.Format("InsertOutgoingSostav(context={0}, id_station_from={1}, id_way_from={2}, position={3}, lead_time={4}, list={5}, user={6})",
+//            context, id_station_from, id_way_from, position, lead_time, list, user));
+//        res.SetResult((int)errors_base.global); // Глобальная ошибка
+//    }
+//    return res;
+//}

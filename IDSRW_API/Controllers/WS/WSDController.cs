@@ -83,6 +83,22 @@ namespace WebAPI.Controllers.Directory
     }
     #endregion
 
+    #region ОПЕРАЦИЯ ПРЕДЪЯВЛЕНИЯ СОСТАВА (Обновленный АРМ)
+    public class OperationProvideWagons
+    {
+        public int id_way_from { get; set; }
+        public long? id_sostav { get; set; }
+        public List<ListOperationWagon> wagons { get; set; }
+        public DateTime lead_time { get; set; }
+    }
+    public class OperationDTProvideWagons
+    {
+        public long? id_sostav { get; set; }
+        public DateTime lead_time { get; set; }
+    }
+    #endregion
+
+
     #region ОПЕРАЦИЯ АДМ
     public class AdmDivisionOutgoingWagons
     {
@@ -288,7 +304,7 @@ namespace WebAPI.Controllers.Directory
 
         #region РАСЧЕТ ПЛАТЫ ЗА ПОЛЬЗОВАНИЕ (АРМ)
 
-        // GET: WSD/view/calc_wagon/way/821933
+        // GET: WSD/view/calc_wagon/way/215
         [HttpGet("view/calc_wagon/way/{id_way}")]
         public async Task<ActionResult<IEnumerable<CalcWagonUsageFee>>> getCalcUsageFeeCarsOfWay(int id_way)
         {
@@ -452,6 +468,53 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        // POST: WSD/operation/provide
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/provide")]
+        public async Task<ActionResult<ResultTransfer>> PostProvideWagonsOfStationAMKR([FromBody] OperationProvideWagons value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultTransfer result = ids_wir.ProvideWagonsOfStationAMKR(value.id_way_from, value.id_sostav, value.wagons, value.lead_time , user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }        
+
+        // POST: WSD/operation/provide/datetime
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/provide/datetime")]
+        public async Task<ActionResult<int>> PostDateTimeProvideWagonsOfStationAMKR([FromBody] OperationDTProvideWagons value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                int result = ids_wir.DateTimeProvideWagonsOfStationAMKR(value.id_sostav, value.lead_time , user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }        
         #endregion
 
         #region АДМИНИСТРИРОВАНИЕ
