@@ -22,6 +22,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.ConstrainedExecution;
 using System.Data;
 using System.Collections;
+using EFIDS.Functions;
 
 namespace IDS_
 {
@@ -85,6 +86,16 @@ namespace IDS_
         public WagonInternalRoute wir { get; set; }
         public int new_position { get; set; }
     }
+
+    public class StatusWagonDislocation
+    {
+        public ViewWagonDislocation? view_wagon_dislocation { get; set; }
+
+        public string info { get; set; }
+
+        public int status { get; set; }
+    }
+
     public class IDS_WIR : IDS_Base
     {
         private DbContextOptions<EFDbContext> options;
@@ -1485,9 +1496,70 @@ namespace IDS_
                 _logger.LogError(e, String.Format("DateTimeProvideWagonsOfStationAMKR(id_sostav={0}, lead_time={1}, user={2})", id_sostav, lead_time, user));
                 return (int)errors_base.global;
             }
-         }
-
+        }
         #endregion
+        /// <summary>
+        /// Получить информацию по нахаждении вагона на АМКР
+        /// </summary>
+        /// <param name="num"></param>
+        /// <returns></returns>
+        public StatusWagonDislocation? InfoViewDislocationAMKRWagonOfNum(int num)
+        {
+            try
+            {
+                EFDbContext context = new EFDbContext();
+                StatusWagonDislocation status = new StatusWagonDislocation()
+                {
+                    view_wagon_dislocation = null,
+                    info = "Вагон не заходил на территорию АМКР.",
+                    status = 0
+                };
+
+                status.view_wagon_dislocation = context.getViewDislocationAMKRWagonOfNum(num).FirstOrDefault();
+
+                if (status.view_wagon_dislocation != null)
+                {
+                    if (status.view_wagon_dislocation.CloseWir == null)
+                    {
+                        // Вагон на территории АМКР
+                        if (status.view_wagon_dislocation.IdOuterWay == null)
+                        {
+                            // Вагон на станции
+                            if (status.view_wagon_dislocation.IdOperationWagon != 9)
+                            {
+                                status.info = "Вагон находится на станции : " + status.view_wagon_dislocation.StationNameRu + "; <br/>Путь станции : " + status.view_wagon_dislocation.WayNumRu + " - " + status.view_wagon_dislocation.WayNameRu + "; <br/>Позиция на пути : " + status.view_wagon_dislocation.Position + ", прибыл на путь : " + status.view_wagon_dislocation.WayStart;
+                                status.status = 1;
+                            }
+                            else
+                            {
+                                status.info = "!ВНМАНИЕ ВАГОН ПРЕДЪЯВЛЕН, находится на станции : " + status.view_wagon_dislocation.StationNameRu + "; <br/>Путь станции : " + status.view_wagon_dislocation.WayNumRu + " - " + status.view_wagon_dislocation.WayNameRu + "; <br/>Позиция на пути : " + status.view_wagon_dislocation.Position + ", прибыл на путь : " + status.view_wagon_dislocation.WayStart;
+                                status.status = 3;
+                            }
+                        }
+                        else
+                        {
+                            // Вагон движется по территории.
+                            status.info = "Вагон находится на перегоне : " + status.view_wagon_dislocation.NameOuterWayRu + "; <br/>Отправлен : " + status.view_wagon_dislocation.OuterWayStart;
+                            status.status = 2;
+                        }
+                    }
+                    else
+                    {
+                        // Вагон вышел
+                        status.info = "Вагон сдан на УЗ " + status.view_wagon_dislocation.WayEnd + " со станции " + status.view_wagon_dislocation.StationNameRu;
+                        status.status = 4;
+                    }
+                }
+                return status;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("InfoViewDislocationAMKRWagonOfNum(num={0})", num));
+                return null;
+            }
+        }
+
+        #region  Формирования "Отправленного состава"
 
         /// <summary>
         /// Создать класс OutgoingCar
@@ -1757,7 +1829,7 @@ namespace IDS_
             }
             return res;
         }
-
+        #endregion
 
         #endregion
 

@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using WebAPI.Controllers.GIVC;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Newtonsoft.Json.Linq;
 
 namespace WebAPI.Controllers.Directory
 {
@@ -97,7 +98,6 @@ namespace WebAPI.Controllers.Directory
         public DateTime lead_time { get; set; }
     }
     #endregion
-
 
     #region ОПЕРАЦИЯ АДМ
     public class AdmDivisionOutgoingWagons
@@ -201,7 +201,23 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-
+        // GET: WSD/view/dislocation/amkr/wagon/num/54781596
+        [HttpGet("view/dislocation/amkr/wagon/num/{num}")]
+        public async Task<ActionResult<StatusWagonDislocation>> GetViewDislocationAMKRWagonOfNum(int num)
+        {
+            try
+            {
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                StatusWagonDislocation? result = ids_wir.InfoViewDislocationAMKRWagonOfNum(num);
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
 
         // GET: WSD/view/total_balance
         [HttpGet("view/total_balance")]
