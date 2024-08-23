@@ -97,6 +97,12 @@ namespace WebAPI.Controllers.Directory
         public long? id_sostav { get; set; }
         public DateTime lead_time { get; set; }
     }
+    public class OperationMoveWagonsProvideWay
+    {
+        public int id_way_on { get; set; }
+        public List<int> nums { get; set; }
+        public DateTime lead_time { get; set; }
+    }
     #endregion
 
     #region ОПЕРАЦИЯ АДМ
@@ -499,14 +505,14 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultTransfer result = ids_wir.ProvideWagonsOfStationAMKR(value.id_way_from, value.id_sostav, value.wagons, value.lead_time , user);
+                ResultTransfer result = ids_wir.ProvideWagonsOfStationAMKR(value.id_way_from, value.id_sostav, value.wagons, value.lead_time, user);
                 return Ok(result);
             }
             catch (Exception e)
             {
                 return BadRequest(e.Message);
             }
-        }        
+        }
 
         // POST: WSD/operation/provide/datetime
         // BODY: WSD (JSON, XML)
@@ -523,14 +529,38 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                int result = ids_wir.DateTimeProvideWagonsOfStationAMKR(value.id_sostav, value.lead_time , user);
+                int result = ids_wir.DateTimeProvideWagonsOfStationAMKR(value.id_sostav, value.lead_time, user);
                 return Ok(result);
             }
             catch (Exception e)
             {
                 return BadRequest(e.Message);
             }
-        }        
+        }
+
+        // POST: WSD/operation/provide/move/wagons
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/provide/move/wagons")]
+        public async Task<ActionResult<ResultTransfer>> postMoveWagonsProvideWayOfStationAMKR([FromBody] OperationMoveWagonsProvideWay value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultTransfer result = ids_wir.MoveWagonsProvideWayOfStationAMKR(value.id_way_on, value.nums, value.lead_time, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         #endregion
 
         #region АДМИНИСТРИРОВАНИЕ

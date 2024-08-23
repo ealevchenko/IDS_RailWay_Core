@@ -1497,6 +1497,141 @@ namespace IDS_
                 return (int)errors_base.global;
             }
         }
+        /// <summary>
+        /// Перенос вагона на выбранный путь
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="id_station"></param>
+        /// <param name="id_way_on"></param>
+        /// <param name="position"></param>
+        /// <param name="lead_time"></param>
+        /// <param name="wagon"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int OperationMoveProvideWagon(ref EFDbContext context, int id_station, int id_way_on, int position, DateTime lead_time, WagonInternalRoute wagon, string user)
+        {
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                if (wagon == null) return (int)errors_base.not_wir_db;  // В базе данных нет записи по WagonInternalRoutes (Внутренее перемещение вагонов)
+                                                                        // Получим текущее положение вагона
+                WagonInternalMovement wim = wagon.GetLastMovement(ref context);
+                if (wim == null) return (int)errors_base.not_wim_db;    // В базе данных нет записи по WagonInternalMovement (Внутреняя дислокация вагонов)
+                                                                        // Проверим вагон уже стоит ?
+                if (wim.IdWay == id_way_on && wim.Position == position) return 0; // Вагон стоит на станции на пути и в позиции, пропустить операцию
+                WagonInternalOperation wio = wagon.GetLastOperation(ref context);
+                if (wio == null) return (int)errors_base.not_wio_db;
+                if (wio.IdOperation == 9) return (int)errors_base.wagon_lock_operation; // Операция предявлен (заблокирована)
+                string note = "Перенесен для формирования состава предъявления";
+                wagon.SetStationWagon(ref context, id_station, id_way_on, lead_time, position, note, user, true);
+                // Установим и закроем операцию ручная расстановка -3              
+                wagon.SetOpenOperation(ref context, 8, lead_time.AddMinutes(-1), null, null, null, null, null, user).SetCloseOperation(lead_time, null, user);
+                //context.Update(wagon); // Обновим контекст
+                return 1;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("OperationMoveProvideWagon(context={0}, id_station={1}, id_way_on={2}, position={3}, lead_time={4}, wagon={5}, user={6})",
+                    context, id_station, id_way_on, position, lead_time, wagon, user));
+                return (int)errors_base.global;// Возвращаем id=-1 , Ошибка
+            }
+        }
+        /// <summary>
+        /// Операция сбора вагонов на пути предъявления состава
+        /// </summary>
+        /// <param name="id_way_on"></param>
+        /// <param name="nums"></param>
+        /// <param name="lead_time"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public ResultTransfer MoveWagonsProvideWayOfStationAMKR(int id_way_on, List<int> nums, DateTime lead_time, string user)
+        {
+            ResultTransfer res = new ResultTransfer(0);
+            DateTime start = DateTime.Now;
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                EFDbContext context = new EFDbContext();
+                {
+                    DirectoryWay? way = context.DirectoryWays.Where(w => w.Id == id_way_on).FirstOrDefault();
+                    if (way != null)
+                    {
+                        // Этот путь имеет выход на УЗ
+                        if (way.CrossingUz == true)
+                        {
+                            if (nums != null && nums.Count() > 0)
+                            {
+                                res.count = nums.Count();
+                                int position = context.GetNextPosition(id_way_on);
+                                // Пройдемся по каждому вагону
+                                foreach (int num in nums)
+                                {
+                                    WagonInternalRoute wir_wagon = context.GetLastWagon(num);
+                                    if (wir_wagon != null)
+                                    {
+                                        int result = OperationMoveProvideWagon(ref context, way.IdStation, id_way_on, position, lead_time, wir_wagon, user);
+                                        res.SetMovedResult(result, num);
+                                    }
+                                    else
+                                    {
+                                        res.SetMovedResult((int)errors_base.not_wir_db, num); // В базе данных нет записи по WagonInternalRoutes (Внутренее перемещение вагонов)
+                                    }
+                                    position++;
+                                }
+                                // Проверка на ошибки и сохранение результата
+                                if (res.error == 0)
+                                {
+                                    res.SetResult(context.SaveChanges());
+                                    // Если операция успешна, перенумеруем позиции на пути с которого ушли вагоны
+                                    if (res.result > 0)
+                                    {
+                                        int result_rnw = RenumberingWagons(ref context, id_way_on, 1);
+                                        if (result_rnw > 0)
+                                        {
+                                            // Применим перенумерацию
+                                            context.SaveChanges();
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    res.SetResult((int)errors_base.cancel_save_changes);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            res.SetResult((int)errors_base.way_not_crossing_uz); // Путь не имеет выход на УЗ
+                        }
+                    }
+                    else
+                    {
+                        res.SetResult((int)errors_base.not_dir_way_of_db); // Указаного пути нет!
+                    }
+                    string mess = String.Format("Операция переноса вагонов на путь {0} для предъявления на УЗ. Код выполнения = {1}. Результат переноса [определено = {2}, перенесено = {3}, пропущено = {4}, ошибок = {5}].",
+                        id_way_on, res.result, res.count, res.moved, res.skip, res.error);
+                    _logger.LogWarning(mess);
+                    DateTime stop = DateTime.Now;
+                    _logger.LogDebug(String.Format("Операция переноса вагонов на путь для предъявления на УЗ."), start, stop, res.result);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("MoveWagonsProvideWayOfStationAMKR(id_way_on={0}, nums={1}, lead_time={2}, user={3})",
+                    id_way_on, nums, lead_time, lead_time, user));
+                res.SetResult((int)errors_base.global); // Глобальная ошибка
+            }
+            return res;
+        }
+
         #endregion
         /// <summary>
         /// Получить информацию по нахаждении вагона на АМКР
