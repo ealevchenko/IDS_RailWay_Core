@@ -55,4 +55,7 @@ public class ViewStatusStation
 
     [Column("capacity_wagons")]
     public int? capacityWagons { get; set; }
+
+    [Column("position")]
+    public int? Position { get; set; }
 }

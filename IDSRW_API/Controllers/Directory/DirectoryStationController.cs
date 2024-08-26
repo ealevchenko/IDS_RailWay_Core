@@ -62,7 +62,7 @@ namespace WebAPI.Controllers.Directory
                 if (result == null)
                     return NotFound();
                 //db.Database.CommandTimeout = null;               
-                return Ok(result);
+                return Ok(result.OrderBy(s=>s.Position));
             }
             catch (Exception e)
             {

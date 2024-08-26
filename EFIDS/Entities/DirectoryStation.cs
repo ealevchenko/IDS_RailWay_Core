@@ -47,6 +47,9 @@ public partial class DirectoryStation
     [Column("station_delete", TypeName = "datetime")]
     public DateTime? StationDelete { get; set; }
 
+    [Column("position")]
+    public int? Position { get; set; }
+
     [InverseProperty("IdStationFromNavigation")]
     public virtual ICollection<ArrivalSostav> ArrivalSostavIdStationFromNavigations { get; } = new List<ArrivalSostav>();
 
