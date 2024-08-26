@@ -296,9 +296,11 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
+                db.Database.SetCommandTimeout(300);
                 List<ViewWagonsOfOuterWay> result = await db.getViewOpenWagonsOfOuterWaysStationOn(id_station).ToListAsync();
                 if (result == null)
                     return NotFound();
+                db.Database.SetCommandTimeout(0);
                 return Ok(result);
             }
             catch (Exception e)
