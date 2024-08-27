@@ -171,7 +171,7 @@ namespace WebAPI.Controllers.Directory
         /// </summary>
         /// <param name="id_station"></param>
         /// <returns></returns>
-        // GET: WSD/view/wagon/outgoing/sostav/id/324179
+        // GET: WSD/view/wagon/outgoing/sostav/id/324280
         [HttpGet("view/wagon/outgoing/sostav/id/{id_station}")]
         public async Task<ActionResult<IEnumerable<ViewCarWay>>> GetViewWagonsOutgoingSostavOfIdSostav(int id_station)
         {
