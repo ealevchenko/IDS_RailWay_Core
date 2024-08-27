@@ -147,7 +147,7 @@ namespace WebAPI.Controllers.Directory
         /// </summary>
         /// <param name="id_way"></param>
         /// <returns></returns>
-        // GET: WSD/view/open/outgoing/sostav/way/217
+        // GET: WSD/view/open/outgoing/sostav/way/216
         [HttpGet("view/open/outgoing/sostav/way/{id_way}")]
         public async Task<ActionResult<IEnumerable<ViewOutgoingSostav>>> GetViewOpenOutgoingSostavOfIdWay(int id_way)
         {
@@ -155,7 +155,7 @@ namespace WebAPI.Controllers.Directory
             {
                 List<ViewOutgoingSostav> result = await db.getViewOutgoingSostav()
                     .AsNoTracking()
-                    .Where(w => w.IdWayFrom == id_way && w.DateDepartureAmkr == null && w.Status < 3 && w.DateReadinessAmkr > new DateTime(2024, 1, 1, 0, 0, 0))
+                    .Where(w => w.IdWayFrom == id_way && w.DateDepartureAmkr == null && w.Status < 3 && w.DateReadinessAmkr > new DateTime(2024, 1, 1, 0, 0, 0) && w.CountAll != w.CountReturn)
                     .ToListAsync();
                 if (result == null)
                     return NotFound();
