@@ -54,9 +54,11 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
+                db.Database.SetCommandTimeout(300);
                 List<ViewStatusParkWay> result = await db.getViewStatusAllParkOfStationId(id_station).ToListAsync();
                 if (result == null)
                     return NotFound();
+                db.Database.SetCommandTimeout(0);
                 return Ok(result);
             }
             catch (Exception e)
