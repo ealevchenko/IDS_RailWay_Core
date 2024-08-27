@@ -155,7 +155,7 @@ namespace WebAPI.Controllers.Directory
             {
                 List<ViewOutgoingSostav> result = await db.getViewOutgoingSostav()
                     .AsNoTracking()
-                    .Where(w => w.IdWayFrom == id_way && w.DateDepartureAmkr == null && w.Status < 3)
+                    .Where(w => w.IdWayFrom == id_way && w.DateDepartureAmkr == null && w.Status < 3 && w.DateReadinessAmkr > new DateTime(2024, 1, 1, 0, 0, 0))
                     .ToListAsync();
                 if (result == null)
                     return NotFound();
