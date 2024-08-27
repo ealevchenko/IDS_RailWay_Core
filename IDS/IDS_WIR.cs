@@ -1477,7 +1477,7 @@ namespace IDS_
                         return (int)errors_base.not_outgoing_sostav_db;
                     }
                     // правим дату
-                    sostav.DateDepartureAmkr = lead_time;
+                    sostav.DateReadinessAmkr = lead_time;
                     sostav.ChangeUser = user;
                     sostav.Change = DateTime.Now;
                     // Сограним
