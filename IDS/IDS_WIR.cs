@@ -1912,35 +1912,54 @@ namespace IDS_
                 }
                 if (sostav != null)
                 {
-                    // Определим максимальную позиции
-                    int position = sostav.OutgoingCars != null && sostav.OutgoingCars.Count() > 0 ? sostav.OutgoingCars.Max(x => x.Position) : 0;
-                    foreach (long id_wir in list.ToList())
+                    if (sostav.Status < 2)
                     {
-                        position++;
-                        WagonInternalRoute? wir = context
-                            .WagonInternalRoutes
-                            .Where(r => r.Id == id_wir)
-                            .FirstOrDefault();
-                        int result = 0;
-                        if (wir != null)
+                        // Определим максимальную позиции
+                        int position = sostav.OutgoingCars != null && sostav.OutgoingCars.Count() > 0 ? sostav.OutgoingCars.Max(x => x.Position) : 0;
+                        foreach (long id_wir in list.ToList())
                         {
-                            if (wir.IdOutgoingCar == null)
+                            position++;
+                            WagonInternalRoute? wir = context
+                                .WagonInternalRoutes
+                                .Where(r => r.Id == id_wir)
+                                .FirstOrDefault();
+                            int result = 0;
+                            if (wir != null)
                             {
-                                result = AddOutgoingCars(ref context, sostav, id_way_from, position, wir, lead_time, user); // Получим результат выполнения операции
+                                if (wir.IdOutgoingCar == null)
+                                {
+                                    result = AddOutgoingCars(ref context, sostav, id_way_from, position, wir, lead_time, user); // Получим результат выполнения операции
+                                }
+                                else
+                                {
+                                    result = (int)errors_base.outgoing_cars_wir; // Записи по WagonInternalRoutes - уже имеет ссылку на отправку
+                                }
+
+                                // Сохраним рзультат выполнения
+                                res.SetMovedResult(result, wir.Num);
                             }
                             else
                             {
-                                result = (int)errors_base.outgoing_cars_wir; // Записи по WagonInternalRoutes - уже имеет ссылку на отправку
+                                result = (int)errors_base.not_wir_db; // В базе данных нет записи по WagonInternalRoutes (Внутренее перемещение вагонов)
                             }
+                        }
+                        if (id_sostav == null)
+                        {
+                            // состав добален
                             context.OutgoingSostavs.Add(sostav);
-                            // Сохраним рзультат выполнения
-                            res.SetMovedResult(result, wir.Num);
                         }
                         else
                         {
-                            result = (int)errors_base.not_wir_db; // В базе данных нет записи по WagonInternalRoutes (Внутренее перемещение вагонов)
+                            sostav.Change = DateTime.Now;
+                            sostav.ChangeUser = user;
+                            context.OutgoingSostavs.Update(sostav);
                         }
                     }
+                    else
+                    {
+                        res.SetResult((int)errors_base.error_status_outgoing_sostav); // Состав предъявлен или отправлен
+                    }
+
                 }
                 else
                 {
