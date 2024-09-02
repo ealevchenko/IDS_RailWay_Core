@@ -2217,10 +2217,15 @@ namespace IDS_
                         }
                     }
                     // Взведем в исходное состояние (исключим ошибку если нет условий расчета)
-
-
+                    bool rounding_common = false;
                     TimeSpan tm = (DateTime)cwuf.DateOutgoing - (DateTime)cwuf.DateAdoption; // за первый период
+                    int hour_common = (int)Math.Truncate(tm.TotalHours);
                     cwuf.Downtime = (int)tm.TotalMinutes;
+                    int remaining_minutes_period_common = (int)Math.Truncate(tm.TotalMinutes - (hour_common * 60));
+                    if (remaining_minutes_period_common >= 30) {
+                        rounding_common = true;
+                    }
+                    
                     // Получим периоды для расчетов
                     List<UsageFeePeriod> list_uf_period_outgoing = context.UsageFeePeriods
                         .AsNoTracking()
@@ -2495,9 +2500,9 @@ namespace IDS_
                                             // последний период
                                             int hour_calc = (hour_period - grace_detali_time);
                                             // Если небыло округления а сумма остатков >=0 тогда добавим час
-                                            if (sum_remaining_minutes_period >= 30 && !rounding)
+                                            if (sum_remaining_minutes_period >= 30 && (!rounding || rounding_common))
                                             {
-                                                hour_calc++;
+                                                hour_calc++; 
                                             }
                                             calc_hour_period += hour_calc;
                                             calc_time += hour_calc;
