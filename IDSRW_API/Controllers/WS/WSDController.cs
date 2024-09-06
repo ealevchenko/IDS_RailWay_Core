@@ -591,7 +591,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultTransfer result = ids_wir.SendingSostavOnUZ(value.id_way_from, value.id_sostav, value.wagons, value.lead_time, user);
+                ResultTransfer result = ids_wir.SendingSostavOnUZ(value.id_outgoing_sostav, value.lead_time, value.composition_index, value.update_epd, user);
                 return Ok(result);
             }
             catch (Exception e)
