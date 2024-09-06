@@ -105,6 +105,16 @@ namespace WebAPI.Controllers.Directory
     }
     #endregion
 
+    #region ОПЕРАЦИЯ ОТПРАВКИ СОСТАВА НА УЗ (Обновленный АРМ)
+    public class OperationSendingSostavOnUZ
+    {
+        public long id_outgoing_sostav { get; set; }
+        public DateTime lead_time { get; set; }
+        public String composition_index { get; set; }
+        public bool update_epd { get; set; }
+    }
+    #endregion
+
     #region ОПЕРАЦИЯ АДМ
     public class AdmDivisionOutgoingWagons
     {
@@ -545,7 +555,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/provide/move/wagons
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/provide/move/wagons")]
-        public async Task<ActionResult<ResultTransfer>> postMoveWagonsProvideWayOfStationAMKR([FromBody] OperationMoveWagonsProvideWay value)
+        public async Task<ActionResult<ResultTransfer>> PostMoveWagonsProvideWayOfStationAMKR([FromBody] OperationMoveWagonsProvideWay value)
         {
             try
             {
@@ -565,6 +575,31 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // POST: WSD/operation/sending_uz/sostav
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/sending_uz/sostav")]
+        public async Task<ActionResult<ResultTransfer>> PostOperationSendingSostavOnUZ([FromBody] OperationSendingSostavOnUZ value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultTransfer result = ids_wir.SendingSostavOnUZ(value.id_way_from, value.id_sostav, value.wagons, value.lead_time, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         #endregion
 
         #region АДМИНИСТРИРОВАНИЕ

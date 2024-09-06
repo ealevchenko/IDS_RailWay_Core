@@ -1633,6 +1633,158 @@ namespace IDS_
         }
 
         #endregion
+        #region  Операция "Отправка состава на УЗ"
+        //SendingSostavOnUZ
+        /// <summary>
+        /// Отправить вагон на УЗ
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="car"></param>
+        /// <param name="id_way_from"></param>
+        /// <param name="lead_time"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int SendingWagonOnUZ(ref EFDbContext context, OutgoingCar car, int id_way_from, DateTime lead_time, string user)
+        {
+            try
+            {
+                if (context == null)
+                {
+                    context = new EFDbContext();
+                }
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                //EFWagonInternalRoutes ef_wir = new EFWagonInternalRoutes(context);
+
+                if (car == null) return (int)errors_base.not_outgoing_cars_db; // В базе нет вагона для предявдения
+                if (car.IdOutgoingNavigation.Status != 2) return (int)errors_base.error_status_outgoing_sostav; // Ошибка статуса состава (Статус не позволяет сделать эту операцию)
+                                                                                                                // найдем запись внутреннего перемещения
+                WagonInternalRoute? wir = context.WagonInternalRoutes.Where(w => w.IdOutgoingCar == car.Id).FirstOrDefault();
+                if (wir == null) return (int)errors_base.not_wir_db;
+                // Получим текущее положение вагона
+                WagonInternalMovement wim = wir.GetLastMovement(ref context);
+                if (wim == null) return (int)errors_base.not_wim_db; // В базе данных нет текущего положения
+                if (wim.WayEnd != null || wim.IdWay != id_way_from) return (int)errors_base.wagon_not_way; // Вагон не стоит на пути
+                WagonInternalOperation wio = wir.GetLastOperation(ref context);
+                if (wio == null) return (int)errors_base.not_wio_db; // В базе данных нет текущей операции
+                if (wio.IdOperation < 8 || wio.IdOperation > 9) return (int)errors_base.wagon_not_operation; // текущая операция не предъявить вагон на УЗ
+                                                                                                             // Все проверки прошел
+                                                                                                             // Проверить сап исходящие, и если есть закроем
+                SapoutgoingSupply? sap_os = context.SapoutgoingSupplies.Where(s => s.IdOutgoingCar == car.Id).FirstOrDefault();
+                if (sap_os != null)
+                {
+                    sap_os.Close = DateTime.Now;
+                    sap_os.CloseUser = user;
+                    //ef_sap_os.Update(sap_os);
+                }
+                // Установим и закроем операцию отпрака на УЗ             
+                wir.SetOpenOperation(ref context, 2, lead_time.AddMinutes(-10), null, null, null, null, null, user).SetCloseOperation(lead_time, null, user);
+                wir.CloseWagon(context, lead_time, null, user);
+                //ef_wir.Update(wir);
+                return 1;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("SendingWagonOnUZ(context={0}, car={1}, id_way_from={2}, lead_time={3}, user={4})",
+                    context, car, id_way_from, lead_time, user));
+                return (int)errors_base.global;// Возвращаем id=-1 , Ошибка
+            }
+        }
+        /// <summary>
+        /// Отправить состав на УЗ
+        /// </summary>
+        /// <param name="id_outgoing_sostav"></param>
+        /// <param name="lead_time"></param>
+        /// <param name="composition_index"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public ResultTransfer SendingSostavOnUZ(long id_outgoing_sostav, DateTime lead_time, string composition_index, bool update_epd, string user)
+        {
+            ResultTransfer rt = new ResultTransfer(0);
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                EFDbContext context = new EFDbContext();
+                {
+                    OutgoingSostav? sostav = context
+                        .OutgoingSostavs
+                        .Where(s => s.Id == id_outgoing_sostav)
+                        .Include(car => car.OutgoingCars)
+                        .FirstOrDefault();
+                    if (sostav != null)
+                    {
+                        // Состав определен
+                        if (sostav.Status == 2)
+                        {
+                            List<OutgoingCar> list_out_car = sostav.OutgoingCars.Where(c => c.Outgoing != null).ToList();
+                            if (list_out_car != null && list_out_car.Count() > 0)
+                            {
+                                // Пройдемся по вагонам
+                                foreach (OutgoingCar car in list_out_car)
+                                {
+                                    int result = SendingWagonOnUZ(ref context, car, sostav.IdWayFrom, lead_time, user);
+                                    rt.SetMovedResult(result, car.Num);
+                                }
+                                // Проверка на ошибку
+                                if (rt.error == 0)
+                                {
+                                    sostav.Status = 3;
+                                    sostav.DateDepartureAmkr = lead_time;
+                                    sostav.CompositionIndex = composition_index != null ? composition_index : sostav.CompositionIndex;
+                                    sostav.Change = DateTime.Now;
+                                    sostav.ChangeUser = user;
+                                    //ef_out_sostav.Update(sostav);
+                                    rt.SetResult(context.SaveChanges());
+                                    // Если операция успешна, перенумеруем позиции на пути с которого ушли вагоны
+                                    if (rt.result > 0)
+                                    {
+                                        int result_rnw = RenumberingWagons(ref context, sostav.IdWayFrom, 1);
+                                        if (result_rnw > 0)
+                                        {
+                                            // Применим перенумерацию
+                                            context.SaveChanges();
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    rt.SetResult((int)errors_base.error_save_changes); // Были ошибки по ходу выполнения всей операций
+                                }
+                            }
+                            else
+                            {
+                                rt.SetResult((int)errors_base.not_outgoing_cars_db); // В базе данных нет записи по вагонам для отпправки
+                            }
+                        }
+                        else
+                        {
+                            rt.SetResult((int)errors_base.error_status_outgoing_sostav); // Ошибка статуса состава (Статус не позволяет сделать эту операцию)
+                        }
+                    }
+                    else
+                    {
+                        rt.SetResult((int)errors_base.not_outgoing_sostav_db); //В базе данных нет записи состава для оправки
+                    }
+                    return rt;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("SendingSostavOnUZ(id_outgoing_sostav={0}, lead_time={1}, composition_index={2}, update_epd={3}, user={4})",
+                    id_outgoing_sostav, lead_time, composition_index, update_epd, user));
+                rt.SetResult((int)errors_base.global);
+                return rt;// Возвращаем id=-1 , Ошибка
+            }
+        }
+        #endregion
+
         /// <summary>
         /// Получить информацию по нахаждении вагона на АМКР
         /// </summary>
@@ -2222,10 +2374,11 @@ namespace IDS_
                     int hour_common = (int)Math.Truncate(tm.TotalHours);
                     cwuf.Downtime = (int)tm.TotalMinutes;
                     int remaining_minutes_period_common = (int)Math.Truncate(tm.TotalMinutes - (hour_common * 60));
-                    if (remaining_minutes_period_common >= 30) {
+                    if (remaining_minutes_period_common >= 30)
+                    {
                         rounding_common = true;
                     }
-                    
+
                     // Получим периоды для расчетов
                     List<UsageFeePeriod> list_uf_period_outgoing = context.UsageFeePeriods
                         .AsNoTracking()
@@ -2502,7 +2655,7 @@ namespace IDS_
                                             // Если небыло округления а сумма остатков >=0 тогда добавим час
                                             if (sum_remaining_minutes_period >= 30 && (!rounding || rounding_common))
                                             {
-                                                hour_calc++; 
+                                                hour_calc++;
                                             }
                                             calc_hour_period += hour_calc;
                                             calc_time += hour_calc;
