@@ -120,6 +120,7 @@ namespace WebAPI.Controllers.Directory
     {
         public int id_way { get; set; }
         public int position { get; set; }
+        public bool reverse { get; set; }
     }
     #endregion
 
@@ -623,7 +624,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                int result = ids_wir.AutoPosition(value.id_way, value.position, user);
+                int result = ids_wir.AutoPosition(value.id_way, value.position, value.reverse, user);
                 return Ok(result);
             }
             catch (Exception e)

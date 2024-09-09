@@ -535,13 +535,19 @@ namespace IDS_
         /// <param name="context"></param>
         /// <param name="id_way"></param>
         /// <param name="position_start"></param>
+        /// <param name="reverse"></param>
         /// <returns></returns>
-        public int RenumberingWagons(ref EFDbContext context, int id_way, int position_start)
+        public int RenumberingWagons(ref EFDbContext context, int id_way, int position_start, bool reverse)
         {
             try
             {
                 int count = 0;
+
                 List<WagonInternalMovement> list_wim = context.WagonInternalMovements.Where(m => m.IdWay == id_way & m.IdOuterWay == null & m.WayEnd == null).OrderBy(p => p.Position).ToList();
+                if (reverse)
+                {
+                    list_wim = list_wim.OrderByDescending(p => p.Position).ToList();
+                }
                 if (list_wim != null)
                 {
                     count = list_wim.Count();
@@ -678,7 +684,7 @@ namespace IDS_
                     List<WagonInternalRoute> wagon_position = List_wir.OrderBy(w => w.new_position).Select(w => w.wir).ToList();
                     int start_position = (head == true ? (wagons.Count() + 1) : 1);
                     //Подготовим путь приема(перестроим позиции)
-                    int res_renum = RenumberingWagons(ref context, id_way_on, start_position);
+                    int res_renum = RenumberingWagons(ref context, id_way_on, start_position, false);
                     // Определим позицию переноса вагонов
                     int position = head == true ? 1 : context.GetNextPosition(id_way_on);
 
@@ -835,7 +841,7 @@ namespace IDS_
                             _logger.LogWarning(mess);
                             DateTime stop = DateTime.Now;
                             _logger.LogDebug(String.Format("Операция отправки вагонов на станцию АМКР."), start, stop, rt.result);
-                            int result_rnw = RenumberingWagons(ref context, id_way_from, 1);
+                            int result_rnw = RenumberingWagons(ref context, id_way_from, 1, false);
                             if (result_rnw > 0)
                             {
                                 // Применим перенумерацию
@@ -979,7 +985,7 @@ namespace IDS_
                         // Выполним сортировку позиций по возрастанию
                         List<WagonInternalRoute> wagon_position = List_wir.OrderBy(w => w.new_position).Select(w => w.wir).ToList();
                         //Подготовим путь приема(перестроим позиции)
-                        int res_renum = RenumberingWagons(ref context, id_way, (head == true ? (wagons.Count() + 1) : 1));
+                        int res_renum = RenumberingWagons(ref context, id_way, (head == true ? (wagons.Count() + 1) : 1), false);
                         // Определим позицию переноса вагонов
                         int position = head == true ? 1 : context.GetNextPosition(id_way);
                         foreach (WagonInternalRoute wagon in wagon_position)
@@ -1091,7 +1097,7 @@ namespace IDS_
                     List<WagonInternalRoute> wagon_position = wagons.OrderBy(w => w.WagonInternalMovements.OrderByDescending(c => c.Id).FirstOrDefault().Position).ToList();
 
                     // Подготовим путь приема (перестроим позиции)
-                    int res_renum = RenumberingWagons(ref context, id_way_on, 1);
+                    int res_renum = RenumberingWagons(ref context, id_way_on, 1, false);
                     // Определим позицию переноса вагонов
                     int position = context.GetNextPosition(id_way_on);
 
@@ -1188,7 +1194,7 @@ namespace IDS_
                         // Если все прошло сделаем перенумерацию на пути отправки
                         if (lrt.result > 0)
                         {
-                            int result_rnw = RenumberingWagons(ref context, id_way_from, 1);
+                            int result_rnw = RenumberingWagons(ref context, id_way_from, 1, false);
                             if (result_rnw > 0)
                             {
                                 // Применим перенумерацию
@@ -1281,7 +1287,7 @@ namespace IDS_
                     //List<WagonInternalRoute> wagon_position = reverse == true ? wagons.OrderByDescending(w => w.GetLastMovement().position).ToList() : wagons.OrderBy(w => w.GetLastMovement().position).ToList();
                     int start_position = (head == true ? (wagons.Count() + 1) : 1);
                     // Подготовим путь приема (перестроим позиции)
-                    int res_renum = RenumberingWagons(ref context, id_way_on, start_position);
+                    int res_renum = RenumberingWagons(ref context, id_way_on, start_position, false);
                     // Определим позицию переноса вагонов
                     int position = head == true ? 1 : context.GetNextPosition(id_way_on);
 
@@ -1350,7 +1356,7 @@ namespace IDS_
                     if (rt.result > 0)
                     {
                         // Перенумеруем
-                        int result_rnw = RenumberingWagons(ref context, id_way_from, 1);
+                        int result_rnw = RenumberingWagons(ref context, id_way_from, 1, false);
                         if (result_rnw > 0)
                         {
                             // Применим перенумерацию
@@ -1593,7 +1599,7 @@ namespace IDS_
                                     // Если операция успешна, перенумеруем позиции на пути с которого ушли вагоны
                                     if (res.result > 0)
                                     {
-                                        int result_rnw = RenumberingWagons(ref context, id_way_on, 1);
+                                        int result_rnw = RenumberingWagons(ref context, id_way_on, 1, false);
                                         if (result_rnw > 0)
                                         {
                                             // Применим перенумерацию
@@ -1746,7 +1752,7 @@ namespace IDS_
                                     // Если операция успешна, перенумеруем позиции на пути с которого ушли вагоны
                                     if (rt.result > 0)
                                     {
-                                        int result_rnw = RenumberingWagons(ref context, sostav.IdWayFrom, 1);
+                                        int result_rnw = RenumberingWagons(ref context, sostav.IdWayFrom, 1, false);
                                         if (result_rnw > 0)
                                         {
                                             // Применим перенумерацию
@@ -1787,8 +1793,15 @@ namespace IDS_
         #endregion
 
         #region  Операции "Позицирование вагонов на пути"
-        //AutoPosition
-        public int AutoPosition(int id_way, int position, string user)
+        /// <summary>
+        /// Операция позицирования вагонов атоматически или реверс с указаной позиции
+        /// </summary>
+        /// <param name="id_way"></param>
+        /// <param name="position"></param>
+        /// <param name="reverse"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int AutoPosition(int id_way, int position, bool reverse, string user)
         {
             try
             {
@@ -1799,7 +1812,7 @@ namespace IDS_
                 }
                 EFDbContext context = new EFDbContext();
                 {
-                    int result = RenumberingWagons(ref context, id_way, position);
+                    int result = RenumberingWagons(ref context, id_way, position, reverse);
                     if (result > 0)
                     {
                         // Применим перенумерацию
@@ -1810,8 +1823,8 @@ namespace IDS_
             }
             catch (Exception e)
             {
-                _logger.LogError(e, String.Format("AutoPosition(id_way={0}, position={1}, user={2})",
-                    id_way, position, user));
+                _logger.LogError(e, String.Format("AutoPosition(id_way={0}, position={1}, reverse={2}, user={3})",
+                    id_way, position, reverse, user));
                 return (int)errors_base.global;// Возвращаем id=-1 , Ошибка
             }
         }
