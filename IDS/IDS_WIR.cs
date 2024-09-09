@@ -1633,6 +1633,7 @@ namespace IDS_
         }
 
         #endregion
+
         #region  Операция "Отправка состава на УЗ"
         //SendingSostavOnUZ
         /// <summary>
@@ -1784,6 +1785,38 @@ namespace IDS_
             }
         }
         #endregion
+
+        #region  Операции "Позицирование вагонов на пути"
+        //AutoPosition
+        public int AutoPosition(int id_way, int position, string user)
+        {
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                EFDbContext context = new EFDbContext();
+                {
+                    int result = RenumberingWagons(ref context, id_way, position);
+                    if (result > 0)
+                    {
+                        // Применим перенумерацию
+                        result = context.SaveChanges();
+                    }
+                    return result;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("AutoPosition(id_way={0}, position={1}, user={2})",
+                    id_way, position, user));
+                return (int)errors_base.global;// Возвращаем id=-1 , Ошибка
+            }
+        }
+        #endregion
+
 
         /// <summary>
         /// Получить информацию по нахаждении вагона на АМКР
