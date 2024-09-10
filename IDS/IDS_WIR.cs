@@ -2415,14 +2415,15 @@ namespace IDS_
                         }
                     }
                     // Взведем в исходное состояние (исключим ошибку если нет условий расчета)
-                    bool rounding_common = false;
+                    //bool rounding_common = false;
                     TimeSpan tm = (DateTime)cwuf.DateOutgoing - (DateTime)cwuf.DateAdoption; // за первый период
                     int hour_common = (int)Math.Truncate(tm.TotalHours);
                     cwuf.Downtime = (int)tm.TotalMinutes;
                     int remaining_minutes_period_common = (int)Math.Truncate(tm.TotalMinutes - (hour_common * 60));
                     if (remaining_minutes_period_common >= 30)
                     {
-                        rounding_common = true;
+                        //rounding_common = true;
+                        hour_common++; // Добавим час
                     }
 
                     // Получим периоды для расчетов
@@ -2698,8 +2699,11 @@ namespace IDS_
                                         {
                                             // последний период
                                             int hour_calc = (hour_period - grace_detali_time);
-                                            // Если небыло округления а сумма остатков >=0 тогда добавим час
-                                            if (sum_remaining_minutes_period >= 30 && (!rounding || rounding_common))
+
+                                            int test_calc_time = calc_time + hour_calc;
+                                            // Если небыло округления а сумма остатков >=0 тогда добавим час (hour_common)
+                                            //if (sum_remaining_minutes_period >= 30 && (!rounding || rounding_common))
+                                            if (sum_remaining_minutes_period >= 30 && hour_common > test_calc_time)
                                             {
                                                 hour_calc++;
                                             }
