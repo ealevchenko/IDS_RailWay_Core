@@ -12,6 +12,10 @@ public class ViewStatusParkWay
     [Column("id")]
     public int Id { get; set; }
 
+    [Column("position")]
+    [StringLength(100)]
+    public int Position { get; set; }
+
     [Column("park_name_ru")]
     [StringLength(100)]
     public string ParkNameRu { get; set; } = null!;
