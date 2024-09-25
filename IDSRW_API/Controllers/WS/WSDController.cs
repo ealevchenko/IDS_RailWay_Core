@@ -226,7 +226,7 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-        // GET: WSD/view/dislocation/amkr/wagon/num/54781596
+        // GET: WSD/view/dislocation/amkr/wagon/num/56247042
         [HttpGet("view/dislocation/amkr/wagon/num/{num}")]
         public async Task<ActionResult<StatusWagonDislocation>> GetViewDislocationAMKRWagonOfNum(int num)
         {
