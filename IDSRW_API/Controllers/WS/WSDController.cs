@@ -206,7 +206,6 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-
         #endregion
 
         // GET: WSD/view/wagon/way/115
@@ -346,6 +345,24 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // GET: WSD/view/wagons/filing/station/id/8
+        [HttpGet("view/wagons/filing/station/id/{id_station}")]
+        public async Task<ActionResult<IEnumerable<ViewWagonsFiling>>> GetViewWagonsFilingOfIdStation(int id_station)
+        {
+            try
+            {
+                List<ViewWagonsFiling> result = await db.getViewWagonsFilingOfIdStation(id_station).ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
 
         #region РАСЧЕТ ПЛАТЫ ЗА ПОЛЬЗОВАНИЕ (АРМ)
 
