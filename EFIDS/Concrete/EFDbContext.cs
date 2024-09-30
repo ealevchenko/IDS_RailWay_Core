@@ -197,6 +197,7 @@ public partial class EFDbContext : DbContext
     public virtual DbSet<UzDoc> UzDocs { get; set; }
 
     public virtual DbSet<UzDocOut> UzDocOuts { get; set; }
+    public virtual DbSet<WagonFiling> WagonFilings { get; set; }
 
     public virtual DbSet<WagonInternalMovement> WagonInternalMovements { get; set; }
 
@@ -212,28 +213,28 @@ public partial class EFDbContext : DbContext
 
     public virtual DbSet<WebView> WebViews { get; set; }
 
-    public IQueryable<ViewStatusStation> getViewStatusAllStation()  => FromExpression(() => getViewStatusAllStation());
-    public IQueryable<ViewStatusStation> getViewStatusStationOfId(int id_station)  => FromExpression(() => getViewStatusStationOfId(id_station));
-    public IQueryable<ViewStatusParkWay> getViewStatusAllParkOfStationId(int id_station)  => FromExpression(() => getViewStatusAllParkOfStationId(id_station));
-    public IQueryable<ViewStatusParkWay> getViewStatusParkOfId(int id_station, int id_park)  => FromExpression(() => getViewStatusParkOfId(id_station, id_park));
-    public IQueryable<ViewStatusWay> getViewStatusAllWayOfStationParkId(int id_station, int id_park)  => FromExpression(() => getViewStatusAllWayOfStationParkId(id_station, id_park));
-    public IQueryable<ViewStatusWay> getViewStatusAllWayOfStationId(int id_station)  => FromExpression(() => getViewStatusAllWayOfStationId(id_station));
-    public IQueryable<ViewStatusWay> getViewStatusWayOfId(int id_way)  => FromExpression(() => getViewStatusWayOfId(id_way));
+    public IQueryable<ViewStatusStation> getViewStatusAllStation() => FromExpression(() => getViewStatusAllStation());
+    public IQueryable<ViewStatusStation> getViewStatusStationOfId(int id_station) => FromExpression(() => getViewStatusStationOfId(id_station));
+    public IQueryable<ViewStatusParkWay> getViewStatusAllParkOfStationId(int id_station) => FromExpression(() => getViewStatusAllParkOfStationId(id_station));
+    public IQueryable<ViewStatusParkWay> getViewStatusParkOfId(int id_station, int id_park) => FromExpression(() => getViewStatusParkOfId(id_station, id_park));
+    public IQueryable<ViewStatusWay> getViewStatusAllWayOfStationParkId(int id_station, int id_park) => FromExpression(() => getViewStatusAllWayOfStationParkId(id_station, id_park));
+    public IQueryable<ViewStatusWay> getViewStatusAllWayOfStationId(int id_station) => FromExpression(() => getViewStatusAllWayOfStationId(id_station));
+    public IQueryable<ViewStatusWay> getViewStatusWayOfId(int id_way) => FromExpression(() => getViewStatusWayOfId(id_way));
     // Получить вагоны на пути (id пути)
-    public IQueryable<ViewCarWay> getViewWagonsOfIdWay(int id_way)  => FromExpression(() => getViewWagonsOfIdWay(id_way));
-    public IQueryable<ViewTotalBalance> getViewTotalBalance()  => FromExpression(() => getViewTotalBalance());
-    public IQueryable<ViewOperatorsStation> getViewOperatorsOfStation(int id_station)  => FromExpression(() => getViewOperatorsOfStation(id_station));
-    public IQueryable<ViewOperatorsOuterWay> getViewOperatorsSendOfIdStation(int id_station)  => FromExpression(() => getViewOperatorsSendOfIdStation(id_station));
-    public IQueryable<ViewOperatorsOuterWay> getViewOperatorsArrivalOfIdStation(int id_station)  => FromExpression(() => getViewOperatorsArrivalOfIdStation(id_station));
-    public IQueryable<ViewWagonsOfOuterWay> getViewOpenWagonsOfOuterWaysStationOn(int id_station)  => FromExpression(() => getViewOpenWagonsOfOuterWaysStationOn(id_station));
-    public IQueryable<ViewWagonsOfOuterWay> getViewOpenWagonsOfOuterWaysStationFrom(int id_station)  => FromExpression(() => getViewOpenWagonsOfOuterWaysStationFrom(id_station));
-    public IQueryable<ViewOutgoingSostav> getViewOutgoingSostav()  => FromExpression(() => getViewOutgoingSostav());
+    public IQueryable<ViewCarWay> getViewWagonsOfIdWay(int id_way) => FromExpression(() => getViewWagonsOfIdWay(id_way));
+    public IQueryable<ViewTotalBalance> getViewTotalBalance() => FromExpression(() => getViewTotalBalance());
+    public IQueryable<ViewOperatorsStation> getViewOperatorsOfStation(int id_station) => FromExpression(() => getViewOperatorsOfStation(id_station));
+    public IQueryable<ViewOperatorsOuterWay> getViewOperatorsSendOfIdStation(int id_station) => FromExpression(() => getViewOperatorsSendOfIdStation(id_station));
+    public IQueryable<ViewOperatorsOuterWay> getViewOperatorsArrivalOfIdStation(int id_station) => FromExpression(() => getViewOperatorsArrivalOfIdStation(id_station));
+    public IQueryable<ViewWagonsOfOuterWay> getViewOpenWagonsOfOuterWaysStationOn(int id_station) => FromExpression(() => getViewOpenWagonsOfOuterWaysStationOn(id_station));
+    public IQueryable<ViewWagonsOfOuterWay> getViewOpenWagonsOfOuterWaysStationFrom(int id_station) => FromExpression(() => getViewOpenWagonsOfOuterWaysStationFrom(id_station));
+    public IQueryable<ViewOutgoingSostav> getViewOutgoingSostav() => FromExpression(() => getViewOutgoingSostav());
     // Получить вагоны по отправленному составу по id составу
     public IQueryable<ViewCarWay> getViewWagonsOutgoingSostavOfIdSostav(int id_station) => FromExpression(() => getViewWagonsOutgoingSostavOfIdSostav(id_station));
     // Получить информацию по дислокации вагона
     public IQueryable<ViewWagonDislocation> getViewDislocationAMKRWagonOfNum(int num) => FromExpression(() => getViewDislocationAMKRWagonOfNum(num));
-    // Получить информацию по вагонам в подаче по станции
-    public IQueryable<ViewWagonsFiling> getViewWagonsFilingOfIdStation(int id_station)  => FromExpression(() => getViewWagonsFilingOfIdStation(id_station));
+    // Получить информацию по вагонам в подаче за период и повыбранной станции
+    public IQueryable<ViewWagonsFiling> getViewWagonsFilingOfPeriodIdStation(DateTime start, DateTime stop, int id_station) => FromExpression(() => getViewWagonsFilingOfPeriodIdStation(start, stop, id_station));
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
@@ -244,21 +245,21 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(() => getViewStatusAllStation()).HasSchema("IDS").HasName("get_view_status_all_station");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusStationOfId), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_status_station_of_id");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusAllParkOfStationId), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_status_all_park_of_station_id");
-        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusParkOfId), new[] { typeof(int), typeof(int)})).HasSchema("IDS").HasName("get_view_status_park_of_id");
-        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusAllWayOfStationParkId), new[] { typeof(int), typeof(int)})).HasSchema("IDS").HasName("get_view_status_all_way_of_station_park_id");
-        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusAllWayOfStationId), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_status_all_way_of_station_id");
-        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusWayOfId), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_status_way_of_id");
-        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOfIdWay), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_wagons_of_id_way");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusParkOfId), new[] { typeof(int), typeof(int) })).HasSchema("IDS").HasName("get_view_status_park_of_id");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusAllWayOfStationParkId), new[] { typeof(int), typeof(int) })).HasSchema("IDS").HasName("get_view_status_all_way_of_station_park_id");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusAllWayOfStationId), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_status_all_way_of_station_id");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewStatusWayOfId), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_status_way_of_id");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOfIdWay), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_wagons_of_id_way");
         modelBuilder.HasDbFunction(() => getViewTotalBalance()).HasSchema("IDS").HasName("get_total_balance");
-        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsOfStation), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_operators_of_id_station");       
-        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsSendOfIdStation), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_operators_send_of_id_station");               
-        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsArrivalOfIdStation), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_operators_arrival_of_id_station");                   
-        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOpenWagonsOfOuterWaysStationOn), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_open_wagons_of_outer_ways_station_on");         
-        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOpenWagonsOfOuterWaysStationFrom), new[] { typeof(int)})).HasSchema("IDS").HasName("get_view_open_wagons_of_outer_ways_station_from");         
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsOfStation), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_operators_of_id_station");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsSendOfIdStation), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_operators_send_of_id_station");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsArrivalOfIdStation), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_operators_arrival_of_id_station");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOpenWagonsOfOuterWaysStationOn), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_open_wagons_of_outer_ways_station_on");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOpenWagonsOfOuterWaysStationFrom), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_open_wagons_of_outer_ways_station_from");
         modelBuilder.HasDbFunction(() => getViewOutgoingSostav()).HasSchema("IDS").HasName("get_outgoing_sostav");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOutgoingSostavOfIdSostav), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_wagons_outgoing_sostav_of_id_sostav");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewDislocationAMKRWagonOfNum), new[] { typeof(int) })).HasSchema("IDS").HasName("get_dislocation_wagon_of_num");
-        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsFilingOfIdStation), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_wagons_filing_of_id_station");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsFilingOfPeriodIdStation), new[] { typeof(DateTime), typeof(DateTime), typeof(int) })).HasSchema("IDS").HasName("get_view_wagons_filing_of_period_id_station");
 
 
         modelBuilder.Entity<ArrivalCar>(entity =>
@@ -861,8 +862,17 @@ public partial class EFDbContext : DbContext
             entity.HasOne(d => d.IdUsageFeePeriodNavigation).WithMany(p => p.UsageFeePeriodDetalis).HasConstraintName("FK_Usage_Fee_Period_Detali_Usage_Fee_Period");
         });
 
+        modelBuilder.Entity<WagonFiling>(entity =>
+        {
+            entity.HasOne(d => d.IdWioNavigation).WithMany(p => p.WagonFilings)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_WagonFiling_WagonInternalOperation");
+        });
+
         modelBuilder.Entity<WagonInternalMovement>(entity =>
         {
+            entity.HasOne(d => d.IdFilingNavigation).WithMany(p => p.WagonInternalMovements).HasConstraintName("FK_WagonInternalMovement_WagonFiling");
+
             entity.HasOne(d => d.IdOuterWayNavigation).WithMany(p => p.WagonInternalMovements).HasConstraintName("FK_WagonInternalMovement_Directory_OuterWays");
 
             entity.HasOne(d => d.IdStationNavigation).WithMany(p => p.WagonInternalMovements)

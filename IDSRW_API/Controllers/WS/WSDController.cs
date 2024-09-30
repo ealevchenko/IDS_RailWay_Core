@@ -310,7 +310,7 @@ namespace WebAPI.Controllers.Directory
 
         // GET: WSD/view/wagons/outer_way/station_on/8
         [HttpGet("view/wagons/outer_way/station_on/{id_station}")]
-        public async Task<ActionResult<IEnumerable<ViewWagonsOfOuterWay>>> getViewOpenWagonsOfOuterWaysStationOn(int id_station)
+        public async Task<ActionResult<IEnumerable<ViewWagonsOfOuterWay>>> GetViewOpenWagonsOfOuterWaysStationOn(int id_station)
         {
             try
             {
@@ -329,7 +329,7 @@ namespace WebAPI.Controllers.Directory
 
         // GET: WSD/view/wagons/outer_way/station_from/8
         [HttpGet("view/wagons/outer_way/station_from/{id_station}")]
-        public async Task<ActionResult<IEnumerable<ViewWagonsOfOuterWay>>> getViewOpenWagonsOfOuterWaysStationFrom(int id_station)
+        public async Task<ActionResult<IEnumerable<ViewWagonsOfOuterWay>>> GetViewOpenWagonsOfOuterWaysStationFrom(int id_station)
         {
             try
             {
@@ -346,13 +346,13 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-        // GET: WSD/view/wagons/filing/station/id/8
-        [HttpGet("view/wagons/filing/station/id/{id_station}")]
-        public async Task<ActionResult<IEnumerable<ViewWagonsFiling>>> GetViewWagonsFilingOfIdStation(int id_station)
+        // GET: WSD/view/wagons/filing/period/start/2024-09-01T00:00:00/stop/2024-09-30T00:00:00/station/id/8
+        [HttpGet("view/wagons/filing/period/start/{start:DateTime}/stop/{stop:DateTime}/station/id/{id_station}")]
+        public async Task<ActionResult<IEnumerable<ViewWagonsFiling>>> GetViewWagonsFilingOfPeriodIdStation(DateTime start, DateTime stop, int id_station)
         {
             try
             {
-                List<ViewWagonsFiling> result = await db.getViewWagonsFilingOfIdStation(id_station).ToListAsync();
+                List<ViewWagonsFiling> result = await db.getViewWagonsFilingOfPeriodIdStation(start, stop, id_station).ToListAsync();
                 if (result == null)
                     return NotFound();
                 return Ok(result);

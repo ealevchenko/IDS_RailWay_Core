@@ -4,4 +4,4 @@
 dotnet-ef dbcontext scaffold "data source=krr-sql-paclx03;initial catalog=KRR-PA-CNT-Railway;integrated security=True;TrustServerCertificate=true" Microsoft.EntityFrameworkCore.SqlServer --schema IDS --data-annotations -o Models
 
 3. ≈сли только несколько таблиц, набрать: 
-dotnet-ef dbcontext scaffold "data source=krr-sql-paclx03;initial catalog=KRR-PA-CNT-Railway;integrated security=True;TrustServerCertificate=true" Microsoft.EntityFrameworkCore.SqlServer --table operators_of_out_way --table operators_of_station --data-annotations -o Models
+dotnet-ef dbcontext scaffold "data source=krr-sql-paclx03;initial catalog=KRR-PA-CNT-Railway;integrated security=True;TrustServerCertificate=true" Microsoft.EntityFrameworkCore.SqlServer --table filing_wagons --data-annotations -o Models

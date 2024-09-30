@@ -86,7 +86,7 @@ public partial class WagonInternalOperation
     public virtual WagonInternalRoute IdWagonInternalRoutesNavigation { get; set; } = null!;
 
     [InverseProperty("Parent")]
-    public virtual ICollection<WagonInternalOperation> InverseParent { get; } = new List<WagonInternalOperation>();
+    public virtual ICollection<WagonInternalOperation> InverseParent { get; set; } = new List<WagonInternalOperation>();
 
     [ForeignKey("Locomotive1")]
     [InverseProperty("WagonInternalOperationLocomotive1Navigations")]
@@ -101,5 +101,8 @@ public partial class WagonInternalOperation
     public virtual WagonInternalOperation? Parent { get; set; }
 
     [InverseProperty("IdWioNavigation")]
-    public virtual ICollection<WagonInternalMovement> WagonInternalMovements { get; } = new List<WagonInternalMovement>();
+    public virtual ICollection<WagonFiling> WagonFilings { get; set; } = new List<WagonFiling>();
+
+    [InverseProperty("IdWioNavigation")]
+    public virtual ICollection<WagonInternalMovement> WagonInternalMovements { get; set; } = new List<WagonInternalMovement>();
 }

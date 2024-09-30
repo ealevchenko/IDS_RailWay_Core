@@ -15,12 +15,40 @@ public class ViewWagonsFiling
     [Column("id_wir")]
     public long IdWir { get; set; }
 
-    [Column("id_wio")]
-    public long? IdWio { get; set; }
+    [Column("id_wf")]
+    public long IdWf { get; set; }
 
     [Column("num_filing")]
     [StringLength(50)]
-    public string? NumFiling { get; set; }
+    public string NumFiling { get; set; } = null!;
+
+    [Column("id_wio")]
+    public long IdWio { get; set; }
+
+    [Column("note")]
+    [StringLength(250)]
+    public string? Note { get; set; }
+
+    [Column("filing_create", TypeName = "datetime")]
+    public DateTime FilingCreate { get; set; }
+
+    [Column("filing_create_user")]
+    [StringLength(50)]
+    public string FilingCreateUser { get; set; } = null!;
+
+    [Column("filing_change", TypeName = "datetime")]
+    public DateTime? FilingChange { get; set; }
+
+    [Column("filing_change_user")]
+    [StringLength(50)]
+    public string? FilingChangeUser { get; set; }
+
+    [Column("filing_close", TypeName = "datetime")]
+    public DateTime? FilingClose { get; set; }
+
+    [Column("filing_close_user")]
+    [StringLength(50)]
+    public string? FilingCloseUser { get; set; }
 
     [Column("filing_start", TypeName = "datetime")]
     public DateTime? FilingStart { get; set; }
@@ -33,6 +61,20 @@ public class ViewWagonsFiling
 
     [Column("position")]
     public int Position { get; set; }
+
+    [Column("from_wim_create", TypeName = "datetime")]
+    public DateTime FromWimCreate { get; set; }
+
+    [Column("from_wim_create_user")]
+    [StringLength(50)]
+    public string FromWimCreateUser { get; set; } = null!;
+
+    [Column("from_wim_close", TypeName = "datetime")]
+    public DateTime? FromWimClose { get; set; }
+
+    [Column("from_wim_close_user")]
+    [StringLength(50)]
+    public string? FromWimCloseUser { get; set; }
 
     [Column("wagon_adm")]
     public int? WagonAdm { get; set; }
@@ -295,24 +337,4 @@ public class ViewWagonsFiling
 
     [Column("current_station_amkr_abbr_en")]
     public int? CurrentStationAmkrAbbrEn { get; set; }
-
-    [Column("from_wim_create", TypeName = "datetime")]
-    public DateTime FromWimCreate { get; set; }
-
-    [Column("from_wim_create_user")]
-    [StringLength(50)]
-    public string FromWimCreateUser { get; set; } = null!;
-
-    [Column("from_wim_close", TypeName = "datetime")]
-    public DateTime? FromWimClose { get; set; }
-
-    [Column("from_wim_close_user")]
-    [StringLength(50)]
-    public string? FromWimCloseUser { get; set; }
-
-    [Column("filing_change")]
-    public int? FilingChange { get; set; }
-
-    [Column("filing_change_user")]
-    public int? FilingChangeUser { get; set; }
 }
