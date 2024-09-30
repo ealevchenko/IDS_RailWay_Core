@@ -50,31 +50,115 @@ public class ViewWagonsFiling
     [StringLength(50)]
     public string? FilingCloseUser { get; set; }
 
-    [Column("filing_start", TypeName = "datetime")]
-    public DateTime? FilingStart { get; set; }
-
-    [Column("filing_end", TypeName = "datetime")]
-    public DateTime? FilingEnd { get; set; }
-
     [Column("num")]
     public int Num { get; set; }
 
     [Column("position")]
     public int Position { get; set; }
 
-    [Column("from_wim_create", TypeName = "datetime")]
-    public DateTime FromWimCreate { get; set; }
+    [Column("filing_way_start", TypeName = "datetime")]
+    public DateTime FilingWayStart { get; set; }
 
-    [Column("from_wim_create_user")]
+    [Column("filing_way_end", TypeName = "datetime")]
+    public DateTime? FilingWayEnd { get; set; }
+
+    [Column("filing_start", TypeName = "datetime")]
+    public DateTime? FilingStart { get; set; }
+
+    [Column("filing_end", TypeName = "datetime")]
+    public DateTime? FilingEnd { get; set; }
+
+    [Column("filing_wim_create", TypeName = "datetime")]
+    public DateTime FilingWimCreate { get; set; }
+
+    [Column("filing_wim_create_user")]
     [StringLength(50)]
-    public string FromWimCreateUser { get; set; } = null!;
+    public string FilingWimCreateUser { get; set; } = null!;
 
-    [Column("from_wim_close", TypeName = "datetime")]
-    public DateTime? FromWimClose { get; set; }
+    [Column("filing_wim_close", TypeName = "datetime")]
+    public DateTime? FilingWimClose { get; set; }
 
-    [Column("from_wim_close_user")]
+    [Column("filing_wim_close_user")]
     [StringLength(50)]
-    public string? FromWimCloseUser { get; set; }
+    public string? FilingWimCloseUser { get; set; }
+
+    [Column("filing_id_station")]
+    public int FilingIdStation { get; set; }
+
+    [Column("filing_station_name_ru")]
+    [StringLength(50)]
+    public string? FilingStationNameRu { get; set; }
+
+    [Column("filing_station_name_en")]
+    [StringLength(50)]
+    public string? FilingStationNameEn { get; set; }
+
+    [Column("filing_station_abbr_ru")]
+    [StringLength(50)]
+    public string? FilingStationAbbrRu { get; set; }
+
+    [Column("filing_station_abbr_en")]
+    [StringLength(50)]
+    public string? FilingStationAbbrEn { get; set; }
+
+    [Column("filing_id_park")]
+    public int? FilingIdPark { get; set; }
+
+    [Column("filing_park_name_ru")]
+    [StringLength(100)]
+    public string? FilingParkNameRu { get; set; }
+
+    [Column("filing_park_name_en")]
+    [StringLength(100)]
+    public string? FilingParkNameEn { get; set; }
+
+    [Column("filing_park_abbr_ru")]
+    [StringLength(50)]
+    public string? FilingParkAbbrRu { get; set; }
+
+    [Column("filing_park_abbr_en")]
+    [StringLength(50)]
+    public string? FilingParkAbbrEn { get; set; }
+
+    [Column("filing_id_way")]
+    public int FilingIdWay { get; set; }
+
+    [Column("filing_way_num_ru")]
+    [StringLength(20)]
+    public string? FilingWayNumRu { get; set; }
+
+    [Column("filing_way_num_en")]
+    [StringLength(20)]
+    public string? FilingWayNumEn { get; set; }
+
+    [Column("filing_way_name_ru")]
+    [StringLength(100)]
+    public string? FilingWayNameRu { get; set; }
+
+    [Column("filing_way_name_en")]
+    [StringLength(100)]
+    public string? FilingWayNameEn { get; set; }
+
+    [Column("filing_way_abbr_ru")]
+    [StringLength(50)]
+    public string? FilingWayAbbrRu { get; set; }
+
+    [Column("filing_way_abbr_en")]
+    [StringLength(50)]
+    public string? FilingWayAbbrEn { get; set; }
+
+    [Column("filing_way_capacity")]
+    public int? FilingWayCapacity { get; set; }
+
+    [Column("filing_way_close", TypeName = "datetime")]
+    public DateTime? FilingWayClose { get; set; }
+
+    [Column("filing_way_delete", TypeName = "datetime")]
+    public DateTime? FilingWayDelete { get; set; }
+
+    [Column("filing_way_note")]
+    [StringLength(100)]
+    public string? FilingWayNote { get; set; }
 
     [Column("wagon_adm")]
     public int? WagonAdm { get; set; }
