@@ -29,6 +29,12 @@ public class ViewWagonsFiling
     [StringLength(250)]
     public string? Note { get; set; }
 
+    [Column("start_filing", TypeName = "datetime")]
+    public DateTime StartFiling { get; set; }
+
+    [Column("end_filing", TypeName = "datetime")]
+    public DateTime? EndFiling { get; set; }
+
     [Column("filing_create", TypeName = "datetime")]
     public DateTime FilingCreate { get; set; }
 

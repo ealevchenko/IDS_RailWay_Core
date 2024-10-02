@@ -24,6 +24,12 @@ public partial class WagonFiling
     [StringLength(250)]
     public string? Note { get; set; }
 
+    [Column("start_filing", TypeName = "datetime")]
+    public DateTime StartFiling { get; set; }
+
+    [Column("end_filing", TypeName = "datetime")]
+    public DateTime? EndFiling { get; set; }
+
     [Column("create", TypeName = "datetime")]
     public DateTime Create { get; set; }
 
