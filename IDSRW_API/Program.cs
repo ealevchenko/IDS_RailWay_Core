@@ -16,10 +16,17 @@ logger.Debug("init main");
 
 try
 {
-
     var builder = WebApplication.CreateBuilder(args);
     IConfiguration Configuration = builder.Configuration;
-    var connectionString = Configuration["ConnectionStrings:IDS"];
+    var connectionString = Configuration["ConnectionStrings:IDS_Test"];
+    if (Environment.MachineName == "krr-app-paweb01")
+    {
+        connectionString = Configuration["ConnectionStrings:IDS"];
+        logger.Debug("ConnectionStrings:IDS");
+    }
+    else { 
+        logger.Debug("ConnectionStrings:IDS_Test");    
+    }
     builder.Services.AddDbContext<EFDbContext>(x => x.UseSqlServer(connectionString));
     // Add services to the container.
     builder.Services.AddControllers().AddJsonOptions(options =>
