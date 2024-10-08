@@ -11,7 +11,6 @@ namespace EF_IDS.Concrete;
 
 public partial class EFDbContext : DbContext
 {
-    private readonly string _connectionString;
     public EFDbContext()
     {
     }
@@ -19,7 +18,6 @@ public partial class EFDbContext : DbContext
     public EFDbContext(DbContextOptions<EFDbContext> options)
         : base(options)
     {
-        //_connectionString = connectionString;
     }
 
     public virtual DbSet<ArrivalCar> ArrivalCars { get; set; }

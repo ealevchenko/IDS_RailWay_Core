@@ -19,7 +19,7 @@ try
     var builder = WebApplication.CreateBuilder(args);
     IConfiguration Configuration = builder.Configuration;
     var connectionString = Configuration["ConnectionStrings:IDS_Test"];
-    if (Environment.MachineName == "krr-app-paweb01")
+    if (Environment.MachineName == Configuration["MainWebName"])
     {
         connectionString = Configuration["ConnectionStrings:IDS"];
         logger.Debug("ConnectionStrings:IDS");

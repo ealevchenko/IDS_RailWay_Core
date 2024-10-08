@@ -1,6 +1,8 @@
-﻿using EF_IDS.Functions;
+﻿using EF_IDS.Concrete;
+using EF_IDS.Functions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace IDSRW_API.Controllers
 {
@@ -8,14 +10,18 @@ namespace IDSRW_API.Controllers
     {
         public string Name { get; set; }
         public bool IsAuthenticated { get; set; }
-        public string TypeServer { get; set; }
+        public string connectionString { get; set; }
     }
 
     [Route("[controller]")]
     [ApiController]
     public class AdminController : ControllerBase
     {
-        public AdminController() { }
+        private EFDbContext db;
+        public AdminController(EFDbContext db)
+        {
+            this.db = db;
+        }
 
         // GET: Admin/user_info
         [HttpGet("user_info")]
@@ -27,7 +33,7 @@ namespace IDSRW_API.Controllers
                 {
                     Name = HttpContext.User.Identity.Name,
                     IsAuthenticated = HttpContext.User.Identity.IsAuthenticated,
-                    TypeServer = Environment.MachineName
+                    connectionString = this.db.Database.GetConnectionString()
                 };
                 return new ObjectResult(result);
             }
