@@ -8,6 +8,7 @@ namespace IDSRW_API.Controllers
     {
         public string Name { get; set; }
         public bool IsAuthenticated { get; set; }
+        public string TypeServer { get; set; }
     }
 
     [Route("[controller]")]
@@ -22,7 +23,12 @@ namespace IDSRW_API.Controllers
         {
             try
             {
-                UserInfo result = new UserInfo() { Name = HttpContext.User.Identity.Name, IsAuthenticated = HttpContext.User.Identity.IsAuthenticated };
+                UserInfo result = new UserInfo()
+                {
+                    Name = HttpContext.User.Identity.Name,
+                    IsAuthenticated = HttpContext.User.Identity.IsAuthenticated,
+                    TypeServer = Environment.MachineName == "krr-app-paweb01" ? "IDS" : "Test"
+                };
                 return new ObjectResult(result);
             }
             catch (Exception e)
