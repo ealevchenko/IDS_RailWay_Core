@@ -27,7 +27,7 @@ namespace IDSRW_API.Controllers
                 {
                     Name = HttpContext.User.Identity.Name,
                     IsAuthenticated = HttpContext.User.Identity.IsAuthenticated,
-                    TypeServer = Environment.MachineName == "krr-app-paweb01" ? "IDS" : "Test"
+                    TypeServer = Environment.MachineName
                 };
                 return new ObjectResult(result);
             }
