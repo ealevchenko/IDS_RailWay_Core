@@ -4,11 +4,14 @@ using EF_IDS.Entities;
 using EF_IDS.Functions;
 using EFIDS.Functions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace EF_IDS.Concrete;
 
 public partial class EFDbContext : DbContext
 {
+    private readonly string _connectionString;
     public EFDbContext()
     {
     }
@@ -16,6 +19,7 @@ public partial class EFDbContext : DbContext
     public EFDbContext(DbContextOptions<EFDbContext> options)
         : base(options)
     {
+        //_connectionString = connectionString;
     }
 
     public virtual DbSet<ArrivalCar> ArrivalCars { get; set; }
@@ -236,9 +240,7 @@ public partial class EFDbContext : DbContext
     // Получить информацию по вагонам в подаче за период и повыбранной станции
     public IQueryable<ViewWagonsFiling> getViewWagonsFilingOfPeriodIdStation(DateTime start, DateTime stop, int id_station) => FromExpression(() => getViewWagonsFilingOfPeriodIdStation(start, stop, id_station));
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("data source=krr-sql-paclx03;initial catalog=KRR-PA-CNT-Railway;integrated security=True;TrustServerCertificate=true");
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => optionsBuilder.UseSqlServer("data source=;initial catalog=;integrated security=True;TrustServerCertificate=true");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
