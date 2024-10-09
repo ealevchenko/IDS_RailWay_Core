@@ -122,12 +122,7 @@ namespace IDS_
         }
         public void SetupDB(IConfiguration configuration)
         {
-            var connectionString = _configuration["ConnectionStrings:IDS_TEST"];
-            if (Environment.MachineName == _configuration["MainWebName"])
-            {
-                connectionString = _configuration["ConnectionStrings:IDS_MAIN"];
-            }
-            //connectionString = configuration.GetConnectionString("IDS");
+            var connectionString = _configuration["ConnectionStrings:IDS"];
             var optionsBuilder = new DbContextOptionsBuilder<EFDbContext>();
             this.options = optionsBuilder.UseSqlServer(connectionString).Options;
         }

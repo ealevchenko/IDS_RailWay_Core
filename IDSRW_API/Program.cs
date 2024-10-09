@@ -18,15 +18,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
     IConfiguration Configuration = builder.Configuration;
-    var connectionString = Configuration["ConnectionStrings:IDS_TEST"];
-    if (Environment.MachineName == Configuration["MainWebName"])
-    {
-        connectionString = Configuration["ConnectionStrings:IDS_MAIN"];
-        logger.Debug("IDS_MAIN");
-    }
-    else { 
-        logger.Debug("IDS_TEST");    
-    }
+    var connectionString = Configuration["ConnectionStrings:IDS"];
     builder.Services.AddDbContext<EFDbContext>(x => x.UseSqlServer(connectionString));
     // Add services to the container.
     builder.Services.AddControllers().AddJsonOptions(options =>

@@ -44,14 +44,7 @@ namespace IDS_
         private DataGIVC data_givc = null;
         public void SetupDB(IConfiguration configuration)
         {
-            //connectionString = configuration.GetConnectionString("IDS");
-            //var optionsBuilder = new DbContextOptionsBuilder<EFDbContext>();
-            //this.options = optionsBuilder.UseSqlServer(connectionString).Options;
-            var connectionString = _configuration["ConnectionStrings:IDS_TEST"];
-            if (Environment.MachineName == _configuration["MainWebName"])
-            {
-                connectionString = _configuration["ConnectionStrings:IDS_MAIN"];
-            }
+            var connectionString = configuration.GetConnectionString("IDS");
             var optionsBuilder = new DbContextOptionsBuilder<EFDbContext>();
             this.options = optionsBuilder.UseSqlServer(connectionString).Options;
         }

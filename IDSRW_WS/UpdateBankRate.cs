@@ -42,14 +42,7 @@ namespace WS_IDS
             interval = int.Parse(_configuration["Interval:UpdateBankRate"]);
             list_r030 = _configuration.GetSection("Control:list_r030").Value.Split(',').Select(s => int.Parse(s)).ToList();
             cl_bank = new ClientBank(logger, configuration);
-            //connectionString = configuration.GetConnectionString("IDS");
-            //var optionsBuilder = new DbContextOptionsBuilder<EFDbContext>();
-            //this.options = optionsBuilder.UseSqlServer(connectionString).Options;
-            var connectionString = _configuration["ConnectionStrings:IDS_TEST"];
-            if (Environment.MachineName == _configuration["MainWebName"])
-            {
-                connectionString = _configuration["ConnectionStrings:IDS_MAIN"];
-            }
+            var connectionString = configuration.GetConnectionString("IDS");
             var optionsBuilder = new DbContextOptionsBuilder<EFDbContext>();
             this.options = optionsBuilder.UseSqlServer(connectionString).Options;
         }
