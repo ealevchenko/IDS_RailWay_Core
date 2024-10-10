@@ -26,7 +26,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryCountry>>> GetDirectoryCountry()
         {
-            return await db.DirectoryCountrys.ToListAsync();
+            return await db.DirectoryCountrys.AsNoTracking().ToListAsync();
         }
         // GET: DirectoryCountry/list
         [HttpGet("list")]
@@ -50,7 +50,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("{id}")]
         public async Task<ActionResult<DirectoryCountry>> GetDirectoryCountry(int id)
         {
-            DirectoryCountry result = await db.DirectoryCountrys.FirstOrDefaultAsync(x => x.Id == id);
+            DirectoryCountry? result = await db.DirectoryCountrys.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);
@@ -59,7 +59,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("code_sng/{code}")]
         public async Task<ActionResult<DirectoryCountry>> GetDirectoryCountry_Of_Code(int code)
         {
-            DirectoryCountry result = await db.DirectoryCountrys.FirstOrDefaultAsync(x => x.CodeSng == code);
+            DirectoryCountry? result = await db.DirectoryCountrys.AsNoTracking().FirstOrDefaultAsync(x => x.CodeSng == code);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);

@@ -28,7 +28,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryWay>>> GetDirectoryWay()
         {
-            return await db.DirectoryWays.ToListAsync();
+            return await db.DirectoryWays.AsNoTracking().ToListAsync();
         }
         // GET: DirectoryWay/list
         [HttpGet("list")]
@@ -86,7 +86,7 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
-                ViewStatusWay result = await db.getViewStatusWayOfId(id_way).FirstOrDefaultAsync();
+                ViewStatusWay? result = await db.getViewStatusWayOfId(id_way).FirstOrDefaultAsync();
                 if (result == null)
                     return NotFound();
                 return new ObjectResult(result);
@@ -100,7 +100,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("{id}")]
         public async Task<ActionResult<DirectoryWay>> GetDirectoryWay(int id)
         {
-            DirectoryWay result = await db.DirectoryWays.FirstOrDefaultAsync(x => x.Id == id);
+            DirectoryWay? result = await db.DirectoryWays.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);

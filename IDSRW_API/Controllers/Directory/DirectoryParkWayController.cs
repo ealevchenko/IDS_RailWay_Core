@@ -28,7 +28,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryParkWay>>> GetDirectoryParkWay()
         {
-            return await db.DirectoryParkWays.ToListAsync();
+            return await db.DirectoryParkWays.AsNoTracking().ToListAsync();
         }
         // GET: DirectoryParkWay/list
         [HttpGet("list")]
@@ -50,7 +50,7 @@ namespace WebAPI.Controllers.Directory
         }
         // GET: DirectoryParkWay/status/station/1
         [HttpGet("status/station/{id_station}")]
-        public async Task<ActionResult<IEnumerable<ViewStatusParkWay>>> getViewStatusAllParkOfStationId(int id_station)
+        public async Task<ActionResult<IEnumerable<ViewStatusParkWay>>> GetViewStatusAllParkOfStationId(int id_station)
         {
             try
             {
@@ -68,11 +68,11 @@ namespace WebAPI.Controllers.Directory
         }
         // GET: DirectoryParkWay/station/1/park/84
         [HttpGet("status/station/{id_station}/park/{id_park}")]
-        public async Task<ActionResult<ViewStatusParkWay>> getViewStatusParkOfId(int id_station, int id_park)
+        public async Task<ActionResult<ViewStatusParkWay>> GetViewStatusParkOfId(int id_station, int id_park)
         {
             try
             {
-                ViewStatusParkWay result = await db.getViewStatusParkOfId(id_station, id_park).FirstOrDefaultAsync();
+                ViewStatusParkWay? result = await db.getViewStatusParkOfId(id_station, id_park).FirstOrDefaultAsync();
                 if (result == null)
                     return NotFound();
                 return new ObjectResult(result);
@@ -86,7 +86,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("{id}")]
         public async Task<ActionResult<DirectoryParkWay>> GetDirectoryParkWay(int id)
         {
-            DirectoryParkWay result = await db.DirectoryParkWays.FirstOrDefaultAsync(x => x.Id == id);
+            DirectoryParkWay? result = await db.DirectoryParkWays.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);

@@ -75,7 +75,7 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
-                ViewStatusStation result = await db.getViewStatusStationOfId(id).FirstOrDefaultAsync();//   .FromSql($"select * from [IDS].[get_view_status_all_station]()").ToListAsync();
+                ViewStatusStation? result = await db.getViewStatusStationOfId(id).FirstOrDefaultAsync();//   .FromSql($"select * from [IDS].[get_view_status_all_station]()").ToListAsync();
                 if (result == null)
                     return NotFound();
                 return new ObjectResult(result);
@@ -90,7 +90,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("{id}")]
         public async Task<ActionResult<DirectoryStation>> GetDirectoryStation(int id)
         {
-            DirectoryStation result = await db.DirectoryStations
+            DirectoryStation? result = await db.DirectoryStations
                 .AsNoTracking()
                 .Include(x=>x.DirectoryWays)
                 .FirstOrDefaultAsync(x => x.Id == id);

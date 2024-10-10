@@ -27,7 +27,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryCargoGroup>>> GetDirectoryCargoGroup()
         {
-            return await db.DirectoryCargoGroups.ToListAsync();
+            return await db.DirectoryCargoGroups.AsNoTracking().ToListAsync();
         }
         // GET: DirectoryCargoGroup
         [HttpGet("list")]
@@ -51,7 +51,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("{id}")]
         public async Task<ActionResult<DirectoryCargoGroup>> GetDirectoryCargoGroup(int id)
         {
-            DirectoryCargoGroup result = await db.DirectoryCargoGroups.FirstOrDefaultAsync(x => x.Id == id);
+            DirectoryCargoGroup? result = await db.DirectoryCargoGroups.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);

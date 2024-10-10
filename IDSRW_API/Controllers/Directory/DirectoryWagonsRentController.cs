@@ -26,7 +26,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryWagonsRent>>> GetDirectoryWagonsRent()
         {
-            return await db.DirectoryWagonsRents.ToListAsync();
+            return await db.DirectoryWagonsRents.AsNoTracking().ToListAsync();
         }
         // GET: DirectoryWagonsRent
         [HttpGet("list")]
@@ -50,7 +50,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("{id}")]
         public async Task<ActionResult<DirectoryWagonsRent>> GetDirectoryWagonsRent(int id)
         {
-            DirectoryWagonsRent result = await db.DirectoryWagonsRents.FirstOrDefaultAsync(x => x.Id == id);
+            DirectoryWagonsRent? result = await db.DirectoryWagonsRents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);
@@ -59,7 +59,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("num/{num}")]
         public async Task<ActionResult<IEnumerable<DirectoryWagonsRent>>> GetDirectoryWagonsRent_Of_Num(int num)
         {
-            List<DirectoryWagonsRent> result = await db.DirectoryWagonsRents.Where(x => x.Num == num).ToListAsync();
+            List<DirectoryWagonsRent> result = await db.DirectoryWagonsRents.AsNoTracking().Where(x => x.Num == num).ToListAsync();
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);

@@ -115,7 +115,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryWagon>>> GetDirectoryWagon()
         {
-            return await db.DirectoryWagons.ToListAsync();
+            return await db.DirectoryWagons.AsNoTracking().ToListAsync();
         }
         // GET: DirectoryWagon
         [HttpGet("list")]
@@ -139,7 +139,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("num/{num}")]
         public async Task<ActionResult<DirectoryWagon>> GetDirectoryWagon(int num)
         {
-            DirectoryWagon result = await db.DirectoryWagons.FirstOrDefaultAsync(x => x.Num == num);
+            DirectoryWagon result = await db.DirectoryWagons.AsNoTracking().FirstOrDefaultAsync(x => x.Num == num);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);

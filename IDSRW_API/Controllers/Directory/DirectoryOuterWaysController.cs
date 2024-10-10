@@ -28,7 +28,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryOuterWay>>> GetDirectoryOuterWay()
         {
-            return await db.DirectoryOuterWays.ToListAsync();
+            return await db.DirectoryOuterWays.AsNoTracking().ToListAsync();
         }
         // GET: DirectoryOuterWay/list
         [HttpGet("list")]
@@ -54,7 +54,7 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
-                List<DirectoryOuterWay> result = await db.DirectoryOuterWays.Where(o=>o.IdStationFrom == id_station).ToListAsync();
+                List<DirectoryOuterWay> result = await db.DirectoryOuterWays.AsNoTracking().Where(o=>o.IdStationFrom == id_station).ToListAsync();
                 if (result == null)
                     return NotFound();
                 return Ok(result);
@@ -70,7 +70,7 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
-                List<DirectoryOuterWay> result = await db.DirectoryOuterWays.Where(o=>o.IdStationOn == id_station).ToListAsync();
+                List<DirectoryOuterWay> result = await db.DirectoryOuterWays.AsNoTracking().Where(o=>o.IdStationOn == id_station).ToListAsync();
                 if (result == null)
                     return NotFound();
                 return Ok(result);

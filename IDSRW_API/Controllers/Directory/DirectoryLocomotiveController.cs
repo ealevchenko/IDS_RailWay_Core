@@ -57,7 +57,7 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
-               DirectoryLocomotive result = await db.DirectoryLocomotives.Where(l=>l.Locomotive==locomotive).FirstOrDefaultAsync();
+               DirectoryLocomotive? result = await db.DirectoryLocomotives.AsNoTracking().Where(l=>l.Locomotive==locomotive).FirstOrDefaultAsync();
                 if (result == null)
                     return NotFound();
                 return Ok(result);
@@ -73,7 +73,7 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
-                List<DirectoryLocomotive> result = await db.DirectoryLocomotives.Where(o => o.IdLocomotiveStatus == id_locomotive_status).ToListAsync();
+                List<DirectoryLocomotive> result = await db.DirectoryLocomotives.AsNoTracking().Where(o => o.IdLocomotiveStatus == id_locomotive_status).ToListAsync();
                 if (result == null)
                     return NotFound();
                 return Ok(result);

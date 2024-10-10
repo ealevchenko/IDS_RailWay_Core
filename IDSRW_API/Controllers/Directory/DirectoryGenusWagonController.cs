@@ -26,7 +26,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryGenusWagon>>> GetDirectoryGenusWagon()
         {
-            return await db.DirectoryGenusWagons.ToListAsync();
+            return await db.DirectoryGenusWagons.AsNoTracking().ToListAsync();
         }
         // GET: DirectoryGenusWagon
         [HttpGet("list")]
@@ -50,7 +50,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("{id}")]
         public async Task<ActionResult<DirectoryGenusWagon>> GetDirectoryGenusWagon(int id)
         {
-            DirectoryGenusWagon result = await db.DirectoryGenusWagons.FirstOrDefaultAsync(x => x.Id == id);
+            DirectoryGenusWagon? result = await db.DirectoryGenusWagons.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);

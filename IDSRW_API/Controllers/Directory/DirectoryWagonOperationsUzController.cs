@@ -27,7 +27,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryWagonOperationsUz>>> GetDirectoryWagonOperationsUz()
         {
-            return await db.DirectoryWagonOperationsUzs.ToListAsync();
+            return await db.DirectoryWagonOperationsUzs.AsNoTracking().ToListAsync();
         }
         // GET: DirectoryWagonOperationsUz
         [HttpGet("list")]
@@ -51,7 +51,7 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("{kod_pp}/PrOp/{pr_op}")]
         public async Task<ActionResult<DirectoryWagonOperationsUz>> GetDirectoryWagonOperationsUz(int kod_pp, bool pr_op)
         {
-            DirectoryWagonOperationsUz result = await db.DirectoryWagonOperationsUzs.FirstOrDefaultAsync(x => x.KodOp == kod_pp && x.PrOp == pr_op);
+            DirectoryWagonOperationsUz? result = await db.DirectoryWagonOperationsUzs.AsNoTracking().FirstOrDefaultAsync(x => x.KodOp == kod_pp && x.PrOp == pr_op);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);
