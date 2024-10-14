@@ -1,7 +1,7 @@
 USE [KRR-PA-CNT-Railway-Archive]
 GO
 
-/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 14.10.2024 11:15:54 ******/
+/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 14.10.2024 15:05:16 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -19,15 +19,13 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 	@view_wagons TABLE  (
 	[id_wim] [bigint] NOT NULL,
 	[id_wir] [bigint] NOT NULL,
-	[id_wf] [bigint] NULL,
-	[num_filing] [nvarchar](50) NULL,
-	[id_wio] [bigint] NULL,
-	[id_devision] [int] NULL,
+	[id_wf] [bigint] NOT NULL,
+	[num_filing] [nvarchar](50) NOT NULL,
 	[note] [nvarchar](250) NULL,
-	[start_filing] [datetime] NULL,
+	[start_filing] [datetime] NOT NULL,
 	[end_filing] [datetime] NULL,
-	[filing_create] [datetime] NULL,
-	[filing_create_user] [nvarchar](50) NULL,
+	[filing_create] [datetime] NOT NULL,
+	[filing_create_user] [nvarchar](50) NOT NULL,
 	[filing_change] [datetime] NULL,
 	[filing_change_user] [nvarchar](50) NULL,
 	[filing_close] [datetime] NULL,
@@ -64,6 +62,12 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 	[filing_way_close] [datetime] NULL,
 	[filing_way_delete] [datetime] NULL,
 	[filing_way_note] [nvarchar](100) NULL,
+	[filing_division_id_division] [int] NOT NULL,
+	[filing_division_code] [nvarchar](5) NULL,
+	[filing_division_name_ru] [nvarchar](250) NULL,
+	[filing_division_name_en] [nvarchar](250) NULL,
+	[filing_division_abbr_ru] [nvarchar](50) NULL,
+	[filing_division_abbr_en] [nvarchar](50) NULL,
 	[wagon_adm] [int] NULL,
 	[wagon_adm_name_ru] [nvarchar](100) NULL,
 	[wagon_adm_name_en] [nvarchar](100) NULL,
@@ -145,7 +149,8 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 	[current_station_amkr_name_ru] [int] NULL,
 	[current_station_amkr_name_en] [int] NULL,
 	[current_station_amkr_abbr_ru] [int] NULL,
-	[current_station_amkr_abbr_en] [int] NULL	)
+	[current_station_amkr_abbr_en] [int] NULL	
+	)
 	AS
 	BEGIN
 
@@ -156,8 +161,6 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		,wim_filing.[id_wagon_internal_routes] as id_wir
 		,wf.[id] as id_wf
 		,wf.[num_filing]
-		,wf.[id_wio] as id_wio
-		,wf.[id_devision] as id_devision
 		,wf.[note]
 		,wf.[start_filing]
 		,wf.[end_filing]
@@ -202,6 +205,13 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		,dir_way_filing.[way_close] as filing_way_close
 		,dir_way_filing.[way_delete] as filing_way_delete
 		,dir_way_filing.[note] as filing_way_note
+		--> Öåõ
+		,wf.[id_division] as filing_division_id_division		
+		,dir_division.code as filing_division_code
+		,dir_division.name_division_ru as filing_division_name_ru
+		,dir_division.name_division_en as filing_division_name_en
+		,dir_division.division_abbr_ru as filing_division_abbr_ru
+		,dir_division.division_abbr_en as filing_division_abbr_en
 		--> Àäìèíèñòğàöèÿ
 		,dir_countrys.code_sng as wagon_adm
 		,dir_countrys.countrys_name_ru as wagon_adm_name_ru
@@ -300,14 +310,13 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		,current_station_amkr_name_en = null
 		,current_station_amkr_abbr_ru = null
 		,current_station_amkr_abbr_en = null
-	--into filing_wagons
 	FROM IDS.WagonFiling as wf 
 		--> Ñïèñîê ïîäà÷
 		INNER JOIN IDS.WagonInternalMovement as wim_filing ON wim_filing.id_filing = wf.id 
 		--> Òåêóùåå âíåòğåíåå ïåğåìåùåíèå
 		INNER JOIN IDS.WagonInternalRoutes as wir ON wim_filing.id_wagon_internal_routes = wir.id
 		--> Îïåğàöèÿ ïîäà÷è		
-		LEFT JOIN IDS.WagonInternalOperation as wio_filing  ON wio_filing.[id] = wf.[id_wio]
+		LEFT JOIN IDS.WagonInternalOperation as wio_filing  ON wio_filing.[id] = wim_filing.[id_wio]
 	   --==== ÏĞÈÁÛÒÈÅ È ÏĞÈÅÌ ÂÀÃÎÍÀ =====================================================================
 		--> Ïğèáûòèå íà ÀÌÊĞ
 		Left JOIN IDS.ArrivalCars as arr_car ON wir.id_arrival_car = arr_car.id
@@ -346,6 +355,8 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		--> Ñïğàâî÷íèê Ñòàíöèè ÀÌÊĞ (ñòàíöèÿ íàçíà÷åíèÿ ÀÌÊĞ)
 		Left JOIN IDS.Directory_Station as arr_dir_station_amkr ON arr_doc_vag.id_station_on_amkr =  arr_dir_station_amkr.id
 		--> Ñïğàâî÷íèê Ïîäğàçäåëåíèÿ (öåõ ïîëó÷àòåëü)
+		Left JOIN IDS.Directory_Divisions as dir_division ON wf.id_division =  dir_division.id
+		--> Ñïğàâî÷íèê Ïîäğàçäåëåíèÿ (öåõ ïîëó÷àòåëü ïî ïğèáûòèş)
 		Left JOIN IDS.Directory_Divisions as arr_dir_division_amkr ON arr_doc_vag.id_division_on_amkr =  arr_dir_division_amkr.id
 		--> Ñïğàâî÷íèê Ñîòîÿíèÿ çàãğóçêè
 		Left JOIN [IDS].[Directory_WagonLoadingStatus] as cur_load ON wio_filing.id_loading_status = cur_load.id
@@ -356,7 +367,7 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		--> Ñïğàâî÷íè Ïóòü îòïğàâêè
 		Left JOIN [IDS].[Directory_ParkWays] as dir_park_filing ON dir_way_filing.id_park = dir_park_filing.id
 	where ((wf.[create] is not null and wf.[close] is null) or (wf.[create] >= @start and wf.[create]<=@stop))
-	and wim_filing.id_station = @id_station	ORDER BY wf.[create], wim_filing.position
+	and wim_filing.id_station = @id_station	ORDER BY wf.[create], wim_filing.position	
 	RETURN
  END
 GO

@@ -17,8 +17,8 @@ go
 CREATE TABLE [IDS].[WagonFiling](
 	[id] [bigint] IDENTITY(1,1) NOT NULL,
 	[num_filing] [nvarchar](50) NOT NULL,
-	[id_wio] [bigint] NOT NULL,
-	[id_devision] [int] NOT NULL,
+	--[id_wio] [bigint] NOT NULL,
+	[id_division] [int] NOT NULL,
 	[note] [nvarchar](250) NULL,
 	[start_filing] [datetime] NOT NULL,
 	[end_filing] [datetime] NULL,
@@ -35,12 +35,12 @@ CREATE TABLE [IDS].[WagonFiling](
 ) ON [PRIMARY]
 GO
 
-ALTER TABLE [IDS].[WagonFiling]  WITH CHECK ADD  CONSTRAINT [FK_WagonFiling_WagonInternalOperation] FOREIGN KEY([id_wio])
-REFERENCES [IDS].[WagonInternalOperation] ([id])
-GO
+--ALTER TABLE [IDS].[WagonFiling]  WITH CHECK ADD  CONSTRAINT [FK_WagonFiling_WagonInternalOperation] FOREIGN KEY([id_wio])
+--REFERENCES [IDS].[WagonInternalOperation] ([id])
+--GO
 
-ALTER TABLE [IDS].[WagonFiling] CHECK CONSTRAINT [FK_WagonFiling_WagonInternalOperation]
-GO
+--ALTER TABLE [IDS].[WagonFiling] CHECK CONSTRAINT [FK_WagonFiling_WagonInternalOperation]
+--GO
 
 
 ALTER TABLE [IDS].[WagonInternalMovement]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMovement_WagonFiling] FOREIGN KEY([id_filing])
