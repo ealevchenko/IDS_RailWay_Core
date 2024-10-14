@@ -16,31 +16,34 @@ public class ViewWagonsFiling
     public long IdWir { get; set; }
 
     [Column("id_wf")]
-    public long IdWf { get; set; }
+    public long? IdWf { get; set; }
 
     [Column("num_filing")]
     [StringLength(50)]
-    public string NumFiling { get; set; } = null!;
+    public string? NumFiling { get; set; }
 
     [Column("id_wio")]
-    public long IdWio { get; set; }
+    public long? IdWio { get; set; }
+
+    [Column("id_devision")]
+    public int? IdDevision { get; set; }
 
     [Column("note")]
     [StringLength(250)]
     public string? Note { get; set; }
 
     [Column("start_filing", TypeName = "datetime")]
-    public DateTime StartFiling { get; set; }
+    public DateTime? StartFiling { get; set; }
 
     [Column("end_filing", TypeName = "datetime")]
     public DateTime? EndFiling { get; set; }
 
     [Column("filing_create", TypeName = "datetime")]
-    public DateTime FilingCreate { get; set; }
+    public DateTime? FilingCreate { get; set; }
 
     [Column("filing_create_user")]
     [StringLength(50)]
-    public string FilingCreateUser { get; set; } = null!;
+    public string? FilingCreateUser { get; set; }
 
     [Column("filing_change", TypeName = "datetime")]
     public DateTime? FilingChange { get; set; }
@@ -156,6 +159,9 @@ public class ViewWagonsFiling
     [Column("filing_way_capacity")]
     public int? FilingWayCapacity { get; set; }
 
+    [Column("filing_way_id_devision")]
+    public int? FilingWayIdDevision { get; set; }
+
     [Column("filing_way_close", TypeName = "datetime")]
     public DateTime? FilingWayClose { get; set; }
 
@@ -266,6 +272,9 @@ public class ViewWagonsFiling
     [StringLength(30)]
     public string? LimitingAbbrEn { get; set; }
 
+    [Column("arrival_condition_id_condition")]
+    public int? ArrivalConditionIdCondition { get; set; }
+
     [Column("arrival_condition_name_ru")]
     [StringLength(100)]
     public string? ArrivalConditionNameRu { get; set; }
@@ -284,6 +293,9 @@ public class ViewWagonsFiling
 
     [Column("arrival_condition_red")]
     public bool? ArrivalConditionRed { get; set; }
+
+    [Column("current_condition_id_condition")]
+    public int? CurrentConditionIdCondition { get; set; }
 
     [Column("current_condition_name_ru")]
     [StringLength(100)]
@@ -304,6 +316,9 @@ public class ViewWagonsFiling
     [Column("current_condition_red")]
     public bool? CurrentConditionRed { get; set; }
 
+    [Column("arrival_cargo_group_id_group")]
+    public int? ArrivalCargoGroupIdGroup { get; set; }
+
     [Column("arrival_cargo_group_name_ru")]
     [StringLength(50)]
     public string? ArrivalCargoGroupNameRu { get; set; }
@@ -311,6 +326,9 @@ public class ViewWagonsFiling
     [Column("arrival_cargo_group_name_en")]
     [StringLength(50)]
     public string? ArrivalCargoGroupNameEn { get; set; }
+
+    [Column("arrival_cargo_id_cargo")]
+    public int? ArrivalCargoIdCargo { get; set; }
 
     [Column("arrival_cargo_name_ru")]
     [StringLength(50)]
@@ -342,6 +360,9 @@ public class ViewWagonsFiling
     [StringLength(50)]
     public string? ArrivalStationFromNameEn { get; set; }
 
+    [Column("arrival_station_amkr_id_station")]
+    public int? ArrivalStationAmkrIdStation { get; set; }
+
     [Column("arrival_station_amkr_name_ru")]
     [StringLength(50)]
     public string? ArrivalStationAmkrNameRu { get; set; }
@@ -357,6 +378,9 @@ public class ViewWagonsFiling
     [Column("arrival_station_amkr_abbr_en")]
     [StringLength(50)]
     public string? ArrivalStationAmkrAbbrEn { get; set; }
+
+    [Column("arrival_division_amkr_id_division")]
+    public int? ArrivalDivisionAmkrIdDivision { get; set; }
 
     [Column("arrival_division_amkr_code")]
     [StringLength(5)]
@@ -389,17 +413,26 @@ public class ViewWagonsFiling
     [StringLength(30)]
     public string? CurrentLoadingStatusEn { get; set; }
 
+    [Column("current_cargo_group_id_group")]
+    public int? CurrentCargoGroupIdGroup { get; set; }
+
     [Column("current_cargo_group_name_ru")]
     public int? CurrentCargoGroupNameRu { get; set; }
 
     [Column("current_cargo_group_name_en")]
     public int? CurrentCargoGroupNameEn { get; set; }
 
+    [Column("current_cargo_id_cargo")]
+    public int? CurrentCargoIdCargo { get; set; }
+
     [Column("current_cargo_name_ru")]
     public int? CurrentCargoNameRu { get; set; }
 
     [Column("current_cargo_name_en")]
     public int? CurrentCargoNameEn { get; set; }
+
+    [Column("current_division_amkr_id_division")]
+    public int? CurrentDivisionAmkrIdDivision { get; set; }
 
     [Column("current_division_amkr_code")]
     public int? CurrentDivisionAmkrCode { get; set; }
@@ -415,6 +448,9 @@ public class ViewWagonsFiling
 
     [Column("current_division_amkr_abbr_en")]
     public int? CurrentDivisionAmkrAbbrEn { get; set; }
+
+    [Column("current_station_amkr_id_station")]
+    public int? CurrentStationAmkrIdStation { get; set; }
 
     [Column("current_station_amkr_name_ru")]
     public int? CurrentStationAmkrNameRu { get; set; }
