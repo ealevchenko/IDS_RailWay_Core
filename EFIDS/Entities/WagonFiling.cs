@@ -20,6 +20,9 @@ public partial class WagonFiling
     [Column("id_wio")]
     public long IdWio { get; set; }
 
+    [Column("id_devision")]
+    public int IdDevision { get; set; }
+
     [Column("note")]
     [StringLength(250)]
     public string? Note { get; set; }
