@@ -17,11 +17,8 @@ public partial class WagonFiling
     [StringLength(50)]
     public string NumFiling { get; set; } = null!;
 
-    [Column("id_wio")]
-    public long IdWio { get; set; }
-
-    [Column("id_devision")]
-    public int IdDevision { get; set; }
+    [Column("id_division")]
+    public int IdDivision { get; set; }
 
     [Column("note")]
     [StringLength(250)]
@@ -53,10 +50,6 @@ public partial class WagonFiling
     [Column("close_user")]
     [StringLength(50)]
     public string? CloseUser { get; set; }
-
-    [ForeignKey("IdWio")]
-    [InverseProperty("WagonFilings")]
-    public virtual WagonInternalOperation IdWioNavigation { get; set; } = null!;
 
     [InverseProperty("IdFilingNavigation")]
     public virtual ICollection<WagonInternalMovement> WagonInternalMovements { get; set; } = new List<WagonInternalMovement>();

@@ -862,13 +862,6 @@ public partial class EFDbContext : DbContext
             entity.HasOne(d => d.IdUsageFeePeriodNavigation).WithMany(p => p.UsageFeePeriodDetalis).HasConstraintName("FK_Usage_Fee_Period_Detali_Usage_Fee_Period");
         });
 
-        modelBuilder.Entity<WagonFiling>(entity =>
-        {
-            entity.HasOne(d => d.IdWioNavigation).WithMany(p => p.WagonFilings)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_WagonFiling_WagonInternalOperation");
-        });
-
         modelBuilder.Entity<WagonInternalMovement>(entity =>
         {
             entity.HasOne(d => d.IdFilingNavigation).WithMany(p => p.WagonInternalMovements).HasConstraintName("FK_WagonInternalMovement_WagonFiling");

@@ -101,8 +101,5 @@ public partial class WagonInternalOperation
     public virtual WagonInternalOperation? Parent { get; set; }
 
     [InverseProperty("IdWioNavigation")]
-    public virtual ICollection<WagonFiling> WagonFilings { get; set; } = new List<WagonFiling>();
-
-    [InverseProperty("IdWioNavigation")]
     public virtual ICollection<WagonInternalMovement> WagonInternalMovements { get; set; } = new List<WagonInternalMovement>();
 }

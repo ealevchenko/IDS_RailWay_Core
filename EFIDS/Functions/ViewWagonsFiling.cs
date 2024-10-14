@@ -16,34 +16,28 @@ public class ViewWagonsFiling
     public long IdWir { get; set; }
 
     [Column("id_wf")]
-    public long? IdWf { get; set; }
+    public long IdWf { get; set; }
 
     [Column("num_filing")]
     [StringLength(50)]
-    public string? NumFiling { get; set; }
-
-    [Column("id_wio")]
-    public long? IdWio { get; set; }
-
-    [Column("id_devision")]
-    public int? IdDevision { get; set; }
+    public string NumFiling { get; set; } = null!;
 
     [Column("note")]
     [StringLength(250)]
     public string? Note { get; set; }
 
     [Column("start_filing", TypeName = "datetime")]
-    public DateTime? StartFiling { get; set; }
+    public DateTime StartFiling { get; set; }
 
     [Column("end_filing", TypeName = "datetime")]
     public DateTime? EndFiling { get; set; }
 
     [Column("filing_create", TypeName = "datetime")]
-    public DateTime? FilingCreate { get; set; }
+    public DateTime FilingCreate { get; set; }
 
     [Column("filing_create_user")]
     [StringLength(50)]
-    public string? FilingCreateUser { get; set; }
+    public string FilingCreateUser { get; set; } = null!;
 
     [Column("filing_change", TypeName = "datetime")]
     public DateTime? FilingChange { get; set; }
@@ -171,6 +165,29 @@ public class ViewWagonsFiling
     [Column("filing_way_note")]
     [StringLength(100)]
     public string? FilingWayNote { get; set; }
+
+    [Column("filing_division_id_division")]
+    public int FilingDivisionIdDivision { get; set; }
+
+    [Column("filing_division_code")]
+    [StringLength(5)]
+    public string? FilingDivisionCode { get; set; }
+
+    [Column("filing_division_name_ru")]
+    [StringLength(250)]
+    public string? FilingDivisionNameRu { get; set; }
+
+    [Column("filing_division_name_en")]
+    [StringLength(250)]
+    public string? FilingDivisionNameEn { get; set; }
+
+    [Column("filing_division_abbr_ru")]
+    [StringLength(50)]
+    public string? FilingDivisionAbbrRu { get; set; }
+
+    [Column("filing_division_abbr_en")]
+    [StringLength(50)]
+    public string? FilingDivisionAbbrEn { get; set; }
 
     [Column("wagon_adm")]
     public int? WagonAdm { get; set; }
