@@ -145,6 +145,11 @@ public partial class EFDbContext : DbContext
     public virtual DbSet<DirectoryWagonManufacturer> DirectoryWagonManufacturers { get; set; }
 
     public virtual DbSet<DirectoryWagonOperation> DirectoryWagonOperations { get; set; }
+
+    public virtual DbSet<DirectoryGroupWagonOperation> DirectoryGroupWagonOperations { get; set; }
+
+    public virtual DbSet<DirectoryTypeDownTimeWagonOperation> DirectoryTypeDownTimeWagonOperations { get; set; }
+
     public virtual DbSet<DirectoryWagonOperationsUz> DirectoryWagonOperationsUzs { get; set; }
 
     public virtual DbSet<DirectoryWagonsCondition> DirectoryWagonsConditions { get; set; }
@@ -606,6 +611,13 @@ public partial class EFDbContext : DbContext
                 .HasConstraintName("FK_Directory_Wagons_Directory_OwnersWagons");
 
             entity.HasOne(d => d.IdTypeOwnershipNavigation).WithMany(p => p.DirectoryWagons).HasConstraintName("FK_Directory_Wagons_Directory_TypeOwnerShip");
+        });
+
+        modelBuilder.Entity<DirectoryWagonOperation>(entity =>
+        {
+            entity.HasOne(d => d.IdGroupNavigation).WithMany(p => p.DirectoryWagonOperations).HasConstraintName("FK_Directory_WagonOperations_Directory_GroupWagonOperations");
+
+            entity.HasOne(d => d.IdTypeDownTimeNavigation).WithMany(p => p.DirectoryWagonOperations).HasConstraintName("FK_Directory_WagonOperations_Directory_TypeDownTimeWagonOperations");
         });
 
         modelBuilder.Entity<DirectoryWagonsRent>(entity =>

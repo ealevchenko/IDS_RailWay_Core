@@ -14,12 +14,26 @@ public partial class DirectoryWagonOperation
     public int Id { get; set; }
 
     [Column("operation_name_ru")]
-    [StringLength(20)]
+    [StringLength(50)]
     public string OperationNameRu { get; set; } = null!;
 
     [Column("operation_name_en")]
-    [StringLength(20)]
+    [StringLength(50)]
     public string OperationNameEn { get; set; } = null!;
+
+    [Column("operation_abbr_ru")]
+    [StringLength(20)]
+    public string OperationAbbrRu { get; set; } = null!;
+
+    [Column("operation_abbr_en")]
+    [StringLength(20)]
+    public string OperationAbbrEn { get; set; } = null!;
+
+    [Column("id_group")]
+    public int? IdGroup { get; set; }
+
+    [Column("id_type_down_time")]
+    public int? IdTypeDownTime { get; set; }
 
     [Column("busy")]
     public bool Busy { get; set; }
@@ -38,6 +52,14 @@ public partial class DirectoryWagonOperation
     [StringLength(50)]
     public string? ChangeUser { get; set; }
 
+    [ForeignKey("IdGroup")]
+    [InverseProperty("DirectoryWagonOperations")]
+    public virtual DirectoryGroupWagonOperation? IdGroupNavigation { get; set; }
+
+    [ForeignKey("IdTypeDownTime")]
+    [InverseProperty("DirectoryWagonOperations")]
+    public virtual DirectoryTypeDownTimeWagonOperation? IdTypeDownTimeNavigation { get; set; }
+
     [InverseProperty("IdOperationNavigation")]
-    public virtual ICollection<WagonInternalOperation> WagonInternalOperations { get; } = new List<WagonInternalOperation>();
+    public virtual ICollection<WagonInternalOperation> WagonInternalOperations { get; set; } = new List<WagonInternalOperation>();
 }
