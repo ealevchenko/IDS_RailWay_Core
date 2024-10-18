@@ -27,7 +27,7 @@ public class ViewWagonsFiling
     public string? Note { get; set; }
 
     [Column("start_filing", TypeName = "datetime")]
-    public DateTime StartFiling { get; set; }
+    public DateTime? StartFiling { get; set; }
 
     [Column("end_filing", TypeName = "datetime")]
     public DateTime? EndFiling { get; set; }
