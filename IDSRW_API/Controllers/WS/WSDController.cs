@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using WebAPI.Controllers.GIVC;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json.Linq;
+using static IDS_.IDS_WIR;
 
 namespace WebAPI.Controllers.Directory
 {
@@ -112,6 +113,19 @@ namespace WebAPI.Controllers.Directory
         public DateTime lead_time { get; set; }
         public String composition_index { get; set; }
         public bool update_epd { get; set; }
+    }
+    #endregion
+
+    #region ОПЕРАЦИЯ ФОРМИРОВАНИЯ ПОДАЧ (ВЫГРУЗКА, ПОГРУЗКА...)
+    public class OperationAddFilingUnloading
+    {
+        public int id_filing { get; set; }
+        public int id_way { get; set; }
+        public int id_division { get; set; }
+        public DateTime create { get; set; }
+        public string locomotive1 { get; set; }
+        public string? locomotive2 { get; set; }
+        public List<UnloadingWagons> wagons { get; set; }
     }
     #endregion
 
@@ -346,7 +360,7 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-        // GET: WSD/view/wagons/filing/period/start/2024-09-01T00:00:00/stop/2024-09-30T00:00:00/station/id/8
+        // GET: WSD/view/wagons/filing/period/start/2024-09-01T00:00:00/stop/2024-10-30T00:00:00/station/id/7
         [HttpGet("view/wagons/filing/period/start/{start:DateTime}/stop/{stop:DateTime}/station/id/{id_station}")]
         public async Task<ActionResult<IEnumerable<ViewWagonsFiling>>> GetViewWagonsFilingOfPeriodIdStation(DateTime start, DateTime stop, int id_station)
         {
@@ -650,6 +664,32 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        #endregion
+
+        #region ОПЕРАЦИЯ ФОРМИРОВАНИЯ ПОДАЧ (ВЫГРУЗКА, ПОГРУЗКА...)
+        // POST: WSD/add/filing/operation/unloading
+        // BODY: WSD (JSON, XML)
+        [HttpPost("add/filing/operation/unloading")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostAddFilingUnloading([FromBody] OperationAddFilingUnloading value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateIDWagon result = ids_wir.AddFiling(value.id_filing, value.id_way, value.id_division, value.create, value.wagons, value.locomotive1, value.locomotive2, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         #endregion
 
         #region АДМИНИСТРИРОВАНИЕ

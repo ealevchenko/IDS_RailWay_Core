@@ -23,6 +23,9 @@ using System.Runtime.ConstrainedExecution;
 using System.Data;
 using System.Collections;
 using EFIDS.Functions;
+using System.Runtime.InteropServices;
+using System.ComponentModel.Design;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace IDS_
 {
@@ -657,7 +660,7 @@ namespace IDS_
             ResultTransfer rt = new ResultTransfer(wagons.Count());
             try
             {
-                EFDbContext context = new EFDbContext();
+                EFDbContext context = new EFDbContext(this.options);
                 //Проверим и скорректируем пользователя
                 if (String.IsNullOrWhiteSpace(user))
                 {
@@ -1279,7 +1282,7 @@ namespace IDS_
             {
                 if (context == null)
                 {
-                    context = new EFDbContext();
+                    context = new EFDbContext(this.options);
                 }
                 if (wagons != null && wagons.Count() > 0)
                 {
@@ -1335,7 +1338,7 @@ namespace IDS_
             ResultTransfer rt = new ResultTransfer(wagons.Count());
             try
             {
-                EFDbContext context = new EFDbContext();
+                EFDbContext context = new EFDbContext(this.options);
                 //Проверим и скорректируем пользователя
                 if (String.IsNullOrWhiteSpace(user))
                 {
@@ -1417,7 +1420,7 @@ namespace IDS_
                 {
                     user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
                 }
-                EFDbContext context = new EFDbContext();
+                EFDbContext context = new EFDbContext(this.options);
                 {
                     DirectoryWay? way = context.DirectoryWays.Where(w => w.Id == id_way_from).FirstOrDefault();
                     if (way != null)
@@ -1471,7 +1474,7 @@ namespace IDS_
                 {
                     user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
                 }
-                EFDbContext context = new EFDbContext();
+                EFDbContext context = new EFDbContext(this.options);
                 {
                     OutgoingSostav? sostav = context
                         .OutgoingSostavs
@@ -1565,7 +1568,7 @@ namespace IDS_
                 {
                     user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
                 }
-                EFDbContext context = new EFDbContext();
+                EFDbContext context = new EFDbContext(this.options);
                 {
                     DirectoryWay? way = context.DirectoryWays.Where(w => w.Id == id_way_on).FirstOrDefault();
                     if (way != null)
@@ -1657,7 +1660,7 @@ namespace IDS_
             {
                 if (context == null)
                 {
-                    context = new EFDbContext();
+                    context = new EFDbContext(this.options);
                 }
                 // Проверим и скорректируем пользователя
                 if (String.IsNullOrWhiteSpace(user))
@@ -1718,7 +1721,7 @@ namespace IDS_
                 {
                     user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
                 }
-                EFDbContext context = new EFDbContext();
+                EFDbContext context = new EFDbContext(this.options);
                 {
                     OutgoingSostav? sostav = context
                         .OutgoingSostavs
@@ -1792,6 +1795,503 @@ namespace IDS_
         }
         #endregion
 
+        #region  Операция с использованием подач (ВЫГРУЗКА, ПОГРУЗКА)
+        public class UnloadingWagons
+        {
+            public long id_wim { get; set; }
+            public DateTime? start { get; set; }
+            public DateTime? stop { get; set; }
+            public int? id_wagon_operations { get; set; }
+            public int? id_status_load { get; set; }
+
+        }
+        //public ResultUpdateIDWagon UpdateFiling(int id_filing, int? id_way, int id_division, DateTime? create, Object vagons, string locomotive1, string? locomotive2, string user)
+        //{
+        //    ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, 0);
+        //    DateTime start = DateTime.Now;
+        //    try
+        //    {
+        //        // Проверим и скорректируем пользователя
+        //        if (String.IsNullOrWhiteSpace(user))
+        //        {
+        //            user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+        //        }
+        //        EFDbContext context = new EFDbContext(this.options);
+        //        {
+        //            WagonFiling? wf;
+        //            if (id_filing == 0)
+        //            {
+        //                // Добавить
+        //                if (id_way == null || create == null || vagons == null) { rt.SetResult((int)errors_base.not_input_value); return rt; }
+        //                // Оределим путь
+        //                DirectoryWay? way = context.DirectoryWays.Where(w => w.Id == id_way).FirstOrDefault();
+        //                if (way == null)
+        //                {
+        //                    rt.SetResult((int)errors_base.not_dir_way_of_db); // Указаного пути нет!
+        //                    return rt;
+        //                }
+        //                wf = new WagonFiling()
+        //                {
+        //                    Id = id_filing,
+        //                    NumFiling = id_way.ToString() + "-" + id_division.ToString() + "-" + ((DateTime)create).ToString("dd.MM.yyyy hh:mm:ss"),
+        //                    IdDivision = id_division,
+        //                    Note = "",
+        //                    StartFiling = null,
+        //                    EndFiling = null,
+        //                    Create = ((DateTime)create),
+        //                    CreateUser = user,
+        //                    Change = null,
+        //                    ChangeUser = null,
+        //                    Close = null,
+        //                    CloseUser = null,
+        //                };
+        //                context.WagonFilings.Add(wf);
+        //            }
+        //            else
+        //            {
+        //                // Править
+        //                if (vagons == null) { rt.SetResult((int)errors_base.not_input_value); return rt; }
+        //                wf = context.WagonFilings
+        //                    .Where(f => f.Id == id_filing)
+        //                    .Include(wim => wim.WagonInternalMovements)
+        //                    .FirstOrDefault();
+        //            }
+        //            // Проверка подачи
+        //            if (wf != null && wf.Close != null)
+        //            {
+        //                rt.SetResult((int)errors_base.close_wf); // Подача закрыта!
+        //                return rt;
+        //            }
+        //            // Операция "ВЫГРУЗКА"
+        //            if (vagons is List<UnloadingWagons>)
+        //            {
+
+        //                int mode = 0;
+        //                //int count_old = wf != null && wf.WagonInternalMovements != null ? wf.WagonInternalMovements.Count : 0;
+        //                List<long> list_id_wir = wf != null && wf.WagonInternalMovements != null ? wf.WagonInternalMovements.Select(w => w.IdWagonInternalRoutes).ToList() : new List<long>();
+        //                //int count_new = ((List<UnloadingWagons>)vagons).Count();
+        //                rt.count = ((List<UnloadingWagons>)vagons).Count();
+
+        //                // Проверим начало подачи, если не указанно, посмотрим вагоны
+        //                UnloadingWagons? start_uw = ((List<UnloadingWagons>)vagons).Where(v => v.start != null).OrderBy(c => c.start).FirstOrDefault();
+        //                if (wf.StartFiling == null && start_uw != null)
+        //                {
+        //                    wf.StartFiling = start_uw.start;
+        //                }
+
+        //                // Пройдемся по вагонам
+        //                foreach (UnloadingWagons vag in ((List<UnloadingWagons>)vagons).ToList())
+        //                {
+        //                    if ((vag.id_wagon_operations != null && (vag.start != null || vag.stop != null)) || (vag.id_wagon_operations == null))
+        //                    {
+        //                        WagonInternalMovement? wim = context.WagonInternalMovements.Where(m => m.Id == vag.id_wim).FirstOrDefault();
+        //                        if (wim != null)
+        //                        {
+        //                            // Проверим wim не принадлежит другой подаче
+        //                            if ((wim.IdFiling != null && wf.Id == wim.IdFiling) || (wim.IdFiling == null))
+        //                            {
+        //                                // Дислокация существует
+        //                                WagonInternalRoute? wir = context.WagonInternalRoutes.Where(r => r.Id == wim.IdWagonInternalRoutes).FirstOrDefault();
+        //                                if (wir != null)
+        //                                {
+        //                                    // Внутренее перемещение существует 
+        //                                    if (wir.Close == null)
+        //                                    {
+        //                                        // Внутренее перемещение не закрыто 
+        //                                        WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
+        //                                        WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
+
+        //                                        if (wim_last != null && wim_last.Id == wim.Id)
+        //                                        {
+        //                                            // Это последняя позиция во внутренем перемещении
+        //                                            // Получим операцию этой позиции
+        //                                            WagonInternalOperation? wio = context.WagonInternalOperations.Where(o => o.Id == wim.IdWio).FirstOrDefault();
+        //                                            if ((wio == null) || (wio != null && wio_last.Id == wio.Id))
+        //                                            {
+        //                                                // Проверим в списке есть данная строка по вагону, если есть удалим (оставшиеся из списка будут урбраны) 
+        //                                                bool res_exist = list_id_wir.Remove(wim.IdWagonInternalRoutes);
+
+        //                                                wim.FilingStart = vag.start;
+        //                                                wim.FilingEnd = vag.stop;
+        //                                                if (vag.id_wagon_operations != null)
+        //                                                {
+        //                                                    if (wio == null)
+        //                                                    {
+        //                                                        //создать операцию
+        //                                                        if (vag.start != null)
+        //                                                        {
+        //                                                            WagonInternalOperation new_operation = wir.SetOpenOperation(ref context, (int)vag.id_wagon_operations, (DateTime)vag.start, null, null, locomotive1, locomotive2, wf.Note, user);
+        //                                                            if (vag.stop != null)
+        //                                                            {
+        //                                                                new_operation.SetCloseOperation((DateTime)vag.stop, null, user);
+        //                                                            }
+        //                                                            wim.IdWioNavigation = new_operation; // добавим новую операцию
+        //                                                        }
+        //                                                        mode = 1; // insert
+        //                                                    }
+        //                                                    else
+        //                                                    {
+        //                                                        // править операцию
+        //                                                        if (vag.start == null)
+        //                                                        {
+        //                                                            // Удалить операцию
+        //                                                            context.WagonInternalOperations.Remove(wio);
+        //                                                            wim.IdWioNavigation = null;
+        //                                                            mode = 3; // delete
+        //                                                        }
+        //                                                        else
+        //                                                        {
+        //                                                            // править операцию
+        //                                                            wio.IdOperation = (int)vag.id_wagon_operations;
+        //                                                            wio.OperationStart = (DateTime)vag.start;
+        //                                                            if (vag.stop != null)
+        //                                                            {
+        //                                                                wio.SetCloseOperation((DateTime)vag.stop, null, user);
+        //                                                            }
+        //                                                            mode = 2; // update
+        //                                                        }
+        //                                                    }
+        //                                                }
+        //                                                else
+        //                                                {
+        //                                                    // Операция не указана далим существующую
+        //                                                    if (wio != null)
+        //                                                    {
+        //                                                        context.WagonInternalOperations.Remove(wio);
+        //                                                        wim.IdWioNavigation = null;
+        //                                                        mode = 3; // delete
+        //                                                    }
+        //                                                }
+        //                                                // Правим wim
+        //                                                if (wim.IdFiling == null)
+        //                                                {
+        //                                                    wf.WagonInternalMovements.Add(wim);
+        //                                                }
+        //                                                // Отметим операцию
+        //                                                rt.SetModeResult((mode_obj)mode, vag.id_wim, 1, wir.Num); // Операция выполнена
+        //                                            }
+        //                                            else
+        //                                            {
+        //                                                rt.SetErrorResult(vag.id_wim, (int)errors_base.wagon_not_operation, wir.Num); // Ошибка операция вагона не соответствует текущей
+        //                                            }
+
+        //                                        }
+        //                                        else
+        //                                        {
+        //                                            rt.SetErrorResult(vag.id_wim, (int)errors_base.err_last_wim_db, wir.Num); // Ошибка позиция вагона несоответсвует последней позиции в базе
+        //                                        }
+        //                                    }
+        //                                    else
+        //                                    {
+        //                                        rt.SetErrorResult(vag.id_wim, (int)errors_base.close_wir, 0); // wir закрыт
+        //                                    }
+        //                                }
+        //                                else
+        //                                {
+        //                                    rt.SetErrorResult(vag.id_wim, (int)errors_base.not_wir_db, 0); // нет wir
+        //                                }
+        //                            }
+        //                            else
+        //                            {
+        //                                rt.SetErrorResult(vag.id_wim, (int)errors_base.wim_lock_wf, 0); // // Вагон заблокирован, пренадлежит другой подаче
+        //                            }
+
+        //                        }
+        //                        else
+        //                        {
+        //                            rt.SetErrorResult(vag.id_wim, (int)errors_base.not_wim_db, 0); // нет wim
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        rt.SetErrorResult(vag.id_wim, (int)errors_base.not_input_value, 0); // нет wim
+        //                    }
+
+        //                }
+        //                // Проверим остались вагоны в подаче, если да , тогда удалить их из подачи, убрать операцию и вернуть их на место
+        //                if (list_id_wir.Count > 0)
+        //                {
+        //                    //TODO! Доработать
+        //                }
+        //            }
+
+        //            // Проверка на ошибки и сохранение результата
+        //            if (rt.error == 0)
+        //            {
+        //                rt.SetResult(context.SaveChanges());
+        //            }
+        //            else
+        //            {
+        //                rt.SetResult((int)errors_base.cancel_save_changes);
+        //            }
+        //        }
+        //        string mess = String.Format("Операция формирования подачи id={0} на пути {1} в подразделении {2}, выполнена - код выполнения {3}. Определено {4} вагонов, добавлено {5}, обновлено {6}, удалено {7}, пропущено {8}.",
+        //            id_filing, id_way, id_division, rt.result, rt.count, rt.add, rt.update, rt.delete, rt.skip);
+        //        _logger.LogWarning(mess);
+        //        DateTime stop = DateTime.Now;
+        //        _logger.LogDebug(String.Format("Операция формирования подачи."), start, stop, rt.result);
+        //        return rt;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        _logger.LogError(e, String.Format("UpdateFiling(id_filing={0}, id_way={1}, id_division={2}, create={3}, vagons={4}, user={5})",
+        //            id_filing, id_way, id_division, create, vagons, user));
+        //        rt.SetResult((int)errors_base.global);
+        //        return rt;  // Возвращаем id=-1 , Ошибка
+        //    }
+        //}
+
+        /// <summary>
+        /// Обновить информацию ро вагону в подаче
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="wf"></param>
+        /// <param name="vag"></param>
+        /// <param name="locomotive1"></param>
+        /// <param name="locomotive2"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int UpdateWagonFiling(ref EFDbContext context, WagonFiling wf, UnloadingWagons vag, string locomotive1, string? locomotive2, string user)
+        {
+            try
+            {
+                mode_obj mode = mode_obj.not;
+                if ((vag.id_wagon_operations != null && (vag.start != null || vag.stop != null)) || (vag.id_wagon_operations == null))
+                {
+                    WagonInternalMovement? wim = context.WagonInternalMovements.Where(m => m.Id == vag.id_wim).FirstOrDefault();
+                    if (wim != null)
+                    {
+                        // Проверим wim не принадлежит другой подаче
+                        if ((wim.IdFiling != null && wf.Id == wim.IdFiling) || (wim.IdFiling == null))
+                        {
+                            // Дислокация существует
+                            WagonInternalRoute? wir = context.WagonInternalRoutes.Where(r => r.Id == wim.IdWagonInternalRoutes).FirstOrDefault();
+                            if (wir != null)
+                            {
+                                // Внутренее перемещение существует 
+                                if (wir.Close == null)
+                                {
+                                    // Внутренее перемещение не закрыто 
+                                    WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
+                                    WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
+
+                                    if (wim_last != null && wim_last.Id == wim.Id)
+                                    {
+                                        // Это последняя позиция во внутренем перемещении
+                                        // Получим операцию этой позиции
+                                        WagonInternalOperation? wio = context.WagonInternalOperations.Where(o => o.Id == wim.IdWio).FirstOrDefault();
+                                        if ((wio == null) || (wio != null && wio_last.Id == wio.Id))
+                                        {
+                                            wim.FilingStart = vag.start;
+                                            wim.FilingEnd = vag.stop;
+                                            if (vag.id_wagon_operations != null)
+                                            {
+                                                if (wio == null)
+                                                {
+                                                    //создать операцию
+                                                    if (vag.start != null)
+                                                    {
+                                                        WagonInternalOperation new_operation = wir.SetOpenOperation(ref context, (int)vag.id_wagon_operations, (DateTime)vag.start, null, null, locomotive1, locomotive2, wf.Note, user);
+                                                        if (vag.stop != null)
+                                                        {
+                                                            new_operation.SetCloseOperation((DateTime)vag.stop, null, user);
+                                                        }
+                                                        wim.IdWioNavigation = new_operation; // добавим новую операцию
+                                                    }
+                                                    mode = mode_obj.add; // insert
+                                                }
+                                                else
+                                                {
+                                                    // править операцию
+                                                    if (vag.start == null)
+                                                    {
+                                                        // Удалить операцию
+                                                        context.WagonInternalOperations.Remove(wio);
+                                                        wim.IdWioNavigation = null;
+                                                        mode = mode_obj.delete; // delete
+                                                    }
+                                                    else
+                                                    {
+                                                        // править операцию
+                                                        wio.IdOperation = (int)vag.id_wagon_operations;
+                                                        wio.OperationStart = (DateTime)vag.start;
+                                                        if (vag.stop != null)
+                                                        {
+                                                            wio.SetCloseOperation((DateTime)vag.stop, null, user);
+                                                        }
+                                                        mode = mode_obj.update; // update
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                // Операция не указана далим существующую
+                                                if (wio != null)
+                                                {
+                                                    context.WagonInternalOperations.Remove(wio);
+                                                    wim.IdWioNavigation = null;
+                                                    mode = mode_obj.delete; // delete
+                                                }
+                                            }
+                                            // Правим wim
+                                            if (wim.IdFiling == null)
+                                            {
+                                                wf.WagonInternalMovements.Add(wim);
+                                            }
+                                            // Отметим операцию
+                                            return (int)mode;
+                                        }
+                                        else
+                                        {
+                                            return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует текущей
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return (int)errors_base.err_last_wim_db; // Ошибка позиция вагона несоответсвует последней позиции в базе
+                                    }
+                                }
+                                else
+                                {
+                                    return (int)errors_base.close_wir; // wir закрыт
+                                }
+                            }
+                            else
+                            {
+                                return (int)errors_base.not_wir_db; // нет wir
+                            }
+                        }
+                        else
+                        {
+                            return (int)errors_base.wim_lock_wf; // // Вагон заблокирован, пренадлежит другой подаче
+                        }
+
+                    }
+                    else
+                    {
+                        return (int)errors_base.not_wim_db; // нет wim
+                    }
+                }
+                else
+                {
+                    return (int)errors_base.not_input_value; // нет wim
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("UpdateWagonFiling(context={0}, wf={1}, vag={2}, locomotive1={3}, locomotive2={4}, user={5})",
+                    context, wf, vag, locomotive1, locomotive2, user));
+                return (int)errors_base.global;
+            }
+        }
+        /// <summary>
+        /// Добавить подачу
+        /// </summary>
+        /// <param name="id_filing"></param>
+        /// <param name="id_way"></param>
+        /// <param name="id_division"></param>
+        /// <param name="create"></param>
+        /// <param name="vagons"></param>
+        /// <param name="locomotive1"></param>
+        /// <param name="locomotive2"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public ResultUpdateIDWagon AddFiling(int id_filing, int id_way, int id_division, DateTime create, Object vagons, string locomotive1, string? locomotive2, string user)
+        {
+            ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, 0);
+            DateTime start = DateTime.Now;
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                EFDbContext context = new EFDbContext(this.options);
+                {
+                    // Оределим путь
+                    DirectoryWay? way = context.DirectoryWays.Where(w => w.Id == id_way).FirstOrDefault();
+                    if (way == null)
+                    {
+                        rt.SetResult((int)errors_base.not_dir_way_of_db); // Указаного пути нет!
+                        return rt;
+                    }
+                    WagonFiling wf = new WagonFiling()
+                    {
+                        Id = id_filing,
+                        NumFiling = id_way.ToString() + "-" + id_division.ToString() + "-" + ((DateTime)create).ToString("dd.MM.yyyy hh:mm:ss"),
+                        IdDivision = id_division,
+                        Note = "",
+                        StartFiling = null,
+                        EndFiling = null,
+                        Create = ((DateTime)create),
+                        CreateUser = user,
+                        Change = null,
+                        ChangeUser = null,
+                        Close = null,
+                        CloseUser = null,
+                    };
+                    context.WagonFilings.Add(wf);
+                    // Операция "ВЫГРУЗКА"
+                    if (vagons is List<UnloadingWagons>)
+                    {
+                        rt.count = ((List<UnloadingWagons>)vagons).Count();
+                        // Проверим начало подачи, если не указанно, посмотрим вагоны
+                        UnloadingWagons? start_uw = ((List<UnloadingWagons>)vagons).Where(v => v.start != null).OrderBy(c => c.start).FirstOrDefault();
+                        // Время начала операции
+                        wf.StartFiling = start_uw != null ? start_uw.start : null;
+                        // Пройдемся по вагонам
+                        foreach (UnloadingWagons vag in ((List<UnloadingWagons>)vagons).ToList())
+                        {
+                            int num = 0;
+                            WagonInternalMovement? wim = context.WagonInternalMovements.Where(m => m.Id == vag.id_wim).FirstOrDefault();
+                            if (wim != null)
+                            {
+                                WagonInternalRoute? wir = context.WagonInternalRoutes.Where(r => r.Id == wim.IdWagonInternalRoutes).FirstOrDefault();
+                                if (wir != null)
+                                {
+                                    num = wir.Num;
+                                }
+                            }
+                            int result = UpdateWagonFiling(ref context, wf, vag, locomotive1, locomotive2, user);
+                            // Отметим операцию
+                            if (result >= 0)
+                            {
+                                rt.SetModeResult((mode_obj)result, vag.id_wim, 1, num); // Операция выполнена
+                            }
+                            else
+                            {
+                                rt.SetErrorResult(vag.id_wim, result, num);
+                            }
+                        }
+                    }
+                    // Проверка на ошибки и сохранение результата
+                    if (rt.error == 0)
+                    {
+                        rt.SetResult(context.SaveChanges());
+                    }
+                    else
+                    {
+                        rt.SetResult((int)errors_base.cancel_save_changes);
+                    }
+                }
+                string mess = String.Format("Операция формирования подачи id={0} на пути {1} в подразделении {2}, выполнена - код выполнения {3}. Определено {4} вагонов, добавлено {5}, обновлено {6}, удалено {7}, пропущено {8}.",
+                    id_filing, id_way, id_division, rt.result, rt.count, rt.add, rt.update, rt.delete, rt.skip);
+                _logger.LogWarning(mess);
+                DateTime stop = DateTime.Now;
+                _logger.LogDebug(String.Format("Операция формирования подачи."), start, stop, rt.result);
+                return rt;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("UpdateFiling(id_filing={0}, id_way={1}, id_division={2}, create={3}, vagons={4}, user={5})",
+                    id_filing, id_way, id_division, create, vagons, user));
+                rt.SetResult((int)errors_base.global);
+                return rt;  // Возвращаем id=-1 , Ошибка
+            }
+        }
+        #endregion
+
         #region  Операции "Позицирование вагонов на пути"
         /// <summary>
         /// Операция позицирования вагонов атоматически или реверс с указаной позиции
@@ -1810,7 +2310,7 @@ namespace IDS_
                 {
                     user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
                 }
-                EFDbContext context = new EFDbContext();
+                EFDbContext context = new EFDbContext(this.options);
                 {
                     int result = RenumberingWagons(ref context, id_way, position, reverse);
                     if (result > 0)
@@ -1840,7 +2340,7 @@ namespace IDS_
         {
             try
             {
-                EFDbContext context = new EFDbContext();
+                EFDbContext context = new EFDbContext(this.options);
                 StatusWagonDislocation status = new StatusWagonDislocation()
                 {
                     view_wagon_dislocation = null,
@@ -1961,7 +2461,7 @@ namespace IDS_
             {
                 if (context == null)
                 {
-                    context = new EFDbContext();
+                    context = new EFDbContext(this.options);
                 }
                 // Проверим и скорректируем пользователя
                 if (String.IsNullOrWhiteSpace(user))
@@ -2022,7 +2522,7 @@ namespace IDS_
             {
                 if (context == null)
                 {
-                    context = new EFDbContext();
+                    context = new EFDbContext(this.options);
                 }
                 // Проверим и скорректируем пользователя
                 if (String.IsNullOrWhiteSpace(user))

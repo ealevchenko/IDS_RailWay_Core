@@ -1,5 +1,12 @@
 ﻿namespace IDS_
 {
+    public enum mode_obj
+    {
+        not = 0,
+        add = 1,
+        update = 2,
+        delete = 3,
+    }
     public enum errors_base : int
     {
         global = -1,
@@ -27,6 +34,12 @@
         wagon_not_way = -302,                       // Вагон не стоит на пути
         wagon_not_outerway = -303,                  // Вагон не стоит на перегоне
         err_create_wim_db = -304,                   // Ошибка создания новой позиции вагона.
+        err_last_wim_db = -305,                     // Ошибка позиция вагона несоответсвует последней позиции в базе
+        wim_lock_wf = -306,                         // Вагон заблокирован, пренадлежит другой подаче
+
+        // таблица подач wf -350...
+        not_wf_db = -351,                          // В базе данных нет записи по WagonFiling (Подача вагонов)
+        close_wf = -352,                           // Запись WagonFiling - закрыта
 
         // таблица wio -400...
         not_wio_db = -401,                          // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
@@ -36,6 +49,7 @@
         err_create_wio_db = -405,                   // Ошибка создания новой операции над вагоном.
         already_wio = -406,                         // Операция уже применена.
         not_arrival_operation = -407,               // Операция вагона текущая операция вагона не "Прибытие с УЗ"
+
 
         // таблицы прибытие -500..
         not_arrival_sostav_db = -501,              // В базе данных нет записи состава для оправки
@@ -162,6 +176,9 @@
         public int result { get; set; }
         public int? type { get; set; }
     }
+    /// <summary>
+    /// 
+    /// </summary>
     public class OperationResultID
     {
         public int result { get; set; } // Глобальный ресурс выполнения всего переноса
@@ -199,6 +216,9 @@
         public int num { get; set; }
         public int result { get; set; }
     }
+    /// <summary>
+    /// 
+    /// </summary>
     public class ResultIDWagon
     {
         public long id { get; set; }
@@ -322,6 +342,7 @@
         public int skip { get; set; }
         public int error { get; set; }
         public int close { get; set; }
+        public int delete { get; set; }
         public int add { get; set; }
 
         public long id { get; set; }
@@ -336,11 +357,22 @@
             this.skip = 0;
             this.error = 0;
             this.close = 0;
+            this.delete = 0;
             this.add = 0;
             this.id = id;
             this.listResult.Clear();
         }
 
+        public void SetModeResult(mode_obj mode, long id, int result, int num)
+        {
+            switch (mode)
+            {
+                case mode_obj.add: SetInsertResult(id, result, num); break;
+                case mode_obj.update: SetUpdateResult(id, result, num); break;
+                case mode_obj.delete: SetDeleteResult(id, result, num); break;
+                default: SetSkipResult(id, result, num); break;
+            }
+        }
         public void SetUpdateResult(int result)
         {
             if (result < 0)
@@ -353,6 +385,20 @@
             }
             AddSkip();
             return;
+        }
+        public void SetInsertResult(long id, int result, int num)
+        {
+            listResult.Add(new ResultIDWagon() { id = id, num = num, result = result });
+
+            if (result < 0)
+            {
+                AddError(result); return;
+            }
+            if (result > 0)
+            {
+                AddInsert(); return;
+            }
+            AddSkip(); return;
         }
         public void SetUpdateResult(long id, int result, int num)
         {
@@ -368,7 +414,7 @@
             }
             AddSkip(); return;
         }
-        public void SetInsertResult(long id, int result, int num)
+        public void SetCloseResult(long id, int result, int num)
         {
             listResult.Add(new ResultIDWagon() { id = id, num = num, result = result });
 
@@ -378,7 +424,21 @@
             }
             if (result > 0)
             {
-                AddInsert(); return;
+                AddClose(); return;
+            }
+            AddSkip(); return;
+        }
+        public void SetDeleteResult(long id, int result, int num)
+        {
+            listResult.Add(new ResultIDWagon() { id = id, num = num, result = result });
+
+            if (result < 0)
+            {
+                AddError(result); return;
+            }
+            if (result > 0)
+            {
+                AddDelete(); return;
             }
             AddSkip(); return;
         }
@@ -425,6 +485,10 @@
         public void AddClose()
         {
             this.close++;
+        }
+        public void AddDelete()
+        {
+            this.delete++;
         }
         public void AddInsert()
         {
