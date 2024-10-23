@@ -97,6 +97,7 @@ namespace HelloApp
                 //twir.IDS_WIR_CalcUsageFeeOfOutgoingSostavOfPeriod(); // Расчет платы за пользование по сданным составам за выбранный период
                 //twir.ChangeDivisionOutgoingWagons(); // 
                 //twir.ChangeVesgOutgoingWagons(); // 
+                twir.UpdateFiling();
                 #endregion
                 //+++++++++++++++++++++++++++++++ req1892 ++++++++++++++++++++++++++++++
                 //WebClientGIVC client_givc = new WebClientGIVC(logger, config);
