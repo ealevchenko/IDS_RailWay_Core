@@ -23,7 +23,22 @@ public class ViewCarWay
 
     [Column("position")]
     public int Position { get; set; }
+    // add 23.10.2024 ----------------------------------
+    [Column("id_filing")]
+    public long? IdFiling { get; set; }
 
+    [Column("start_filing", TypeName = "datetime")]
+    public DateTime? StartFiling { get; set; }
+
+    [Column("end_filing", TypeName = "datetime")]
+    public DateTime? EndFiling { get; set; }
+
+    [Column("way_filing_start", TypeName = "datetime")]
+    public DateTime? WayFilingStart { get; set; }
+
+    [Column("way_filing_end", TypeName = "datetime")]
+    public DateTime? WayFilingEnd { get; set; }
+    //---------------------------------------------
     [Column("id_operator")]
     public int? IdOperator { get; set; }
 
