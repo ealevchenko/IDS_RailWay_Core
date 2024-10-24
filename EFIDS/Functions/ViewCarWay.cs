@@ -33,6 +33,27 @@ public class ViewCarWay
     [Column("end_filing", TypeName = "datetime")]
     public DateTime? EndFiling { get; set; }
 
+    [Column("create_filing", TypeName = "datetime")]
+    public DateTime? CreateFiling { get; set; }
+
+    [Column("create_user_filing")]
+    [StringLength(50)]
+    public string? CreateUserFiling { get; set; }
+
+    [Column("change_filing", TypeName = "datetime")]
+    public DateTime? ChangeFiling { get; set; }
+
+    [Column("change_user_filing")]
+    [StringLength(50)]
+    public string? ChangeUserFiling { get; set; }
+
+    [Column("close_filing", TypeName = "datetime")]
+    public DateTime? CloseFiling { get; set; }
+
+    [Column("close_user_filing")]
+    [StringLength(50)]
+    public string? CloseUserFiling { get; set; }
+
     [Column("way_filing_start", TypeName = "datetime")]
     public DateTime? WayFilingStart { get; set; }
 
