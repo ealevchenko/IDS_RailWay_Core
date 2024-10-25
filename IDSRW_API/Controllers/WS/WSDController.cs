@@ -127,7 +127,7 @@ namespace WebAPI.Controllers.Directory
         public string? locomotive2 { get; set; }
         public List<UnloadingWagons> wagons { get; set; }
     }
-    public class OperationAddWagonFiling
+    public class OperationADWagonFiling
     {
         public int id_filing { get; set; }
         public List<long> wagons { get; set; }
@@ -700,7 +700,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/add/wagon/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("add/wagon/filing")]
-        public async Task<ActionResult<ResultUpdateIDWagon>> PostAddWagonFiling([FromBody] OperationAddWagonFiling value)
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostAddWagonFiling([FromBody] OperationADWagonFiling value)
         {
             try
             {
@@ -720,7 +720,30 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+        
+        // POST: WSD/add/wagon/filing
+        // BODY: WSD (JSON, XML)
+        [HttpPost("add/wagon/filing")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostDeleteWagonFiling([FromBody] OperationADWagonFiling value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
 
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateIDWagon result = ids_wir.DeleteWagonOfFiling(value.id_filing, value.wagons, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         #endregion
 
         #region АДМИНИСТРИРОВАНИЕ
