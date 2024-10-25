@@ -721,9 +721,9 @@ namespace WebAPI.Controllers.Directory
             }
         }
         
-        // POST: WSD/add/wagon/filing
+        // POST: WSD/delete/wagon/filing
         // BODY: WSD (JSON, XML)
-        [HttpPost("add/wagon/filing")]
+        [HttpPost("delete/wagon/filing")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostDeleteWagonFiling([FromBody] OperationADWagonFiling value)
         {
             try
