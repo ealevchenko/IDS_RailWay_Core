@@ -15,6 +15,9 @@ public class ViewWagonsFiling
     [Column("id_wir")]
     public long IdWir { get; set; }
 
+    [Column("curr_id_wim")]
+    public long CurrIdWim { get; set; }
+
     [Column("id_wf")]
     public long IdWf { get; set; }
 
@@ -429,6 +432,23 @@ public class ViewWagonsFiling
     [Column("current_loading_status_en")]
     [StringLength(30)]
     public string? CurrentLoadingStatusEn { get; set; }
+
+    [Column("current_id_operation")]
+    public int? CurrentIdOperation { get; set; }
+
+    [Column("current_operation_name_ru")]
+    [StringLength(50)]
+    public string? CurrentOperationNameRu { get; set; }
+
+    [Column("current_operation_name_en")]
+    [StringLength(50)]
+    public string? CurrentOperationNameEn { get; set; }
+
+    [Column("current_operation_start", TypeName = "datetime")]
+    public DateTime? CurrentOperationStart { get; set; }
+
+    [Column("current_operation_end", TypeName = "datetime")]
+    public DateTime? CurrentOperationEnd { get; set; }
 
     [Column("current_cargo_group_id_group")]
     public int? CurrentCargoGroupIdGroup { get; set; }
