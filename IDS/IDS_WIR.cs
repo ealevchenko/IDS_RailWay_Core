@@ -2509,6 +2509,10 @@ namespace IDS_
                                         result.SetErrorResult(id_wim, (int)errors_base.not_wim_db, 0); // нет wim
                                     }
                                 }
+                                // Проверка на пустую подачу
+                                if (wf.WagonInternalMovements == null || wf.WagonInternalMovements.Count() == 0) {
+                                    context.WagonFilings.Remove(wf); // удалить
+                                }
                                 // Проверка на ошибки и сохранение результата
                                 if (result.error == 0)
                                 {
