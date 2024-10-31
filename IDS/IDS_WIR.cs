@@ -2042,7 +2042,7 @@ namespace IDS_
         //}
 
         /// <summary>
-        /// Обновить информацию ро вагону в подаче
+        /// Обновить информацию по вагону в подаче
         /// </summary>
         /// <param name="context"></param>
         /// <param name="wf"></param>
@@ -2051,7 +2051,7 @@ namespace IDS_
         /// <param name="locomotive2"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public int UpdateWagonFiling(ref EFDbContext context, WagonFiling wf, UnloadingWagons vag, string locomotive1, string? locomotive2, string user)
+        public int UpdateWagonFiling(ref EFDbContext context, WagonFiling wf, UnloadingWagons vag, string user)
         {
             try
             {
@@ -2091,7 +2091,7 @@ namespace IDS_
                                                     //создать операцию
                                                     if (vag.start != null)
                                                     {
-                                                        WagonInternalOperation new_operation = wir.SetOpenOperation(ref context, (int)vag.id_wagon_operations, (DateTime)vag.start, null, null, locomotive1, locomotive2, wf.Note, user);
+                                                        WagonInternalOperation new_operation = wir.SetOpenOperation(ref context, (int)vag.id_wagon_operations, (DateTime)vag.start, null, null, null, null, wf.Note, user);
                                                         if (vag.stop != null)
                                                         {
                                                             new_operation.SetCloseOperation((DateTime)vag.stop, null, user);
@@ -2138,6 +2138,17 @@ namespace IDS_
                                             {
                                                 wf.WagonInternalMovements.Add(wim);
                                             }
+                                            ArrivalCar? arr_car = context.ArrivalCars
+                                                .Where(c => c.Id == wir.IdArrivalCar)
+                                                .Include(doc => doc.IdArrivalUzVagonNavigation)
+                                                .FirstOrDefault();
+                                            // TODO: ДОБАВИТЬ ПРОВЕРКУ НА ВЫГРУЗКА С ПРИБЫТИЯ
+                                            // Обновим информацию в документе по прибытию
+                                            if (arr_car != null && arr_car.IdArrivalUzVagonNavigation != null && true)
+                                            {
+                                                arr_car.IdArrivalUzVagonNavigation.IdDivisionOnAmkr = wf.IdDivision;
+                                                arr_car.IdArrivalUzVagonNavigation.IdStationOnAmkr = wim.IdStation;
+                                            }
                                             // Отметим операцию
                                             return (int)mode;
                                         }
@@ -2179,8 +2190,8 @@ namespace IDS_
             }
             catch (Exception e)
             {
-                _logger.LogError(e, String.Format("UpdateWagonFiling(context={0}, wf={1}, vag={2}, locomotive1={3}, locomotive2={4}, user={5})",
-                    context, wf, vag, locomotive1, locomotive2, user));
+                _logger.LogError(e, String.Format("UpdateWagonFiling(context={0}, wf={1}, vag={2}, user={3})",
+                    context, wf, vag, user));
                 return (int)errors_base.global;
             }
         }
@@ -2196,7 +2207,7 @@ namespace IDS_
         /// <param name="locomotive2"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public ResultUpdateIDWagon AddFiling(int id_filing, int id_way, int id_division, DateTime create, Object vagons, string locomotive1, string? locomotive2, string user)
+        public ResultUpdateIDWagon AddFiling(int id_filing, int id_way, int id_division, DateTime create, Object vagons, string user)
         {
             ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, 0);
             DateTime start = DateTime.Now;
@@ -2253,7 +2264,7 @@ namespace IDS_
                                     num = wir.Num;
                                 }
                             }
-                            int result = UpdateWagonFiling(ref context, wf, vag, locomotive1, locomotive2, user);
+                            int result = UpdateWagonFiling(ref context, wf, vag, user);
                             // Отметим операцию
                             if (result >= 0)
                             {
@@ -2284,7 +2295,7 @@ namespace IDS_
             }
             catch (Exception e)
             {
-                _logger.LogError(e, String.Format("UpdateFiling(id_filing={0}, id_way={1}, id_division={2}, create={3}, vagons={4}, user={5})",
+                _logger.LogError(e, String.Format("AddFiling(id_filing={0}, id_way={1}, id_division={2}, create={3}, vagons={4}, user={5})",
                     id_filing, id_way, id_division, create, vagons, user));
                 rt.SetResult((int)errors_base.global);
                 return rt;  // Возвращаем id=-1 , Ошибка
@@ -2510,7 +2521,8 @@ namespace IDS_
                                     }
                                 }
                                 // Проверка на пустую подачу
-                                if (wf.WagonInternalMovements == null || wf.WagonInternalMovements.Count() == 0) {
+                                if (wf.WagonInternalMovements == null || wf.WagonInternalMovements.Count() == 0)
+                                {
                                     context.WagonFilings.Remove(wf); // удалить
                                 }
                                 // Проверка на ошибки и сохранение результата

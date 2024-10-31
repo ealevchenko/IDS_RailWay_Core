@@ -123,8 +123,6 @@ namespace WebAPI.Controllers.Directory
         public int id_way { get; set; }
         public int id_division { get; set; }
         public DateTime create { get; set; }
-        public string locomotive1 { get; set; }
-        public string? locomotive2 { get; set; }
         public List<UnloadingWagons> wagons { get; set; }
     }
     public class OperationADWagonFiling
@@ -688,7 +686,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.AddFiling(value.id_filing, value.id_way, value.id_division, value.create, value.wagons, value.locomotive1, value.locomotive2, user);
+                ResultUpdateIDWagon result = ids_wir.AddFiling(value.id_filing, value.id_way, value.id_division, value.create, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
