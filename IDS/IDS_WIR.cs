@@ -2622,7 +2622,7 @@ namespace IDS_
         /// <param name="vagons"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public ResultUpdateIDWagon UpdateFiling(int id_filing, int mode, Object vagons, string user)
+        public ResultUpdateIDWagon UpdateOperationFiling(int id_filing, int mode, Object vagons, string user)
         {
             ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, 0);
             DateTime start = DateTime.Now;
@@ -2641,17 +2641,13 @@ namespace IDS_
                             .FirstOrDefault();
                     if (wf != null)
                     {
-                        if (wf.Close == null || mode==9)
+                        if (wf.Close == null || mode == 9)
                         {
                             // Операция "ВЫГРУЗКА"
                             if (vagons is List<UnloadingWagons>)
                             {
                                 int count_all = wf.WagonInternalMovements.Count();
                                 rt.count = ((List<UnloadingWagons>)vagons).Count();
-                                //// Проверим начало подачи, если не указанно, посмотрим вагоны
-                                //UnloadingWagons? start_uw = ((List<UnloadingWagons>)vagons).Where(v => v.start != null).OrderBy(c => c.start).FirstOrDefault();
-                                //// Время начала операции
-                                //wf.StartFiling = start_uw != null ? start_uw.start : null;
                                 // Пройдемся по вагонам
                                 foreach (UnloadingWagons vag in ((List<UnloadingWagons>)vagons).ToList())
                                 {
@@ -2676,9 +2672,10 @@ namespace IDS_
                                         rt.SetErrorResult(vag.id_wim, result, num);
                                     }
                                 }
-                                int count_close = wf.WagonInternalMovements.Where(m=>m.FilingEnd != null).Count();
-                                if (count_all == count_close) {
-                                    WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m=>m.FilingEnd != null).OrderByDescending(c=>c.FilingEnd).FirstOrDefault();
+                                int count_close = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).Count();
+                                if (count_all == count_close)
+                                {
+                                    WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).OrderByDescending(c => c.FilingEnd).FirstOrDefault();
                                     DateTime? close = wim_close_max != null ? wim_close_max.FilingEnd : null;
                                     wf.EndFiling = close;
                                     wf.Close = close;
@@ -2706,22 +2703,113 @@ namespace IDS_
                     }
 
                 }
-                string mess = String.Format("Операция обновления вагонов в подаче id={0}, выполнена - код выполнения {1}. Определено {2} вагонов, операция начата :{3} (ваг.), операция закрыта :{4} (ваг.), операция удалена :{5} (ваг.), пропущено {6} (ваг.).",
+                string mess = String.Format("Операция обновления операций над вагонами в подаче id={0}, выполнена - код выполнения {1}. Определено {2} вагонов, операция начата :{3} (ваг.), операция закрыта :{4} (ваг.), операция удалена :{5} (ваг.), пропущено {6} (ваг.).",
                 id_filing, rt.result, rt.count, rt.add, rt.update, rt.delete, rt.skip);
                 _logger.LogWarning(mess);
                 DateTime stop = DateTime.Now;
-                _logger.LogDebug(String.Format("Операция добавления вагонов в подачу."), start, stop, rt.result);
+                _logger.LogDebug(String.Format("Операция обновления операций над вагонами в подаче {0}.", id_filing), start, stop, rt.result);
                 return rt;
             }
             catch (Exception e)
             {
-                _logger.LogError(e, String.Format("UpdateFiling(id_filing={0}, mode={1}, vagons={2}, user={3})",
+                _logger.LogError(e, String.Format("UpdateOperationFiling(id_filing={0}, mode={1}, vagons={2}, user={3})",
                     id_filing, vagons, user));
                 rt.SetResult((int)errors_base.global);
                 return rt;  // Возвращаем id=-1 , Ошибка
             }
         }
+        /// <summary>
+        /// Править информацию по указаной подаче
+        /// </summary>
+        /// <param name="id_filing"></param>
+        /// <param name="mode"></param>
+        /// <param name="id_division"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public ResultUpdateIDWagon UpdateFiling(int id_filing, int mode, int id_division, string user)
+        {
+            ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, 0);
+            DateTime start = DateTime.Now;
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                EFDbContext context = new EFDbContext(this.options);
+                {
+                    WagonFiling? wf = context.WagonFilings
+                            .Where(f => f.Id == id_filing)
+                            .Include(wim => wim.WagonInternalMovements)
+                            .FirstOrDefault();
+                    if (wf != null)
+                    {
+                        if (wf.Close == null || mode == 9)
+                        {
+                            wf.IdDivision = id_division;
+                            rt.count = wf.WagonInternalMovements.Count();
+                            foreach (WagonInternalMovement wim in wf.WagonInternalMovements.Where(m => m.FilingStart != null).ToList())
+                            {
+                                WagonInternalRoute? wir = context.WagonInternalRoutes.Where(r => r.Id == wim.IdWagonInternalRoutes).FirstOrDefault();
+                                if (wir != null)
+                                {
+                                    ArrivalCar? arr_car = context.ArrivalCars.Where(c => c.Id == wir.IdArrivalCar).Include(doc => doc.IdArrivalUzVagonNavigation).FirstOrDefault();
+                                    // TODO: ДОБАВИТЬ ПРОВЕРКУ НА ВЫГРУЗКА С ПРИБЫТИЯ
+                                    // Обновим информацию в документе по прибытию
+                                    if (arr_car != null && arr_car.IdArrivalUzVagonNavigation != null && true)
+                                    {
+                                        arr_car.IdArrivalUzVagonNavigation.IdDivisionOnAmkr = wf.IdDivision;
+                                        //arr_car.IdArrivalUzVagonNavigation.IdStationOnAmkr = wim.IdStation;
+                                        rt.SetUpdateResult(wim.Id, 1, wir.Num); // Отметим операцию.
+                                    }
+                                    else
+                                    {
+                                        rt.SetSkipResult(wim.Id, 1, wir.Num);
+                                    }
+                                }
+                                else
+                                {
+                                    rt.SetErrorResult(wim.Id, (int)errors_base.not_wir_db, 0); // нет wir
+                                }
 
+                            }
+                            // Проверка на ошибки и сохранение результата
+                            if (rt.error == 0)
+                            {
+                                rt.SetResult(context.SaveChanges());
+                            }
+                            else
+                            {
+                                rt.SetResult((int)errors_base.cancel_save_changes);
+                            }
+                        }
+                        else
+                        {
+                            rt.SetResult((int)errors_base.close_wf);  // Запись WagonFiling - закрыта
+                        }
+                    }
+                    else
+                    {
+                        rt.SetResult((int)errors_base.not_wf_db); // В базе данных нет записи по WagonFiling (Подача вагонов)
+                    }
+
+                }
+                string mess = String.Format("Операция обновления подаче id={0}, выполнена - код выполнения {1}. Определено {2} вагонов, обновлено :{3} (ваг.), пропущено {4} (ваг.).",
+                id_filing, rt.result, rt.count, rt.update, rt.skip);
+                _logger.LogWarning(mess);
+                DateTime stop = DateTime.Now;
+                _logger.LogDebug(String.Format("Операция обновления подачи."), start, stop, rt.result);
+                return rt;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("UpdateFiling(id_filing={0}, mode={1}, id_division={2}, user={3})",
+                    id_filing, id_division, user));
+                rt.SetResult((int)errors_base.global);
+                return rt;  // Возвращаем id=-1 , Ошибка
+            }
+        }
         #endregion
 
         #region  Операции "Позицирование вагонов на пути"

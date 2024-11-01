@@ -753,7 +753,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/update/filing/operation/unloading
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing/operation/unloading")]
-        public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFilingUnloading([FromBody] OperationUpdateFilingUnloading value)
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFilingOperationUnloading([FromBody] OperationUpdateFilingUnloading value)
         {
             try
             {
@@ -765,7 +765,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.UpdateFiling(value.id_filing, value.mode, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, value.mode, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
