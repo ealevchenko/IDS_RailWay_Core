@@ -130,6 +130,13 @@ namespace WebAPI.Controllers.Directory
         public int id_filing { get; set; }
         public List<long> wagons { get; set; }
     }
+    public class OperationUpdateFilingUnloading
+    {
+        public int id_filing { get; set; }
+        public int mode { get; set; }
+        public List<UnloadingWagons> wagons { get; set; }
+    }
+
     #endregion
 
     #region ОПЕРАЦИЯ С ВАГОНАМИ НА ПУТИ (Обновленный АРМ)
@@ -735,6 +742,30 @@ namespace WebAPI.Controllers.Directory
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
                 ResultUpdateIDWagon result = ids_wir.DeleteWagonOfFiling(value.id_filing, value.wagons, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // POST: WSD/update/filing/operation/unloading
+        // BODY: WSD (JSON, XML)
+        [HttpPost("update/filing/operation/unloading")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFilingUnloading([FromBody] OperationUpdateFilingUnloading value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateIDWagon result = ids_wir.UpdateFiling(value.id_filing, value.mode, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
