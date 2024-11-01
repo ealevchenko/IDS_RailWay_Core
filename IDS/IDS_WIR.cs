@@ -2646,6 +2646,7 @@ namespace IDS_
                             // Операция "ВЫГРУЗКА"
                             if (vagons is List<UnloadingWagons>)
                             {
+                                int count_all = wf.WagonInternalMovements.Count();
                                 rt.count = ((List<UnloadingWagons>)vagons).Count();
                                 //// Проверим начало подачи, если не указанно, посмотрим вагоны
                                 //UnloadingWagons? start_uw = ((List<UnloadingWagons>)vagons).Where(v => v.start != null).OrderBy(c => c.start).FirstOrDefault();
@@ -2676,13 +2677,22 @@ namespace IDS_
                                     }
                                 }
                                 int count_close = wf.WagonInternalMovements.Where(m=>m.FilingEnd != null).Count();
-                                if (rt.count == count_close) {
+                                if (count_all == count_close) {
                                     WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m=>m.FilingEnd != null).OrderByDescending(c=>c.FilingEnd).FirstOrDefault();
                                     DateTime? close = wim_close_max != null ? wim_close_max.FilingEnd : null;
                                     wf.EndFiling = close;
                                     wf.Close = close;
                                     wf.CloseUser = user;
                                 }
+                            }
+                            // Проверка на ошибки и сохранение результата
+                            if (rt.error == 0)
+                            {
+                                rt.SetResult(context.SaveChanges());
+                            }
+                            else
+                            {
+                                rt.SetResult((int)errors_base.cancel_save_changes);
                             }
                         }
                         else
