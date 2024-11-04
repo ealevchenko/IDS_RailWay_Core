@@ -375,15 +375,17 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-        // GET: WSD/view/wagons/filing/period/start/2024-09-01T00:00:00/stop/2024-10-30T00:00:00/station/id/7
+        // GET: WSD/view/wagons/filing/period/start/2024-10-15T00:00:00/stop/2024-11-05T00:00:00/station/id/7
         [HttpGet("view/wagons/filing/period/start/{start:DateTime}/stop/{stop:DateTime}/station/id/{id_station}")]
         public async Task<ActionResult<IEnumerable<ViewWagonsFiling>>> GetViewWagonsFilingOfPeriodIdStation(DateTime start, DateTime stop, int id_station)
         {
             try
             {
+                db.Database.SetCommandTimeout(300);
                 List<ViewWagonsFiling> result = await db.getViewWagonsFilingOfPeriodIdStation(start, stop, id_station).ToListAsync();
                 if (result == null)
                     return NotFound();
+                db.Database.SetCommandTimeout(0);
                 return Ok(result);
             }
             catch (Exception e)
