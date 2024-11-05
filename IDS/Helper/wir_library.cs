@@ -26,7 +26,7 @@ namespace IDS.Helper
                 wir.Close = DateTime.Now;
                 wir.CloseUser = user;
                 wir.GetLastMovement(ref context).CloseMovement(date_end, note, user);
-                wir.GetLastOperation(ref context).CloseOperation(date_end, note, user);
+                wir.GetLastOperation(ref context).CloseOperation(date_end, note, null, user);
                 // Далее добавить закрытие перемещений по требованию
             }
             return wir.Id;
@@ -172,18 +172,18 @@ namespace IDS.Helper
                     Note = note,
                     Create = DateTime.Now,
                     CreateUser = user,
-                    ParentId = wio_last.CloseOperation(date_start, null, user)
+                    ParentId = wio_last.CloseOperation(date_start, null, id_loading_status, user)
                 };
 
                 wir.WagonInternalOperations.Add(wio_new);
             }
             return wio_new;
         }
-        public static WagonInternalOperation SetCloseOperation(this WagonInternalOperation wio, DateTime date_end, string note, string user)
+        public static WagonInternalOperation SetCloseOperation(this WagonInternalOperation wio, DateTime date_end, string note, int? id_loading_status, string user)
         {
             if (wio != null && wio.Close == null)
             {
-                wio.CloseOperation(date_end, note, user);
+                wio.CloseOperation(date_end, note, id_loading_status, user);
             }
             return wio;
         }
@@ -372,13 +372,14 @@ namespace IDS.Helper
             return wio;
         }
 
-        public static long? CloseOperation(this WagonInternalOperation wio, DateTime date_end, string? note, string user)
+        public static long? CloseOperation(this WagonInternalOperation wio, DateTime date_end, string? note, int? id_loading_status, string user)
         {
             if (wio == null) return null;
             if (wio.Close == null)
             {
                 wio.OperationEnd = wio.OperationEnd == null ? date_end : wio.OperationEnd;
                 wio.Note = note != null ? note : wio.Note;
+                wio.IdLoadingStatus = id_loading_status != null ? (int)id_loading_status : wio.IdLoadingStatus;
                 wio.Close = date_end;
                 wio.CloseUser = user;
             }
