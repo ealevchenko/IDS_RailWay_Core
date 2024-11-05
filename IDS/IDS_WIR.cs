@@ -2055,7 +2055,7 @@ namespace IDS_
             {
                 mode_obj mode_result = mode_obj.not;
                 bool upd_st_div = false; // Признак обновления станции амкр и подразделения
-                if ((vag.id_wagon_operations != null && (vag.start != null || vag.stop != null)) || (vag.id_wagon_operations == null))
+                if ((vag.id_wagon_operations != null && (vag.start != null || vag.stop != null)) || (vag.id_wagon_operations == null) || (mode == 4 && vag.id_status_load != null))
                 {
                     WagonInternalMovement? wim = context.WagonInternalMovements.Where(m => m.Id == vag.id_wim).FirstOrDefault();
                     if (wim != null)
