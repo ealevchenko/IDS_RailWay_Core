@@ -75,7 +75,7 @@ namespace Test.TestModele
             wagons.Add(new UnloadingWagons { id_wim = 11808821, start = null, stop = null, id_wagon_operations = null, id_status_load = null });
             wagons.Add(new UnloadingWagons { id_wim = 11808828, start = new DateTime(2024, 10, 16, 1, 0, 0), stop = new DateTime(2024, 10, 16, 2, 0, 0), id_wagon_operations = 13, id_status_load = 3 });
 
-            ResultUpdateIDWagon result = ids_wir.AddFiling(0, 164, 78, new DateTime(2024, 10, 16, 0, 0, 0), wagons, "TЭM18-183", null, null);
+            //ResultUpdateIDWagon result = ids_wir.AddFiling(0, 164, 78, new DateTime(2024, 10, 16, 0, 0, 0), wagons, "TЭM18-183", null, null);
         }
 
     }
