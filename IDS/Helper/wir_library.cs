@@ -97,7 +97,7 @@ namespace IDS.Helper
                 // Получим последнее положение
                 WagonInternalMovement? wim = wir.GetLastMovement(ref context);
                 // Исключим попытку поставить дублирования записи постановки на путь
-                if (wim == null || (wim != null && (wim.IdStation != id_station || wim.IdWay != id_way || wim.Position != position || wim.IdOuterWay != null)))
+                if (wim == null || (wim != null && (wim.IdStation != id_station || wim.IdWay != id_way || wim.Position != position || wim.IdOuterWay != null || wim.IdFiling != null)))
                 {
                     wim_new = new WagonInternalMovement()
                     {
