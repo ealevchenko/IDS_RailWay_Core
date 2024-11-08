@@ -39,7 +39,8 @@
         err_create_wim_db = -304,                   // Ошибка создания новой позиции вагона.
         err_last_wim_db = -305,                     // Ошибка позиция вагона несоответсвует последней позиции в базе
         wim_lock_wf = -306,                         // Вагон заблокирован, пренадлежит другой подаче
-        close_wim = -307,                           // Вагон закрыт
+        wim_open_wf = -307,                         // Вагон заблокирован, операция в подаче уже открыта
+        close_wim = -308,                           // Вагон закрыт
 
         // таблица подач wf -350...
         not_wf_db = -351,                          // В базе данных нет записи по WagonFiling (Подача вагонов)
@@ -348,9 +349,11 @@
         public int update { get; set; }
         public int skip { get; set; }
         public int error { get; set; }
-        public int close { get; set; }
         public int delete { get; set; }
         public int add { get; set; }
+        public int open { get; set; }
+        public int close { get; set; }
+        public int clear { get; set; }
 
         public long id { get; set; }
 
@@ -377,6 +380,9 @@
                 case mode_obj.add: SetInsertResult(id, result, num); break;
                 case mode_obj.update: SetUpdateResult(id, result, num); break;
                 case mode_obj.delete: SetDeleteResult(id, result, num); break;
+                case mode_obj.close: SetCloseResult(id, result, num); break;
+                case mode_obj.open: SetOpenResult(id, result, num); break;
+                case mode_obj.clear: SetClearResult(id, result, num); break;
                 default: SetSkipResult(id, result, num); break;
             }
         }
@@ -469,6 +475,34 @@
             }
             AddSkip(); return;
         }
+        public void SetOpenResult(long id, int result, int num)
+        {
+            listResult.Add(new ResultIDWagon() { id = id, num = num, result = result });
+
+            if (result < 0)
+            {
+                AddError(result); return;
+            }
+            if (result > 0)
+            {
+                AddOpen(); return;
+            }
+            AddSkip(); return;
+        }
+        public void SetClearResult(long id, int result, int num)
+        {
+            listResult.Add(new ResultIDWagon() { id = id, num = num, result = result });
+
+            if (result < 0)
+            {
+                AddError(result); return;
+            }
+            if (result > 0)
+            {
+                AddClear(); return;
+            }
+            AddSkip(); return;
+        }
         public void SetResult(int code)
         {
             this.result = code;
@@ -500,6 +534,14 @@
         public void AddInsert()
         {
             this.add++;
+        }
+        public void AddOpen()
+        {
+            this.open++;
+        }
+        public void AddClear()
+        {
+            this.clear++;
         }
     }
     /// <summary>
