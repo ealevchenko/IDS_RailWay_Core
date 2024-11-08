@@ -1806,35 +1806,6 @@ namespace IDS_
 
         }
         /// <summary>
-        /// Закрыть подачу
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="wf"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public int CloseFiling(ref EFDbContext context, WagonFiling wf, string user)
-        {
-            try
-            {
-                int count_close = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).Count();
-                if (wf.WagonInternalMovements.Count() == count_close)
-                {
-                    WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).OrderByDescending(c => c.FilingEnd).FirstOrDefault();
-                    DateTime? close = wim_close_max != null ? wim_close_max.FilingEnd : null;
-                    wf.EndFiling = close;
-                    wf.Close = close;
-                    wf.CloseUser = user;
-                }
-                return 1;
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, String.Format("CloseFiling(context={0}, wf={1}, user={2})",
-                    context, wf, user));
-                return (int)errors_base.global;
-            }
-        }
-        /// <summary>
         /// Обновить информацию по вагону в подаче
         /// </summary>
         /// <param name="context"></param>
@@ -1848,172 +1819,96 @@ namespace IDS_
             try
             {
                 mode_obj mode_result = mode_obj.not;
-                bool upd_st_div = false; // Признак обновления станции амкр и подразделения
                 if ((vag.id_wagon_operations != null && (vag.start != null || vag.stop != null)) || (vag.id_wagon_operations == null) || (mode == 4 && vag.id_status_load != null))
                 {
-                    WagonInternalMovement? wim = context.WagonInternalMovements.Where(m => m.Id == vag.id_wim).FirstOrDefault();
+                    WagonInternalMovement? wim = context.WagonInternalMovements
+                        .Include(wir => wir.IdWagonInternalRoutesNavigation)
+                        .Include(wio => wio.IdWioNavigation)
+                        .Where(m => m.Id == vag.id_wim).FirstOrDefault();
+
                     if (wim != null)
                     {
-                        // Проверим wim не принадлежит другой подаче
-                        if ((wim.IdFiling != null && wf.Id == wim.IdFiling) || (wim.IdFiling == null) || (mode == 9))
+                        // Внутренее перемещение не закрыто 
+                        // Проверим внутренее перемещение вагона, существует? открыто?
+                        WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
+                        if (wir == null) return (int)errors_base.not_wir_db; // нет wir
+                        WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
+                        WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
+
+                        if (wim_last != null && wim_last.Id == wim.Id)
                         {
-                            // Дислокация существует
-                            WagonInternalRoute? wir = context.WagonInternalRoutes.Where(r => r.Id == wim.IdWagonInternalRoutes).FirstOrDefault();
-                            if (wir != null)
+                            // Это последняя позиция во внутренем перемещении
+                            // Получим операцию этой позиции
+                            WagonInternalOperation? wio = wim.IdWioNavigation;
+                            if ((wio == null) || (wio != null && wio_last.Id == wio.Id))
                             {
-                                // Внутренее перемещение существует 
-                                if (wir.Close == null)
+                                // mode - можно режимы учитывать
+                                long res_open = 0;
+                                long res_close = 0;
+                                // Только добавить
+                                if (vag.id_wagon_operations == null && vag.start == null && vag.stop == null && vag.id_status_load == null)
                                 {
-                                    // Внутренее перемещение не закрыто 
-                                    WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
-                                    WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
-
-                                    if (wim_last != null && wim_last.Id == wim.Id)
+                                    long res_add = wf.SetAddWagonFiling(wim, user);
+                                    if (res_add > 0)
                                     {
-                                        // Это последняя позиция во внутренем перемещении
-                                        // Получим операцию этой позиции
-                                        WagonInternalOperation? wio = context.WagonInternalOperations.Where(o => o.Id == wim.IdWio).FirstOrDefault();
-                                        if ((wio == null) || (wio != null && wio_last.Id == wio.Id))
-                                        {
-                                            if (mode == 0 || mode == 2) wim.FilingStart = vag.start;
-                                            if (mode == 0 || mode == 2 || mode == 3) wim.FilingEnd = vag.stop;
-
-                                            if (vag.id_wagon_operations != null)
-                                            {
-                                                if (wio == null)
-                                                {
-                                                    if (mode == 0 || mode == 2)
-                                                    {
-                                                        //создать операцию
-                                                        if (vag.start != null)
-                                                        {
-                                                            WagonInternalOperation new_operation = wir.SetOpenOperation(ref context, (int)vag.id_wagon_operations, (DateTime)vag.start, null, null, null, null, wf.Note, user);
-                                                            if (vag.stop != null)
-                                                            {
-                                                                new_operation.SetCloseOperation((DateTime)vag.stop, null, vag.id_status_load, user);
-                                                                upd_st_div = true; // обновить
-                                                            }
-                                                            wim.IdWioNavigation = new_operation; // добавим новую операцию
-                                                        }
-                                                        mode_result = mode_obj.add; // insert                                                    
-                                                    }
-                                                    else if (mode == 9)
-                                                    {
-                                                        //TODO:админка!
-
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    // Операция существует, и соответсвует текушей операции
-                                                    if (wio.IdOperation == vag.id_wagon_operations)
-                                                    {
-                                                        if (wio.OperationEnd == null)
-                                                        {
-                                                            if (vag.stop != null && mode == 3)
-                                                            {
-                                                                wio.SetCloseOperation((DateTime)vag.stop, null, vag.id_status_load, user);
-                                                                upd_st_div = true; // обновить
-                                                                mode_result = mode_obj.update; // закрыта
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            // Если подача открыта а операция закрыта, можно только поменять статус
-                                                            if (vag.id_status_load != null && wio.IdLoadingStatus != vag.id_status_load && mode == 4)
-                                                            {
-                                                                wio.IdLoadingStatus = (int)vag.id_status_load;
-                                                                mode_result = mode_obj.update; // закрыта
-                                                            }
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-
-                                                        return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует текущей
-                                                    }
-                                                    if (mode == 9)
-                                                    {
-                                                        //TODO:админка! править операцию
-                                                        //if (vag.start == null)
-                                                        //{
-                                                        //    // Удалить операцию
-                                                        //    context.WagonInternalOperations.Remove(wio);
-                                                        //    wim.IdWioNavigation = null;
-                                                        //    mode_result = mode_obj.delete; // delete
-                                                        //}
-                                                        //else
-                                                        //{
-                                                        //    // править операцию
-                                                        //    wio.IdOperation = (int)vag.id_wagon_operations;
-                                                        //    wio.OperationStart = (DateTime)vag.start;
-                                                        //    if (vag.stop != null)
-                                                        //    {
-                                                        //        wio.SetCloseOperation((DateTime)vag.stop, null, user);
-                                                        //    }
-                                                        //    mode_result = mode_obj.update; // update
-                                                        //}
-                                                    }
-                                                }
-                                            }
-                                            else
-                                            {
-                                                // Операция не указана и режим админ, удалим существующую
-                                                if (wio != null && mode == 9)
-                                                {
-                                                    context.WagonInternalOperations.Remove(wio);
-                                                    wim.IdWioNavigation = null;
-                                                    mode_result = mode_obj.delete; // delete
-                                                }
-                                            }
-                                            // Правим wim (добавим вагон в подачу)
-                                            if (wim.IdFiling == null)
-                                            {
-                                                wf.WagonInternalMovements.Add(wim);
-                                            }
-                                            // Обновляю если опреация по вагону закрыта
-                                            if (upd_st_div)
-                                            {
-                                                ArrivalCar? arr_car = context.ArrivalCars.Where(c => c.Id == wir.IdArrivalCar).Include(doc => doc.IdArrivalUzVagonNavigation).FirstOrDefault();
-                                                // TODO: ДОБАВИТЬ ПРОВЕРКУ НА ВЫГРУЗКА С ПРИБЫТИЯ
-                                                // Обновим информацию в документе по прибытию
-                                                if (arr_car != null && arr_car.IdArrivalUzVagonNavigation != null && true)
-                                                {
-                                                    arr_car.IdArrivalUzVagonNavigation.IdDivisionOnAmkr = wf.IdDivision;
-                                                    arr_car.IdArrivalUzVagonNavigation.IdStationOnAmkr = wim.IdStation;
-                                                }
-                                            }
-                                            // Обновим начало подачи если указана начало операции
-                                            if ((wf.StartFiling != null && wim.FilingStart != null && wf.StartFiling > wim.FilingStart) || (wf.StartFiling == null && wim.FilingStart != null))
-                                            {
-                                                wf.StartFiling = wim.FilingStart;
-                                            }
-                                            // Отметим операцию
-                                            return (int)mode_result;
-                                        }
-                                        else
-                                        {
-                                            return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует текущей
-                                        }
+                                        mode_result = mode_obj.add; // insert 
                                     }
                                     else
                                     {
-                                        return (int)errors_base.err_last_wim_db; // Ошибка позиция вагона несоответсвует последней позиции в базе
+                                        return (int)res_add; // Ошибка
                                     }
                                 }
-                                else
+                                // Создать и закрыть
+                                if (vag.start != null && vag.stop != null && vag.id_status_load != null)
                                 {
-                                    return (int)errors_base.close_wir; // wir закрыт
+                                    res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.start, wf.Note, user);
+                                    res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
+                                    if (res_open > 0 && res_close > 0)
+                                    {
+                                        mode_result = mode_obj.close; // update 
+                                    }
                                 }
+                                // создать
+                                if (vag.start != null && vag.stop == null)
+                                {
+                                    res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.start, wf.Note, user);
+                                    if (res_open > 0)
+                                    {
+                                        mode_result = mode_obj.open; // update 
+                                    }
+                                }
+                                // закрыть
+                                if (vag.start == null && vag.stop != null)
+                                {
+                                    res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
+                                    if (res_close > 0)
+                                    {
+                                        mode_result = mode_obj.close; // update 
+                                    }
+                                }
+                                // Обновляю если опреация по вагону закрыта
+                                if (res_close > 0)
+                                {
+                                    ArrivalCar? arr_car = context.ArrivalCars.Where(c => c.Id == wir.IdArrivalCar).Include(doc => doc.IdArrivalUzVagonNavigation).FirstOrDefault();
+                                    // TODO: ДОБАВИТЬ ПРОВЕРКУ НА ВЫГРУЗКА С ПРИБЫТИЯ
+                                    // Обновим информацию в документе по прибытию
+                                    if (arr_car != null && arr_car.IdArrivalUzVagonNavigation != null && true)
+                                    {
+                                        arr_car.IdArrivalUzVagonNavigation.IdDivisionOnAmkr = wf.IdDivision;
+                                        arr_car.IdArrivalUzVagonNavigation.IdStationOnAmkr = wim.IdStation;
+                                    }
+                                }
+                                // Отметим операцию
+                                return (int)mode_result;
                             }
                             else
                             {
-                                return (int)errors_base.not_wir_db; // нет wir
+                                return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует текущей
                             }
                         }
                         else
                         {
-                            return (int)errors_base.wim_lock_wf; // // Вагон заблокирован, пренадлежит другой подаче
+                            return (int)errors_base.err_last_wim_db; // Ошибка позиция вагона несоответсвует последней позиции в базе
                         }
 
                     }
@@ -2107,23 +2002,12 @@ namespace IDS_
                             // Отметим операцию
                             if (result >= 0)
                             {
-
                                 rt.SetModeResult((mode_obj)result, vag.id_wim, 1, num); // Операция выполнена
                             }
                             else
                             {
                                 rt.SetErrorResult(vag.id_wim, result, num);
                             }
-                        }
-                        // Проверим подачу закрывать
-                        int count_close = ((List<UnloadingWagons>)vagons).Where(v => v.stop != null).Count();
-                        if (rt.count == count_close)
-                        {
-                            UnloadingWagons? uv_max_close = ((List<UnloadingWagons>)vagons).Where(v => v.stop != null).OrderBy(c => c.stop).FirstOrDefault();
-                            DateTime? close = uv_max_close != null ? uv_max_close.stop : null;
-                            wf.EndFiling = close;
-                            wf.Close = close;
-                            wf.CloseUser = user;
                         }
                     }
                     // Проверка на ошибки и сохранение результата
@@ -2206,14 +2090,16 @@ namespace IDS_
                                                 {
                                                     // Получим операцию этой позиции
                                                     WagonInternalOperation? wio = context.WagonInternalOperations.Where(o => o.Id == wim.IdWio).FirstOrDefault();
-                                                    if ((wio == null) || (wio != null && wio_last.Id == wio.Id))
+                                                    if ((wio == null)) //  || (wio != null && wio_last.Id == wio.Id)
                                                     {
                                                         wf.WagonInternalMovements.Add(wim);
+                                                        wf.Change = DateTime.Now;
+                                                        wf.ChangeUser = user;
                                                         result.SetInsertResult(id_wim, 1, wir.Num); // Отметим операцию.
                                                     }
                                                     else
                                                     {
-                                                        result.SetErrorResult(id_wim, (int)errors_base.err_last_wio_db, wir.Num); // Ошибка, операция вагона несоответсвует последней операции во внутренем перемещении
+                                                        result.SetErrorResult(id_wim, (int)errors_base.wagon_open_operation, wir.Num); // Ошибка, Операция открыта
                                                     }
                                                 }
                                                 else
@@ -2338,6 +2224,8 @@ namespace IDS_
                                                         if ((wio == null) || (wio != null && wio_last.Id == wio.Id))
                                                         {
                                                             wf.WagonInternalMovements.Remove(wim);
+                                                            wf.Change = DateTime.Now;
+                                                            wf.ChangeUser = user;
                                                             result.SetDeleteResult(id_wim, 1, wir.Num); // Отметим операцию.
                                                         }
                                                         else
@@ -2378,10 +2266,7 @@ namespace IDS_
                                 else
                                 {
                                     // Проверим и закроем подачу
-                                    int res = CloseFiling(ref context, wf, user);
-                                    if (res < 0 && result.error >= 0) {
-                                        result.error = res;
-                                    }
+                                    wf.SetCloseFiling(user);
                                 }
                                 // Проверка на ошибки и сохранение результата
                                 if (result.error == 0)
@@ -2483,21 +2368,6 @@ namespace IDS_
                                         rt.SetErrorResult(vag.id_wim, result, num);
                                     }
                                 }
-                                // Проверим и закроем подачу
-                                int res = CloseFiling(ref context, wf, user);
-                                if (res < 0 && rt.error >= 0)
-                                {
-                                    rt.error = res;
-                                }
-                                //int count_close = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).Count();
-                                //if (count_all == count_close)
-                                //{
-                                //    WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).OrderByDescending(c => c.FilingEnd).FirstOrDefault();
-                                //    DateTime? close = wim_close_max != null ? wim_close_max.FilingEnd : null;
-                                //    wf.EndFiling = close;
-                                //    wf.Close = close;
-                                //    wf.CloseUser = user;
-                                //}
                             }
                             // Проверка на ошибки и сохранение результата
                             if (rt.error == 0)
