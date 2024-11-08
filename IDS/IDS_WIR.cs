@@ -1960,6 +1960,16 @@ namespace IDS_
                             }
                         }
                     }
+                    // Проверка на закрытие подачи
+                    if (rt.error == 0)
+                    {
+                        // Проверка и закрытие подачи с обновлением времени
+                        long res = wf.SetCloseFiling(user);
+                        if (res < 0)
+                        {
+                            rt.SetResult((int)res);
+                        }
+                    }
                     // Проверка на ошибки и сохранение результата
                     if (rt.error == 0)
                     {
@@ -2168,6 +2178,16 @@ namespace IDS_
                             {
                                 rt.SetErrorResult(vag.id_wim, result, num);
                             }
+                        }
+                    }
+                    // Проверка на закрытие подачи
+                    if (rt.error == 0)
+                    {
+                        // Проверка и закрытие подачи с обновлением времени
+                        long res = wf.SetCloseFiling(user);
+                        if (res < 0)
+                        {
+                            rt.SetResult((int)res);
                         }
                     }
                     // Проверка на ошибки и сохранение результата

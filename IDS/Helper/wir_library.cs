@@ -96,31 +96,61 @@ namespace IDS.Helper
             {
                 // Получим последнее положение
                 WagonInternalMovement? wim = wir.GetLastMovement(ref context);
-                // Исключим попытку поставить дублирования записи постановки на путь
-                if (wim == null || (wim != null && (wim.IdStation != id_station || wim.IdWay != id_way || wim.Position != position || wim.IdOuterWay != null || wim.IdFiling != null)))
-                {
-                    wim_new = new WagonInternalMovement()
-                    {
-                        Id = 0,
-                        IdStation = id_station,
-                        IdWay = id_way,
-                        WayStart = date_start,
-                        WayEnd = null,
-                        Position = position,
-                        IdOuterWay = null,
-                        OuterWayStart = null,
-                        OuterWayEnd = null,
-                        Create = DateTime.Now,
-                        CreateUser = user,
-                        NumSostav = null,
-                        Note = note,
-                        ParentId = wim.CloseMovement(date_start, null, user),
-                    };
-                    wir.WagonInternalMovements.Add(wim_new);
-                }
+                wim_new = wim.SetStationWagon(ref context, id_station, id_way, date_start, position, note, user, check_replay);
+                //    // Исключим попытку поставить дублирования записи постановки на путь
+                //    if (wim == null || (wim != null && (wim.IdStation != id_station || wim.IdWay != id_way || wim.Position != position || wim.IdOuterWay != null || wim.IdFiling != null)))
+                //    {
+                //        wim_new = new WagonInternalMovement()
+                //        {
+                //            Id = 0,
+                //            IdStation = id_station,
+                //            IdWay = id_way,
+                //            WayStart = date_start,
+                //            WayEnd = null,
+                //            Position = position,
+                //            IdOuterWay = null,
+                //            OuterWayStart = null,
+                //            OuterWayEnd = null,
+                //            Create = DateTime.Now,
+                //            CreateUser = user,
+                //            NumSostav = null,
+                //            Note = note,
+                //            ParentId = wim.CloseMovement(date_start, null, user),
+                //        };
+                //        wir.WagonInternalMovements.Add(wim_new);
+                //    }
             }
             return wim_new;
         }
+        public static WagonInternalMovement SetStationWagon(this WagonInternalMovement wim, ref EFDbContext context, int id_station, int id_way, DateTime date_start, int position, string note, string user, bool check_replay)
+        {
+            if (wim == null) return null;
+            WagonInternalMovement? wim_new = null;
+            // Исключим попытку поставить дублирования записи постановки на путь
+            if (wim == null || (wim != null && (wim.IdStation != id_station || wim.IdWay != id_way || wim.Position != position || wim.IdOuterWay != null || wim.IdFiling != null || wim.IdFilingNavigation != null)))
+            {
+                wim_new = new WagonInternalMovement()
+                {
+                    Id = 0,
+                    IdStation = id_station,
+                    IdWay = id_way,
+                    WayStart = date_start,
+                    WayEnd = null,
+                    Position = position,
+                    IdOuterWay = null,
+                    OuterWayStart = null,
+                    OuterWayEnd = null,
+                    Create = DateTime.Now,
+                    CreateUser = user,
+                    NumSostav = null,
+                    Note = note,
+                    ParentId = wim.CloseMovement(date_start, null, user),
+                };
+                wim.IdWagonInternalRoutesNavigation.WagonInternalMovements.Add(wim_new);
+            }
+            return wim_new;
+        }
+
         /// <summary>
         /// Установить вагон на путь отправки
         /// </summary>
@@ -327,8 +357,6 @@ namespace IDS.Helper
             wf.ChangeUser = user;
             if (wim_new != null)
             {
-                // Проверка и закрытие подачи с обновлением времени
-                wf.SetCloseFiling(user);
                 return wim.Id;
             }
             else
@@ -397,6 +425,7 @@ namespace IDS.Helper
             // Если wim не пренадлежит подаче, тогда добавим в подачу
             if (wim.IdFiling == null)
             {
+                wim.IdFilingNavigation = wf;
                 wf.WagonInternalMovements.Add(wim);
                 wf.Change = DateTime.Now;
                 wf.ChangeUser = user;
