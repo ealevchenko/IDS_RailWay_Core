@@ -316,7 +316,7 @@ namespace IDS.Helper
             WagonInternalOperation? wio = wim.IdWioNavigation;
             if (wio == null) return (int)errors_base.not_wio_db; // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
             WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
-            if (wio != null && wio_last.Id != wio.Id) return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует последней
+            if (wio != null && wio.Id > 0 && wio_last.Id != wio.Id) return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует последней
             // Закроем операцию и позицию создадим новую строку
             wio.SetCloseOperation((DateTime)date_stop, null, id_status_load, user);
             wim.FilingEnd = date_stop;
