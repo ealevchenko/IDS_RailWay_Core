@@ -9,6 +9,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using WebAPI.Repositories;
 using WebAPI.Repositories.Directory;
+using System.Collections.Generic;
 
 namespace WebAPI.Controllers.Directory
 {
@@ -56,6 +57,21 @@ namespace WebAPI.Controllers.Directory
                 return NotFound();
             return new ObjectResult(result);
         }
+
+        // GET: DirectoryWagonLoadingStatus/wagon_operations/13
+        [HttpGet("wagon_operations/{id}")]
+        public async Task<ActionResult<IEnumerable<DirectoryWagonLoadingStatus>>> GetDirectoryWagonLoadingStatusOfWagonOperations(int id)
+        {
+            List<DirectoryWagonLoadingStatus> result = await db.DirectoryWagonOperationsLoadingStatuses
+                .AsNoTracking()
+                .Where(s=>s.IdWagonOperations == id)
+                .Select(x=>x.IdWagonLoadingStatusNavigation)
+                .ToListAsync();
+            if (result == null)
+                return NotFound();
+            return new ObjectResult(result);
+        }
+
 
         //// POST: DirectoryWagonLoadingStatus
         //// BODY: DirectoryWagonLoadingStatus (JSON, XML)

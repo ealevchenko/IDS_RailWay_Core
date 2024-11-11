@@ -35,6 +35,10 @@ public partial class DirectoryWagonLoadingStatus
     [StringLength(50)]
     public string? ChangeUser { get; set; }
 
+    [InverseProperty("IdWagonLoadingStatusNavigation")]
+    public virtual ICollection<DirectoryWagonOperationsLoadingStatus> DirectoryWagonOperationsLoadingStatuses { get; set; } = new List<DirectoryWagonOperationsLoadingStatus>();
+
+
     [InverseProperty("IdLoadingStatusNavigation")]
     public virtual ICollection<WagonInternalOperation> WagonInternalOperations { get; } = new List<WagonInternalOperation>();
 }

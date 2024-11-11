@@ -146,6 +146,8 @@ public partial class EFDbContext : DbContext
 
     public virtual DbSet<DirectoryWagonOperation> DirectoryWagonOperations { get; set; }
 
+    public virtual DbSet<DirectoryWagonOperationsLoadingStatus> DirectoryWagonOperationsLoadingStatuses { get; set; }
+
     public virtual DbSet<DirectoryGroupWagonOperation> DirectoryGroupWagonOperations { get; set; }
 
     public virtual DbSet<DirectoryTypeDownTimeWagonOperation> DirectoryTypeDownTimeWagonOperations { get; set; }
@@ -618,6 +620,17 @@ public partial class EFDbContext : DbContext
             entity.HasOne(d => d.IdGroupNavigation).WithMany(p => p.DirectoryWagonOperations).HasConstraintName("FK_Directory_WagonOperations_Directory_GroupWagonOperations");
 
             entity.HasOne(d => d.IdTypeDownTimeNavigation).WithMany(p => p.DirectoryWagonOperations).HasConstraintName("FK_Directory_WagonOperations_Directory_TypeDownTimeWagonOperations");
+        });
+
+        modelBuilder.Entity<DirectoryWagonOperationsLoadingStatus>(entity =>
+        {
+            entity.HasOne(d => d.IdWagonLoadingStatusNavigation).WithMany(p => p.DirectoryWagonOperationsLoadingStatuses)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Directory_WagonOperationsLoadingStatus_Directory_WagonLoadingStatus");
+
+            entity.HasOne(d => d.IdWagonOperationsNavigation).WithMany(p => p.DirectoryWagonOperationsLoadingStatuses)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Directory_WagonOperationsLoadingStatus_Directory_WagonOperations");
         });
 
         modelBuilder.Entity<DirectoryWagonsRent>(entity =>
