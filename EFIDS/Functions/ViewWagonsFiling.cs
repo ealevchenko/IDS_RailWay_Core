@@ -15,8 +15,8 @@ public class ViewWagonsFiling
     [Column("id_wir")]
     public long IdWir { get; set; }
 
-    [Column("curr_id_wim")]
-    public long CurrIdWim { get; set; }
+    [Column("is_moving")]
+    public bool IsMoving { get; set; }
 
     [Column("id_wf")]
     public long IdWf { get; set; }
@@ -58,6 +58,12 @@ public class ViewWagonsFiling
 
     [Column("num")]
     public int Num { get; set; }
+
+    [Column("arrival_nom_doc")]
+    public int? ArrivalNomDoc { get; set; }
+
+    [Column("arrival_nom_main_doc")]
+    public int? ArrivalNomMainDoc { get; set; }
 
     [Column("position")]
     public int Position { get; set; }
