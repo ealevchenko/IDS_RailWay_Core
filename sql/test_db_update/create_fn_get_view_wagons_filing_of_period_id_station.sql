@@ -1,7 +1,7 @@
 USE [KRR-PA-CNT-Railway-Archive]
 GO
 
-/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 25.10.2024 15:24:19 ******/
+/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 11.11.2024 9:59:00 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -19,7 +19,7 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 	@view_wagons TABLE  (
 	[id_wim] [bigint] NOT NULL,
 	[id_wir] [bigint] NOT NULL,
-	[curr_id_wim] [bigint] NOT NULL,
+	[is_moving] [bit] NOT NULL,
 	[id_wf] [bigint] NOT NULL,
 	[num_filing] [nvarchar](50) NOT NULL,
 	[note] [nvarchar](250) NULL,
@@ -32,6 +32,8 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 	[filing_close] [datetime] NULL,
 	[filing_close_user] [nvarchar](50) NULL,
 	[num] [int] NOT NULL,
+	[arrival_nom_doc] [int] NULL,
+	[arrival_nom_main_doc] [int] NULL,
 	[position] [int] NOT NULL,
 	[filing_way_start] [datetime] NOT NULL,
 	[filing_way_end] [datetime] NULL,
@@ -165,7 +167,7 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		--> Внутренее перемещение
 		wim_filing.[id] as id_wim
 		,wim_filing.[id_wagon_internal_routes] as id_wir
-		,curr_wim.[id] as curr_id_wim
+		,[is_moving] = [IDS].[is_wagon_moving_of_id_wim](wim_filing.[id])--,curr_wim.[id] as curr_id_wim
 		,wf.[id] as id_wf
 		,wf.[num_filing]
 		,wf.[note]
@@ -178,6 +180,8 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		,wf.[close] as filing_close
 		,wf.[close_user] as filing_close_user
 		,wir.[num]
+		,arr_doc_uz.[nom_doc] as arrival_nom_doc -- Номер документа(досылки)
+		,arrival_nom_main_doc = CASE WHEN arr_doc_uz.[nom_main_doc] is not null AND arr_doc_uz.[nom_main_doc]>0 THEN arr_doc_uz.[nom_main_doc] ELSE null END
 		,wim_filing.[position] as position		-- Позиция вагона
 		,wim_filing.[way_start] as filing_way_start
 		,wim_filing.[way_end] as filing_way_end
@@ -329,7 +333,7 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		--> положение на момент подачи
 		INNER JOIN IDS.WagonInternalRoutes as wir ON wim_filing.id_wagon_internal_routes = wir.id
 		--> Текущее внетренее перемещение
-		INNER JOIN IDS.WagonInternalMovement as curr_wim ON curr_wim.id = (SELECT TOP (1) [id] FROM [IDS].[WagonInternalMovement] where [id_wagon_internal_routes]= wir.id order by id desc) 
+		--INNER JOIN IDS.WagonInternalMovement as curr_wim ON curr_wim.id = (SELECT TOP (1) [id] FROM [IDS].[WagonInternalMovement] where [id_wagon_internal_routes]= wir.id order by id desc) 
 		--> Операция подачи		
 		LEFT JOIN IDS.WagonInternalOperation as wio_filing  ON wio_filing.[id] = wim_filing.[id_wio]
 	   --==== ПРИБЫТИЕ И ПРИЕМ ВАГОНА =====================================================================
