@@ -25,6 +25,12 @@ public class ViewWagonsFiling
     [StringLength(50)]
     public string NumFiling { get; set; } = null!;
 
+    [Column("type_filing")]
+    public int typeFiling { get; set; }
+
+    [Column("vesg")]
+    public int? vesg { get; set; }
+
     [Column("note")]
     [StringLength(250)]
     public string? Note { get; set; }
