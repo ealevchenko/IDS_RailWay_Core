@@ -17,7 +17,9 @@ go
 CREATE TABLE [IDS].[WagonFiling](
 	[id] [bigint] IDENTITY(1,1) NOT NULL,
 	[num_filing] [nvarchar](50) NOT NULL,
+	[type_filing] [int] NOT NULL,
 	[id_division] [int] NOT NULL,
+	[vesg] [int] NULL,
 	[note] [nvarchar](250) NULL,
 	[start_filing] [datetime] NULL,
 	[end_filing] [datetime] NULL,
