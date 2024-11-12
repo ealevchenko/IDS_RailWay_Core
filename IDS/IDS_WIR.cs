@@ -1898,7 +1898,7 @@ namespace IDS_
         /// <param name="locomotive2"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public ResultUpdateIDWagon AddFiling(int id_filing, int id_way, int id_division, DateTime create, Object vagons, string user)
+        public ResultUpdateIDWagon AddFiling(int id_filing, string? num_filing, int type_filing, int? vesg, int id_way, int id_division, DateTime create, Object vagons, string user)
         {
             ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, 0);
             DateTime start = DateTime.Now;
@@ -1921,7 +1921,9 @@ namespace IDS_
                     WagonFiling wf = new WagonFiling()
                     {
                         Id = id_filing,
-                        NumFiling = id_way.ToString() + "-" + id_division.ToString() + "-" + ((DateTime)create).ToString("dd.MM.yyyy hh:mm:ss"),
+                        NumFiling = num_filing != null ? num_filing : "", //id_way.ToString() + "-" + id_division.ToString() + "-" + ((DateTime)create).ToString("dd.MM.yyyy hh:mm:ss"),
+                        typeFiling = type_filing,
+                        vesg = vesg,
                         IdDivision = id_division,
                         Note = "",
                         StartFiling = null,
@@ -1989,8 +1991,8 @@ namespace IDS_
             }
             catch (Exception e)
             {
-                _logger.LogError(e, String.Format("AddFiling(id_filing={0}, id_way={1}, id_division={2}, create={3}, vagons={4}, user={5})",
-                    id_filing, id_way, id_division, create, vagons, user));
+                _logger.LogError(e, String.Format("AddFiling(id_filing={0}, num_filing={1}, type_filing={2}, vesg={3}, id_way={4}, id_division={5}, create={6}, vagons={7}, user={8})",
+                    id_filing, num_filing, type_filing, vesg, id_way, id_division, create, vagons, user));
                 rt.SetResult((int)errors_base.global);
                 return rt;  // Возвращаем id=-1 , Ошибка
             }

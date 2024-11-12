@@ -120,6 +120,9 @@ namespace WebAPI.Controllers.Directory
     public class OperationAddFilingUnloading
     {
         public int id_filing { get; set; }
+        public string? num_filing { get; set; }
+        public int type_filing { get; set; }
+        public int? vesg { get; set; }
         public int id_way { get; set; }
         public int id_division { get; set; }
         public DateTime create { get; set; }
@@ -700,7 +703,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.AddFiling(value.id_filing, value.id_way, value.id_division, value.create, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.AddFiling(value.id_filing, value.num_filing, value.type_filing, value.vesg, value.id_way, value.id_division, value.create, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
@@ -708,7 +711,7 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        
+
         // POST: WSD/add/wagon/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("add/wagon/filing")]
@@ -732,7 +735,7 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        
+
         // POST: WSD/delete/wagon/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("delete/wagon/filing")]
@@ -780,7 +783,7 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        
+
         // POST: WSD/update/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing")]
