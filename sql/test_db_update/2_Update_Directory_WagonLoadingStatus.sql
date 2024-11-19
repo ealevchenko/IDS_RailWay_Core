@@ -4,6 +4,10 @@ GO
 ALTER TABLE [IDS].[WagonInternalOperation] DROP CONSTRAINT [FK_WagonInternalOperation_Directory_WagonLoadingStatus]
 GO
 
+ALTER TABLE [IDS].[Directory_WagonOperationsLoadingStatus] DROP CONSTRAINT [FK_Directory_WagonOperationsLoadingStatus_Directory_WagonLoadingStatus]
+GO
+
+
 drop table [IDS].[Directory_WagonLoadingStatus]
 go
 
@@ -33,7 +37,17 @@ INSERT [IDS].[Directory_WagonLoadingStatus] ([id], [loading_status_ru], [loading
 INSERT [IDS].[Directory_WagonLoadingStatus] ([id], [loading_status_ru], [loading_status_en], [create], [create_user], [change], [change_user]) VALUES (3, N'Грязный', N'Dirty', CAST(N'2020-09-25T16:00:00.000' AS DateTime), N'EUROPE\ealevchenko', NULL, NULL)
 INSERT [IDS].[Directory_WagonLoadingStatus] ([id], [loading_status_ru], [loading_status_en], [create], [create_user], [change], [change_user]) VALUES (4, N'Мерзлый', N'Frozen', CAST(N'2024-11-06T08:00:00.000' AS DateTime), N'EUROPE\ealevchenko', NULL, NULL)
 INSERT [IDS].[Directory_WagonLoadingStatus] ([id], [loading_status_ru], [loading_status_en], [create], [create_user], [change], [change_user]) VALUES (5, N'Тех. неисправность', N'Tech. malfunction', CAST(N'2024-11-06T08:00:00.000' AS DateTime), N'EUROPE\ealevchenko', NULL, NULL)
+INSERT [IDS].[Directory_WagonLoadingStatus] ([id], [loading_status_ru], [loading_status_en], [create], [create_user], [change], [change_user]) VALUES (6, N'Груженый УЗ', N'Loaded UZ', CAST(N'2024-11-06T08:00:00.000' AS DateTime), N'EUROPE\ealevchenko', NULL, NULL)
+
 SET IDENTITY_INSERT [IDS].[Directory_WagonLoadingStatus] OFF
+GO
+
+
+ALTER TABLE [IDS].[Directory_WagonOperationsLoadingStatus]  WITH CHECK ADD  CONSTRAINT [FK_Directory_WagonOperationsLoadingStatus_Directory_WagonLoadingStatus] FOREIGN KEY([id_wagon_loading_status])
+REFERENCES [IDS].[Directory_WagonLoadingStatus] ([id])
+GO
+
+ALTER TABLE [IDS].[Directory_WagonOperationsLoadingStatus] CHECK CONSTRAINT [FK_Directory_WagonOperationsLoadingStatus_Directory_WagonLoadingStatus]
 GO
 
 ALTER TABLE [IDS].[WagonInternalOperation]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalOperation_Directory_WagonLoadingStatus] FOREIGN KEY([id_loading_status])
