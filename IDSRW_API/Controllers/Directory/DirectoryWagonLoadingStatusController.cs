@@ -32,7 +32,7 @@ namespace WebAPI.Controllers.Directory
         }
         // GET: DirectoryWagonLoadingStatus/list
         [HttpGet("list")]
-        public async Task<ActionResult<IEnumerable<Directory_Cargo>>> GetListDirectoryWagonLoadingStatus()
+        public async Task<ActionResult<IEnumerable<DirectoryWagonLoadingStatus>>> GetListDirectoryWagonLoadingStatus()
         {
             try
             {

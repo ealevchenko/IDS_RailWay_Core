@@ -31,7 +31,7 @@ namespace WebAPI.Controllers.Directory
         }
         // GET: DirectoryWagonOperationsUz
         [HttpGet("list")]
-        public async Task<ActionResult<IEnumerable<Directory_Cargo>>> GetListDirectoryWagonOperationsUz()
+        public async Task<ActionResult<IEnumerable<DirectoryWagonOperationsUz>>> GetListDirectoryWagonOperationsUz()
         {
             try
             {

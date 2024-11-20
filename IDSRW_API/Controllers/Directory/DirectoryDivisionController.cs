@@ -31,7 +31,7 @@ namespace WebAPI.Controllers.Directory
         }
         // GET: DirectoryDivision/list
         [HttpGet("list")]
-        public async Task<ActionResult<IEnumerable<Directory_Cargo>>> GetListDirectoryDivision()
+        public async Task<ActionResult<IEnumerable<DirectoryDivision>>> GetListDirectoryDivision()
         {
             try
             {
