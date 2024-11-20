@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using EF_IDS.Entities;
 using EF_IDS.Functions;
 using EFIDS.Functions;
+using EFIDS.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -89,6 +90,10 @@ public partial class EFDbContext : DbContext
     public virtual DbSet<DirectoryHazardClass> DirectoryHazardClasses { get; set; }
 
     public virtual DbSet<DirectoryInlandRailway> DirectoryInlandRailways { get; set; }
+
+    public virtual DbSet<DirectoryInternalCargo> DirectoryInternalCargos { get; set; }
+
+    public virtual DbSet<DirectoryInternalCargoGroup> DirectoryInternalCargoGroups { get; set; }
 
     public virtual DbSet<DirectoryLessorsWagon> DirectoryLessorsWagons { get; set; }
 
@@ -546,6 +551,13 @@ public partial class EFDbContext : DbContext
             entity.HasOne(d => d.CodeRailwayNavigation).WithMany(p => p.DirectoryInlandRailways)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Directory_InlandRailway_Directory_Railway");
+        });
+
+        modelBuilder.Entity<DirectoryInternalCargo>(entity =>
+        {
+            entity.HasOne(d => d.IdGroupNavigation).WithMany(p => p.DirectoryInternalCargos)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Directory_InternalCargo_Directory_InternalCargoGroup");
         });
 
         modelBuilder.Entity<DirectoryLocomotive>(entity =>
