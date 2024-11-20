@@ -12,22 +12,6 @@ using WebAPI.Repositories.Directory;
 
 namespace WebAPI.Controllers.Directory
 {
-    public class Directory_Cargo
-    {
-        public int Id { get; set; }
-        public int IdGroup { get; set; }
-        public int IdCargoEtsng { get; set; }
-        public string CargoNameRu { get; set; } = null!;
-        public string CargoNameEn { get; set; } = null!;
-        public string? CodeSap { get; set; }
-        public bool? Sending { get; set; }
-        public DateTime Create { get; set; }
-        public string CreateUser { get; set; } = null!;
-        public DateTime? Change { get; set; }
-        public string? ChangeUser { get; set; }
-        public int? IdOutGroup { get; set; }
-    }
-
     [Route("[controller]")]
     [ApiController]
     public class DirectoryCargoController : ControllerBase
@@ -42,11 +26,15 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryCargo>>> GetDirectoryCargo()
         {
-            return await db.DirectoryCargos.AsNoTracking().ToListAsync();
+            return await db.DirectoryCargos
+                .AsNoTracking()
+                .Include(group => group.IdGroupNavigation)
+                .Include(etsng => etsng.IdCargoEtsngNavigation)
+                .ToListAsync();
         }
-        // GET: DirectoryCargo
+        // GET: DirectoryCargo/list
         [HttpGet("list")]
-        public async Task<ActionResult<IEnumerable<Directory_Cargo>>> GetListDirectoryCargo()
+        public async Task<ActionResult<IEnumerable<DirectoryCargo>>> GetListDirectoryCargo()
         {
             try
             {
@@ -66,7 +54,11 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("{id}")]
         public async Task<ActionResult<DirectoryCargo>> GetDirectoryCargo(int id)
         {
-            DirectoryCargo? result = await db.DirectoryCargos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+            DirectoryCargo? result = await db.DirectoryCargos
+                .AsNoTracking()
+                .Include(group => group.IdGroupNavigation)
+                .Include(etsng => etsng.IdCargoEtsngNavigation)
+                .FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);
