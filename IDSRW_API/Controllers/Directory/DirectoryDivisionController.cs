@@ -27,7 +27,11 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryDivision>>> GetDirectoryDivision()
         {
-            return await db.DirectoryDivisions.AsNoTracking().ToListAsync();
+            return await db.DirectoryDivisions
+                .AsNoTracking()
+                .Include(type => type.IdTypeDevisionNavigation)
+                .Include(cnsg => cnsg.DirectoryConsignees)
+                .ToListAsync();
         }
         // GET: DirectoryDivision/list
         [HttpGet("list")]
@@ -51,7 +55,11 @@ namespace WebAPI.Controllers.Directory
         [HttpGet("{id}")]
         public async Task<ActionResult<DirectoryDivision>> GetDirectoryDivision(int id)
         {
-            DirectoryDivision? result = await db.DirectoryDivisions.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+            DirectoryDivision? result = await db.DirectoryDivisions
+                .AsNoTracking()
+                .Include(type => type.IdTypeDevisionNavigation)
+                .Include(cnsg => cnsg.DirectoryConsignees)
+                .FirstOrDefaultAsync(x => x.Id == id);
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);
