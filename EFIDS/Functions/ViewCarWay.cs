@@ -95,6 +95,10 @@ public class ViewCarWay
     [Column("operator_monitoring_idle_time")]
     public bool? OperatorMonitoringIdleTime { get; set; }
 
+    [Column("operator_group")]
+    [StringLength(20)]
+    public string? OperatorGroup { get; set; }
+
     [Column("id_limiting_loading")]
     public int? IdLimitingLoading { get; set; }
 
