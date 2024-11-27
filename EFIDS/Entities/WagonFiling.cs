@@ -36,6 +36,9 @@ public partial class WagonFiling
     [Column("end_filing", TypeName = "datetime")]
     public DateTime? EndFiling { get; set; }
 
+    [Column("doc_received", TypeName = "datetime")]
+    public DateTime? DocReceived { get; set; }
+
     [Column("create", TypeName = "datetime")]
     public DateTime Create { get; set; }
 

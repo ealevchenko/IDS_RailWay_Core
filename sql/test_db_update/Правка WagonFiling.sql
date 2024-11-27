@@ -7,7 +7,6 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-
 ALTER TABLE [IDS].[WagonInternalMovement] DROP CONSTRAINT [FK_WagonInternalMovement_WagonFiling]
 GO
 
@@ -23,6 +22,7 @@ CREATE TABLE [IDS].[WagonFiling](
 	[note] [nvarchar](250) NULL,
 	[start_filing] [datetime] NULL,
 	[end_filing] [datetime] NULL,
+	[doc_received] [datetime] NULL,
 	[create] [datetime] NOT NULL,
 	[create_user] [nvarchar](50) NOT NULL,
 	[change] [datetime] NULL,

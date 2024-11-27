@@ -41,6 +41,9 @@ public class ViewWagonsFiling
     [Column("end_filing", TypeName = "datetime")]
     public DateTime? EndFiling { get; set; }
 
+    [Column("doc_received", TypeName = "datetime")]
+    public DateTime? DocReceived { get; set; }
+
     [Column("filing_create", TypeName = "datetime")]
     public DateTime FilingCreate { get; set; }
 
