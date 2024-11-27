@@ -1,7 +1,7 @@
 USE [KRR-PA-CNT-Railway-Archive]
 GO
 
-/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 12.11.2024 9:02:45 ******/
+/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 27.11.2024 9:59:17 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -95,6 +95,7 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 	[operator_paid] [bit] NULL,
 	[operator_color] [nvarchar](10) NULL,
 	[operator_monitoring_idle_time] [bit] NULL,
+	[operator_group] [nvarchar](20) NULL,
 	[id_limiting_loading] [int] NULL,
 	[limiting_name_ru] [nvarchar](100) NULL,
 	[limiting_name_en] [nvarchar](100) NULL,
@@ -253,6 +254,7 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		,dir_operator.[paid] as operator_paid
 		,dir_operator.[color] as operator_color
 		,dir_operator.monitoring_idle_time as operator_monitoring_idle_time
+		,dir_group_operator.[group] as operator_group
 		--> Ограничение
 		,dir_limload.[id] as id_limiting_loading
 		,dir_limload.[limiting_name_ru]
@@ -360,7 +362,9 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		--> Справочник аренд
 		Left JOIN IDS.Directory_WagonsRent as cur_dir_rent ON cur_dir_rent.id = (SELECT top(1) [id] FROM [IDS].[Directory_WagonsRent] where [num] = wir.num and rent_end is null order by [id] desc)
 		--> Текущий оператор вагона
-		Left JOIN IDS.Directory_OperatorsWagons as dir_operator ON cur_dir_rent.id_operator =  dir_operator.id	
+		Left JOIN IDS.Directory_OperatorsWagons as dir_operator ON cur_dir_rent.id_operator =  dir_operator.id
+		--> Текущая группа оператора вагона
+		Left JOIN IDS.Directory_OperatorsWagonsGroup as dir_group_operator ON dir_operator.id =  dir_group_operator.id_operator
 		--> Текущее ограничение погрузки 
 		Left JOIN IDS.Directory_LimitingLoading as dir_limload ON cur_dir_rent.id_limiting =  dir_limload.id
 		--> Техническое сотояние по прибытию
