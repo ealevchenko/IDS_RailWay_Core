@@ -1,7 +1,7 @@
 USE [KRR-PA-CNT-Railway-Archive]
 GO
 
-/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 27.11.2024 9:59:17 ******/
+/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 27.11.2024 16:34:05 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -27,6 +27,9 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 	[note] [nvarchar](250) NULL,
 	[start_filing] [datetime] NULL,
 	[end_filing] [datetime] NULL,
+	-- 27.11.2024
+	[doc_received] [datetime] NULL,
+	--
 	[filing_create] [datetime] NOT NULL,
 	[filing_create_user] [nvarchar](50) NOT NULL,
 	[filing_change] [datetime] NULL,
@@ -178,6 +181,9 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		,wf.[note]
 		,wf.[start_filing]
 		,wf.[end_filing]
+		-- 27.11.2024
+		,wf.[doc_received]
+		--
 		,wf.[create] as filing_create
 		,wf.[create_user] as filing_create_user
 		,wf.[change] as filing_change
