@@ -16,24 +16,27 @@ public class ViewWagonsFiling
     public long IdWir { get; set; }
 
     [Column("is_moving")]
-    public bool IsMoving { get; set; }
+    public bool? IsMoving { get; set; }
 
-    [Column("id_wf")]
-    public long IdWf { get; set; }
+    [Column("id_filing")]
+    public long IdFiling { get; set; }
 
     [Column("num_filing")]
     [StringLength(50)]
     public string NumFiling { get; set; } = null!;
 
     [Column("type_filing")]
-    public int typeFiling { get; set; }
+    public int TypeFiling { get; set; }
 
-    [Column("vesg")]
-    public int? vesg { get; set; }
+    [Column("id_division_filing")]
+    public int IdDivisionFiling { get; set; }
 
-    [Column("note")]
+    [Column("vesg_filing")]
+    public int? VesgFiling { get; set; }
+
+    [Column("note_filing")]
     [StringLength(250)]
-    public string? Note { get; set; }
+    public string? NoteFiling { get; set; }
 
     [Column("start_filing", TypeName = "datetime")]
     public DateTime? StartFiling { get; set; }
@@ -41,29 +44,29 @@ public class ViewWagonsFiling
     [Column("end_filing", TypeName = "datetime")]
     public DateTime? EndFiling { get; set; }
 
-    [Column("doc_received", TypeName = "datetime")]
-    public DateTime? DocReceived { get; set; }
+    [Column("doc_received_filing", TypeName = "datetime")]
+    public DateTime? DocReceivedFiling { get; set; }
 
-    [Column("filing_create", TypeName = "datetime")]
-    public DateTime FilingCreate { get; set; }
+    [Column("create_filing", TypeName = "datetime")]
+    public DateTime CreateFiling { get; set; }
 
-    [Column("filing_create_user")]
+    [Column("create_user_filing")]
     [StringLength(50)]
-    public string FilingCreateUser { get; set; } = null!;
+    public string CreateUserFiling { get; set; } = null!;
 
-    [Column("filing_change", TypeName = "datetime")]
-    public DateTime? FilingChange { get; set; }
+    [Column("change_filing", TypeName = "datetime")]
+    public DateTime? ChangeFiling { get; set; }
 
-    [Column("filing_change_user")]
+    [Column("change_user_filing")]
     [StringLength(50)]
-    public string? FilingChangeUser { get; set; }
+    public string? ChangeUserFiling { get; set; }
 
-    [Column("filing_close", TypeName = "datetime")]
-    public DateTime? FilingClose { get; set; }
+    [Column("close_filing", TypeName = "datetime")]
+    public DateTime? CloseFiling { get; set; }
 
-    [Column("filing_close_user")]
+    [Column("close_user_filing")]
     [StringLength(50)]
-    public string? FilingCloseUser { get; set; }
+    public string? CloseUserFiling { get; set; }
 
     [Column("num")]
     public int Num { get; set; }

@@ -23,15 +23,35 @@ public class ViewCarWay
 
     [Column("position")]
     public int Position { get; set; }
-    // add 23.10.2024 ----------------------------------
+
     [Column("id_filing")]
     public long? IdFiling { get; set; }
+
+    [Column("num_filing")]
+    [StringLength(50)]
+    public string? NumFiling { get; set; }
+
+    [Column("type_filing")]
+    public int? TypeFiling { get; set; }
+
+    [Column("id_division_filing")]
+    public int? IdDivisionFiling { get; set; }
+
+    [Column("vesg_filing")]
+    public int? VesgFiling { get; set; }
+
+    [Column("note_filing")]
+    [StringLength(250)]
+    public string? NoteFiling { get; set; }
 
     [Column("start_filing", TypeName = "datetime")]
     public DateTime? StartFiling { get; set; }
 
     [Column("end_filing", TypeName = "datetime")]
     public DateTime? EndFiling { get; set; }
+
+    [Column("doc_received_filing", TypeName = "datetime")]
+    public DateTime? DocReceivedFiling { get; set; }
 
     [Column("create_filing", TypeName = "datetime")]
     public DateTime? CreateFiling { get; set; }
@@ -59,7 +79,7 @@ public class ViewCarWay
 
     [Column("way_filing_end", TypeName = "datetime")]
     public DateTime? WayFilingEnd { get; set; }
-    //---------------------------------------------
+
     [Column("id_operator")]
     public int? IdOperator { get; set; }
 
@@ -344,11 +364,11 @@ public class ViewCarWay
     public int? CurrentIdOperation { get; set; }
 
     [Column("current_operation_name_ru")]
-    [StringLength(20)]
+    [StringLength(50)]
     public string? CurrentOperationNameRu { get; set; }
 
     [Column("current_operation_name_en")]
-    [StringLength(20)]
+    [StringLength(50)]
     public string? CurrentOperationNameEn { get; set; }
 
     [Column("current_operation_start", TypeName = "datetime")]
