@@ -1,7 +1,7 @@
 USE [KRR-PA-CNT-Railway-Archive]
 GO
 
-/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 27.11.2024 16:34:05 ******/
+/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 03.12.2024 16:06:16 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -20,22 +20,22 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 	[id_wim] [bigint] NOT NULL,
 	[id_wir] [bigint] NOT NULL,
 	[is_moving] [bit] NOT NULL,
-	[id_wf] [bigint] NOT NULL,
-	[num_filing] [nvarchar](50) NOT NULL,
-	[type_filing] [int] NOT NULL,
-	[vesg] [int] NULL,
-	[note] [nvarchar](250) NULL,
+	--> Подача 03.12.2024
+	[id_filing] [bigint] NULL,
+	[num_filing] [nvarchar](50) NULL,
+	[type_filing] [int] NULL,
+	[id_division_filing] [int] NULL,
+	[vesg_filing] [int] NULL,
+	[note_filing] [nvarchar](250) NULL,
 	[start_filing] [datetime] NULL,
 	[end_filing] [datetime] NULL,
-	-- 27.11.2024
-	[doc_received] [datetime] NULL,
-	--
-	[filing_create] [datetime] NOT NULL,
-	[filing_create_user] [nvarchar](50) NOT NULL,
-	[filing_change] [datetime] NULL,
-	[filing_change_user] [nvarchar](50) NULL,
-	[filing_close] [datetime] NULL,
-	[filing_close_user] [nvarchar](50) NULL,
+	[doc_received_filing] [datetime] NULL,
+	[create_filing] [datetime] NULL,
+	[create_user_filing] [nvarchar](50) NULL,
+	[change_filing] [datetime] NULL,
+	[change_user_filing] [nvarchar](50) NULL,
+	[close_filing] [datetime] NULL,
+	[close_user_filing] [nvarchar](50) NULL,
 	[num] [int] NOT NULL,
 	[arrival_nom_doc] [int] NULL,
 	[arrival_nom_main_doc] [int] NULL,
@@ -174,22 +174,22 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		wim_filing.[id] as id_wim
 		,wim_filing.[id_wagon_internal_routes] as id_wir
 		,[is_moving] = [IDS].[is_wagon_moving_of_id_wim](wim_filing.[id])--,curr_wim.[id] as curr_id_wim
-		,wf.[id] as id_wf
-		,wf.[num_filing]
-		,wf.[type_filing]
-		,wf.[vesg]
-		,wf.[note]
-		,wf.[start_filing]
-		,wf.[end_filing]
-		-- 27.11.2024
-		,wf.[doc_received]
-		--
-		,wf.[create] as filing_create
-		,wf.[create_user] as filing_create_user
-		,wf.[change] as filing_change
-		,wf.[change_user] as filing_change_user
-		,wf.[close] as filing_close
-		,wf.[close_user] as filing_close_user
+		--> Подача 03.12.2024
+		,wf.id as id_filing
+		,wf.num_filing
+		,wf.type_filing
+		,wf.id_division as id_division_filing
+		,wf.vesg as vesg_filing
+		,wf.note as note_filing
+		,wf.start_filing
+		,wf.end_filing
+		,wf.doc_received as doc_received_filing
+		,wf.[create] as create_filing
+		,wf.[create_user] as create_user_filing
+		,wf.[change] as change_filing
+		,wf.[change_user] as change_user_filing
+		,wf.[close] as close_filing
+		,wf.[close_user] as close_user_filing
 		,wir.[num]
 		,arr_doc_uz.[nom_doc] as arrival_nom_doc -- Номер документа(досылки)
 		,arrival_nom_main_doc = CASE WHEN arr_doc_uz.[nom_main_doc] is not null AND arr_doc_uz.[nom_main_doc]>0 THEN arr_doc_uz.[nom_main_doc] ELSE null END
