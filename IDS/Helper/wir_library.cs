@@ -380,7 +380,8 @@ namespace IDS.Helper
             if (wf.Close != null) return (int)errors_base.close_wf; // подача закрыта
             int count = wf.WagonInternalMovements.Count();
             int count_close = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).Count();
-            if (count == count_close)
+
+            if (wf.typeFiling != 2 && count == count_close)
             {
                 WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).OrderByDescending(c => c.FilingEnd).FirstOrDefault();
                 DateTime? close = wim_close_max != null ? wim_close_max.FilingEnd : null;

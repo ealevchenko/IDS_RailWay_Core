@@ -1796,7 +1796,16 @@ namespace IDS_
         #endregion
 
         #region  Операция с использованием подач (ВЫГРУЗКА, ПОГРУЗКА)
-        public class UnloadingWagons
+
+        public interface IOperationWagons { 
+            public long id_wim { get; set; }
+            public DateTime? start { get; set; }
+            public DateTime? stop { get; set; }
+            public int? id_wagon_operations { get; set; }
+            public int? id_status_load { get; set; }        
+        }
+
+        public class UnloadingWagons: IOperationWagons
         {
             public long id_wim { get; set; }
             public DateTime? start { get; set; }
@@ -1805,6 +1814,23 @@ namespace IDS_
             public int? id_status_load { get; set; }
 
         }
+        public class LoadingWagons: IOperationWagons
+        {
+            public long id_wim { get; set; }
+            public DateTime? start { get; set; }
+            public DateTime? stop { get; set; }
+            public int? id_wagon_operations { get; set; }
+            public DateTime? doc_received { get; set; }
+            public int? cargo_etsng { get; set; }
+            public int? code_station_uz { get; set; }
+            public int? id_station_amkr_on { get; set; }
+            public int? id_devision_on { get; set; }
+            public string? num_nakl { get; set; }
+            public int? id_internal_cargo { get; set; }
+            public int? vesg { get; set; }
+            public int? id_status_load { get; set; }
+        }
+
         /// <summary>
         /// Обновить информацию по вагону в подаче
         /// </summary>
@@ -1814,7 +1840,7 @@ namespace IDS_
         /// <param name="vag"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public int UpdateWagonFiling(ref EFDbContext context, int mode, WagonFiling wf, UnloadingWagons vag, string user)
+        public int UpdateWagonFiling(ref EFDbContext context, int mode, WagonFiling wf, IOperationWagons vag, string user)
         {
             try
             {
@@ -1887,18 +1913,17 @@ namespace IDS_
             }
         }
         /// <summary>
-        /// Добавить подачу
+        /// Добавить подачу, для операций
         /// </summary>
         /// <param name="id_filing"></param>
+        /// <param name="num_filing"></param>
+        /// <param name="type_filing"></param>
         /// <param name="id_way"></param>
         /// <param name="id_division"></param>
-        /// <param name="create"></param>
         /// <param name="vagons"></param>
-        /// <param name="locomotive1"></param>
-        /// <param name="locomotive2"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public ResultUpdateIDWagon AddFiling(int id_filing, string? num_filing, int type_filing, int? vesg, int id_way, int id_division, DateTime create, Object vagons, string user)
+        public ResultUpdateIDWagon AddFiling(int id_filing, string? num_filing, int type_filing, int id_way, int id_division, Object vagons, string user)
         {
             ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, 0);
             DateTime start = DateTime.Now;
@@ -1923,12 +1948,12 @@ namespace IDS_
                         Id = id_filing,
                         NumFiling = num_filing != null ? num_filing : "", //id_way.ToString() + "-" + id_division.ToString() + "-" + ((DateTime)create).ToString("dd.MM.yyyy hh:mm:ss"),
                         typeFiling = type_filing,
-                        vesg = vesg,
+                        vesg = null,
                         IdDivision = id_division,
                         Note = "",
                         StartFiling = null,
                         EndFiling = null,
-                        Create = ((DateTime)create),
+                        Create = DateTime.Now,
                         CreateUser = user,
                         Change = null,
                         ChangeUser = null,
@@ -1942,6 +1967,32 @@ namespace IDS_
                         rt.count = ((List<UnloadingWagons>)vagons).Count();
                         // Пройдемся по вагонам
                         foreach (UnloadingWagons vag in ((List<UnloadingWagons>)vagons).ToList())
+                        {
+
+                            WagonInternalMovement? wim = context.WagonInternalMovements
+                                .Where(m => m.Id == vag.id_wim)
+                                .Include(wir => wir.IdWagonInternalRoutesNavigation)
+                                .FirstOrDefault();
+                            // Определим номер вагона
+                            int num = wim != null && wim.IdWagonInternalRoutesNavigation != null ? wim.IdWagonInternalRoutesNavigation.Num : 0;
+                            int result = UpdateWagonFiling(ref context, 0, wf, vag, user);
+                            // Отметим операцию
+                            if (result >= 0)
+                            {
+                                rt.SetModeResult((mode_obj)result, vag.id_wim, 1, num); // Операция выполнена
+                            }
+                            else
+                            {
+                                rt.SetErrorResult(vag.id_wim, result, num);
+                            }
+                        }
+                    }
+                    // Операция "ПОГРУЗКА"
+                    if (vagons is List<LoadingWagons>)
+                    {
+                        rt.count = ((List<LoadingWagons>)vagons).Count();
+                        // Пройдемся по вагонам
+                        foreach (LoadingWagons vag in ((List<LoadingWagons>)vagons).ToList())
                         {
 
                             WagonInternalMovement? wim = context.WagonInternalMovements
@@ -1991,8 +2042,8 @@ namespace IDS_
             }
             catch (Exception e)
             {
-                _logger.LogError(e, String.Format("AddFiling(id_filing={0}, num_filing={1}, type_filing={2}, vesg={3}, id_way={4}, id_division={5}, create={6}, vagons={7}, user={8})",
-                    id_filing, num_filing, type_filing, vesg, id_way, id_division, create, vagons, user));
+                _logger.LogError(e, String.Format("AddFiling(id_filing={0}, num_filing={1}, type_filing={2}, id_way={3}, id_division={4}, vagons={5}, user={6})",
+                    id_filing, num_filing, type_filing, id_way, id_division, vagons, user));
                 rt.SetResult((int)errors_base.global);
                 return rt;  // Возвращаем id=-1 , Ошибка
             }

@@ -125,9 +125,21 @@ namespace WebAPI.Controllers.Directory
         public int? vesg { get; set; }
         public int id_way { get; set; }
         public int id_division { get; set; }
-        public DateTime create { get; set; }
+        //public DateTime create { get; set; }
         public List<UnloadingWagons> wagons { get; set; }
     }
+    public class OperationAddFilingLoading
+    {
+        public int id_filing { get; set; }
+        public string? num_filing { get; set; }
+        public int type_filing { get; set; }
+        public int? vesg { get; set; }
+        public int id_way { get; set; }
+        public int id_division { get; set; }
+        //public DateTime create { get; set; }
+        public List<LoadingWagons> wagons { get; set; }
+    }
+
     public class OperationADWagonFiling
     {
         public int id_filing { get; set; }
@@ -703,7 +715,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.AddFiling(value.id_filing, value.num_filing, value.type_filing, value.vesg, value.id_way, value.id_division, value.create, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.AddFiling(value.id_filing, value.num_filing, value.type_filing, value.id_way, value.id_division, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
@@ -712,6 +724,29 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        // POST: WSD/add/filing/operation/loading
+        // BODY: WSD (JSON, XML)
+        [HttpPost("add/filing/operation/loading")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostAddFilingLoading([FromBody] OperationAddFilingLoading value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateIDWagon result = ids_wir.AddFiling(value.id_filing, value.num_filing, value.type_filing, value.id_way, value.id_division, value.wagons, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         // POST: WSD/add/wagon/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("add/wagon/filing")]
