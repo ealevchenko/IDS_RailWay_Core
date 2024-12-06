@@ -472,54 +472,186 @@ public class ViewWagonsFiling
     [Column("current_operation_end", TypeName = "datetime")]
     public DateTime? CurrentOperationEnd { get; set; }
 
-    [Column("current_cargo_group_id_group")]
-    public int? CurrentCargoGroupIdGroup { get; set; }
+    [Column("internal_doc_num")]
+    [StringLength(20)]
+    public string? InternalDocNum { get; set; }
+
+    [Column("id_weighing_num")]
+    public int? IdWeighingNum { get; set; }
+
+    [Column("move_cargo_doc_received", TypeName = "datetime")]
+    public DateTime? MoveCargoDocReceived { get; set; }
+
+    [Column("current_cargo_id_group")]
+    public int? CurrentCargoIdGroup { get; set; }
 
     [Column("current_cargo_group_name_ru")]
-    public int? CurrentCargoGroupNameRu { get; set; }
+    [StringLength(50)]
+    public string? CurrentCargoGroupNameRu { get; set; }
 
     [Column("current_cargo_group_name_en")]
-    public int? CurrentCargoGroupNameEn { get; set; }
+    [StringLength(50)]
+    public string? CurrentCargoGroupNameEn { get; set; }
 
     [Column("current_cargo_id_cargo")]
     public int? CurrentCargoIdCargo { get; set; }
 
     [Column("current_cargo_name_ru")]
-    public int? CurrentCargoNameRu { get; set; }
+    [StringLength(50)]
+    public string? CurrentCargoNameRu { get; set; }
 
     [Column("current_cargo_name_en")]
-    public int? CurrentCargoNameEn { get; set; }
+    [StringLength(50)]
+    public string? CurrentCargoNameEn { get; set; }
 
-    [Column("current_division_amkr_id_division")]
-    public int? CurrentDivisionAmkrIdDivision { get; set; }
+    [Column("current_internal_cargo_id_group")]
+    public int? CurrentInternalCargoIdGroup { get; set; }
 
-    [Column("current_division_amkr_code")]
-    public int? CurrentDivisionAmkrCode { get; set; }
+    [Column("current_internal_cargo_group_name_ru")]
+    [StringLength(50)]
+    public string? CurrentInternalCargoGroupNameRu { get; set; }
 
-    [Column("current_division_amkr_name_ru")]
-    public int? CurrentDivisionAmkrNameRu { get; set; }
+    [Column("current_internal_cargo_group_name_en")]
+    [StringLength(50)]
+    public string? CurrentInternalCargoGroupNameEn { get; set; }
 
-    [Column("current_division_amkr_name_en")]
-    public int? CurrentDivisionAmkrNameEn { get; set; }
+    [Column("current_internal_cargo_id_internal_cargo")]
+    public int? CurrentInternalCargoIdInternalCargo { get; set; }
 
-    [Column("current_division_amkr_abbr_ru")]
-    public int? CurrentDivisionAmkrAbbrRu { get; set; }
+    [Column("current_internal_cargo_name_ru")]
+    [StringLength(50)]
+    public string? CurrentInternalCargoNameRu { get; set; }
 
-    [Column("current_division_amkr_abbr_en")]
-    public int? CurrentDivisionAmkrAbbrEn { get; set; }
+    [Column("current_internal_cargo_name_en")]
+    [StringLength(50)]
+    public string? CurrentInternalCargoNameEn { get; set; }
 
-    [Column("current_station_amkr_id_station")]
-    public int? CurrentStationAmkrIdStation { get; set; }
+    [Column("current_vesg")]
+    public int? CurrentVesg { get; set; }
 
-    [Column("current_station_amkr_name_ru")]
-    public int? CurrentStationAmkrNameRu { get; set; }
+    [Column("id_station_from_amkr")]
+    public int? IdStationFromAmkr { get; set; }
 
-    [Column("current_station_amkr_name_en")]
-    public int? CurrentStationAmkrNameEn { get; set; }
+    [Column("current_station_from_amkr_name_ru")]
+    [StringLength(50)]
+    public string? CurrentStationFromAmkrNameRu { get; set; }
 
-    [Column("current_station_amkr_abbr_ru")]
-    public int? CurrentStationAmkrAbbrRu { get; set; }
+    [Column("current_station_from_amkr_name_en")]
+    [StringLength(50)]
+    public string? CurrentStationFromAmkrNameEn { get; set; }
 
-    [Column("current_station_amkr_abbr_en")]
-    public int? CurrentStationAmkrAbbrEn { get; set; }
+    [Column("current_station_from_amkr_abbr_ru")]
+    [StringLength(50)]
+    public string? CurrentStationFromAmkrAbbrRu { get; set; }
+
+    [Column("current_station_from_amkr_abbr_en")]
+    [StringLength(50)]
+    public string? CurrentStationFromAmkrAbbrEn { get; set; }
+
+    [Column("id_division_from")]
+    public int? IdDivisionFrom { get; set; }
+
+    [Column("current_division_from_code")]
+    [StringLength(5)]
+    public string? CurrentDivisionFromCode { get; set; }
+
+    [Column("current_division_from_name_ru")]
+    [StringLength(250)]
+    public string? CurrentDivisionFromNameRu { get; set; }
+
+    [Column("current_division_from_name_en")]
+    [StringLength(250)]
+    public string? CurrentDivisionFromNameEn { get; set; }
+
+    [Column("current_division_from_abbr_ru")]
+    [StringLength(50)]
+    public string? CurrentDivisionFromAbbrRu { get; set; }
+
+    [Column("current_division_from_abbr_en")]
+    [StringLength(50)]
+    public string? CurrentDivisionFromAbbrEn { get; set; }
+
+    [Column("id_wim_load")]
+    public long? IdWimLoad { get; set; }
+
+    [Column("id_wim_redirection")]
+    public long? IdWimRedirection { get; set; }
+
+    [Column("code_external_station")]
+    public int? CodeExternalStation { get; set; }
+
+    [Column("current_external_station_on_name_ru")]
+    [StringLength(50)]
+    public string? CurrentExternalStationOnNameRu { get; set; }
+
+    [Column("current_external_station_on_name_en")]
+    [StringLength(50)]
+    public string? CurrentExternalStationOnNameEn { get; set; }
+
+    [Column("id_station_on_amkr")]
+    public int? IdStationOnAmkr { get; set; }
+
+    [Column("current_station_on_amkr_name_ru")]
+    [StringLength(50)]
+    public string? CurrentStationOnAmkrNameRu { get; set; }
+
+    [Column("current_station_on_amkr_name_en")]
+    [StringLength(50)]
+    public string? CurrentStationOnAmkrNameEn { get; set; }
+
+    [Column("current_station_on_amkr_abbr_ru")]
+    [StringLength(50)]
+    public string? CurrentStationOnAmkrAbbrRu { get; set; }
+
+    [Column("current_station_on_amkr_abbr_en")]
+    [StringLength(50)]
+    public string? CurrentStationOnAmkrAbbrEn { get; set; }
+
+    [Column("id_division_on")]
+    public int? IdDivisionOn { get; set; }
+
+    [Column("current_division_on_code")]
+    [StringLength(5)]
+    public string? CurrentDivisionOnCode { get; set; }
+
+    [Column("current_division_on_name_ru")]
+    [StringLength(250)]
+    public string? CurrentDivisionOnNameRu { get; set; }
+
+    [Column("current_division_on_name_en")]
+    [StringLength(250)]
+    public string? CurrentDivisionOnNameEn { get; set; }
+
+    [Column("current_division_on_abbr_ru")]
+    [StringLength(50)]
+    public string? CurrentDivisionOnAbbrRu { get; set; }
+
+    [Column("current_division_on_abbr_en")]
+    [StringLength(50)]
+    public string? CurrentDivisionOnAbbrEn { get; set; }
+
+    [Column("id_wim_unload")]
+    public long? IdWimUnload { get; set; }
+
+    [Column("move_cargo_create", TypeName = "datetime")]
+    public DateTime? MoveCargoCreate { get; set; }
+
+    [Column("move_cargo_create_user")]
+    [StringLength(50)]
+    public string? MoveCargoCreateUser { get; set; }
+
+    [Column("move_cargo_change", TypeName = "datetime")]
+    public DateTime? MoveCargoChange { get; set; }
+
+    [Column("move_cargo_change_user")]
+    [StringLength(50)]
+    public string? MoveCargoChangeUser { get; set; }
+
+    [Column("move_cargo_close", TypeName = "datetime")]
+    public DateTime? MoveCargoClose { get; set; }
+
+    [Column("move_cargo_close_user")]
+    [StringLength(50)]
+    public string? MoveCargoCloseUser { get; set; }
+
 }
