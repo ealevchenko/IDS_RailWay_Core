@@ -1,7 +1,7 @@
 USE [KRR-PA-CNT-Railway-Archive]
 GO
 
-/****** Object:  Table [IDS].[WagonInternalMoveCargo]    Script Date: 05.12.2024 10:53:59 ******/
+/****** Object:  Table [IDS].[WagonInternalMoveCargo]    Script Date: 06.12.2024 16:35:33 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -19,12 +19,12 @@ CREATE TABLE [IDS].[WagonInternalMoveCargo](
 	[vesg] [int] NULL,
 	[id_station_from_amkr] [int] NULL,
 	[id_division_from] [int] NULL,
-	[id_wio_load] [bigint] NULL,
-	[redirection] [bit] NULL,
+	[id_wim_load] [bigint] NULL,
+	[id_wim_redirection] [bigint] NULL,
 	[code_external_station] [int] NULL,
 	[id_station_on_amkr] [int] NULL,
 	[id_division_on] [int] NULL,
-	[id_wio_unload] [bigint] NULL,
+	[id_wim_unload] [bigint] NULL,
 	[create] [datetime] NOT NULL,
 	[create_user] [nvarchar](50) NOT NULL,
 	[change] [datetime] NULL,
@@ -67,11 +67,11 @@ GO
 ALTER TABLE [IDS].[WagonInternalMoveCargo] CHECK CONSTRAINT [FK_WagonInternalMoveCargo_Directory_ExternalStation]
 GO
 
-ALTER TABLE [IDS].[WagonInternalMoveCargo]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMoveCargo_Directory_InternalCargo] FOREIGN KEY([id_internal_cargo])
+ALTER TABLE [IDS].[WagonInternalMoveCargo]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMoveCargo_Directory_InternalCargo1] FOREIGN KEY([id_internal_cargo])
 REFERENCES [IDS].[Directory_InternalCargo] ([id])
 GO
 
-ALTER TABLE [IDS].[WagonInternalMoveCargo] CHECK CONSTRAINT [FK_WagonInternalMoveCargo_Directory_InternalCargo]
+ALTER TABLE [IDS].[WagonInternalMoveCargo] CHECK CONSTRAINT [FK_WagonInternalMoveCargo_Directory_InternalCargo1]
 GO
 
 ALTER TABLE [IDS].[WagonInternalMoveCargo]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMoveCargo_Directory_Station] FOREIGN KEY([id_station_from_amkr])
@@ -95,18 +95,25 @@ GO
 ALTER TABLE [IDS].[WagonInternalMoveCargo] CHECK CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalMoveCargo]
 GO
 
-ALTER TABLE [IDS].[WagonInternalMoveCargo]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalOperation1] FOREIGN KEY([id_wio_load])
-REFERENCES [IDS].[WagonInternalOperation] ([id])
+ALTER TABLE [IDS].[WagonInternalMoveCargo]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalMovement] FOREIGN KEY([id_wim_load])
+REFERENCES [IDS].[WagonInternalMovement] ([id])
 GO
 
-ALTER TABLE [IDS].[WagonInternalMoveCargo] CHECK CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalOperation1]
+ALTER TABLE [IDS].[WagonInternalMoveCargo] CHECK CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalMovement]
 GO
 
-ALTER TABLE [IDS].[WagonInternalMoveCargo]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalOperation2] FOREIGN KEY([id_wio_unload])
-REFERENCES [IDS].[WagonInternalOperation] ([id])
+ALTER TABLE [IDS].[WagonInternalMoveCargo]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalMovement1] FOREIGN KEY([id_wim_redirection])
+REFERENCES [IDS].[WagonInternalMovement] ([id])
 GO
 
-ALTER TABLE [IDS].[WagonInternalMoveCargo] CHECK CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalOperation2]
+ALTER TABLE [IDS].[WagonInternalMoveCargo] CHECK CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalMovement1]
+GO
+
+ALTER TABLE [IDS].[WagonInternalMoveCargo]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalMovement2] FOREIGN KEY([id_wim_unload])
+REFERENCES [IDS].[WagonInternalMovement] ([id])
+GO
+
+ALTER TABLE [IDS].[WagonInternalMoveCargo] CHECK CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalMovement2]
 GO
 
 ALTER TABLE [IDS].[WagonInternalMoveCargo]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalRoutes] FOREIGN KEY([id_wagon_internal_routes])

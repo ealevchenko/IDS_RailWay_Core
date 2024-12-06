@@ -1,7 +1,7 @@
 USE [KRR-PA-CNT-Railway-Archive]
 GO
 
-/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 03.12.2024 16:06:16 ******/
+/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 06.12.2024 16:33:55 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -147,23 +147,59 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 	[current_operation_name_en] [nvarchar](50) NULL,
 	[current_operation_start] [datetime] NULL,
 	[current_operation_end] [datetime] NULL,
-	[current_cargo_group_id_group] [int] NULL,
-	[current_cargo_group_name_ru] [int] NULL,
-	[current_cargo_group_name_en] [int] NULL,
+	--> Äîáàâèë 06-12-2024
+	[internal_doc_num] [nvarchar](20) NULL,
+	[id_weighing_num] [int] NULL,
+	[move_cargo_doc_received] [datetime] NULL,
+	[current_cargo_id_group] [int] NULL,
+	[current_cargo_group_name_ru] [nvarchar](50) NULL,
+	[current_cargo_group_name_en] [nvarchar](50) NULL,
 	[current_cargo_id_cargo] [int] NULL,
-	[current_cargo_name_ru] [int] NULL,
-	[current_cargo_name_en] [int] NULL,
-	[current_division_amkr_id_division] [int] NULL,
-	[current_division_amkr_code] [int] NULL,
-	[current_division_amkr_name_ru] [int] NULL,
-	[current_division_amkr_name_en] [int] NULL,
-	[current_division_amkr_abbr_ru] [int] NULL,
-	[current_division_amkr_abbr_en] [int] NULL,
-	[current_station_amkr_id_station] [int] NULL,
-	[current_station_amkr_name_ru] [int] NULL,
-	[current_station_amkr_name_en] [int] NULL,
-	[current_station_amkr_abbr_ru] [int] NULL,
-	[current_station_amkr_abbr_en] [int] NULL
+	[current_cargo_name_ru] [nvarchar](50) NULL,
+	[current_cargo_name_en] [nvarchar](50) NULL,
+	[current_internal_cargo_id_group] [int] NULL,
+	[current_internal_cargo_group_name_ru] [nvarchar](50) NULL,
+	[current_internal_cargo_group_name_en] [nvarchar](50) NULL,
+	[current_internal_cargo_id_internal_cargo] [int] NULL,
+	[current_internal_cargo_name_ru] [nvarchar](50) NULL,
+	[current_internal_cargo_name_en] [nvarchar](50) NULL,
+	[current_vesg] [int] NULL,
+	[id_station_from_amkr] [int] NULL,
+	[current_station_from_amkr_name_ru] [nvarchar](50) NULL,
+	[current_station_from_amkr_name_en] [nvarchar](50) NULL,
+	[current_station_from_amkr_abbr_ru] [nvarchar](50) NULL,
+	[current_station_from_amkr_abbr_en] [nvarchar](50) NULL,
+	[id_division_from] [int] NULL,
+	[current_division_from_code] [nvarchar](5) NULL,
+	[current_division_from_name_ru] [nvarchar](250) NULL,
+	[current_division_from_name_en] [nvarchar](250) NULL,
+	[current_division_from_abbr_ru] [nvarchar](50) NULL,
+	[current_division_from_abbr_en] [nvarchar](50) NULL,
+	[id_wim_load] [bigint] NULL,
+	[id_wim_redirection] [bigint] NULL,
+	[code_external_station] [int] NULL,
+	[current_external_station_on_name_ru] [nvarchar](50) NULL,
+	[current_external_station_on_name_en] [nvarchar](50) NULL,
+	[id_station_on_amkr] [int] NULL,
+	[current_station_on_amkr_name_ru] [nvarchar](50) NULL,
+	[current_station_on_amkr_name_en] [nvarchar](50) NULL,
+	[current_station_on_amkr_abbr_ru] [nvarchar](50) NULL,
+	[current_station_on_amkr_abbr_en] [nvarchar](50) NULL,
+	[id_division_on] [int] NULL,
+	[current_division_on_code] [nvarchar](5) NULL,
+	[current_division_on_name_ru] [nvarchar](250) NULL,
+	[current_division_on_name_en] [nvarchar](250) NULL,
+	[current_division_on_abbr_ru] [nvarchar](50) NULL,
+	[current_division_on_abbr_en] [nvarchar](50) NULL,
+	[id_wim_unload] [bigint] NULL,
+	[move_cargo_create] [datetime] NULL,
+	[move_cargo_create_user] [nvarchar](50) NULL,
+	[move_cargo_change] [datetime] NULL,
+	[move_cargo_change_user] [nvarchar](50) NULL,
+	[move_cargo_close] [datetime] NULL,
+	[move_cargo_close_user] [nvarchar](50) NULL
+
+
 	)
 	AS
 	BEGIN
@@ -319,26 +355,68 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		,cur_dir_operation.[operation_name_en] as current_operation_name_en
 		,wio_filing.[operation_start] as current_operation_start
 		,wio_filing.[operation_end] as current_operation_end
-		--> ãğóç ïî òåêóùèé
-		,current_cargo_group_id_group = null
-		,current_cargo_group_name_ru = null
-		,current_cargo_group_name_en = null
-		,current_cargo_id_cargo = null
-		,current_cargo_name_ru = null
-		,current_cargo_name_en = null
-		--> Öåõ ïîëó÷àòåëü òåêóùèé
-		,current_division_amkr_id_division = null
-		,current_division_amkr_code = null
-		,current_division_amkr_name_ru = null
-		,current_division_amkr_name_en = null
-		,current_division_amkr_abbr_ru = null
-		,current_division_amkr_abbr_en = null
-		--> Ñòàíöèÿ íàçíà÷åíèÿ òåêóùàÿ
-		,current_station_amkr_id_station = null
-		,current_station_amkr_name_ru = null
-		,current_station_amkr_name_en = null
-		,current_station_amkr_abbr_ru = null
-		,current_station_amkr_abbr_en = null
+		--> Äîáàâèë 06-12-2024
+		--> Òåêóøàÿ èíôîğìàöèÿ ïî ïåğåìåùåíèş ãğóçà íà ÀÌÊĞ
+		,wimc_curr.[internal_doc_num]
+		,wimc_curr.[id_weighing_num]
+		,wimc_curr.[doc_received] as move_cargo_doc_received
+		--> Òåêóùèé ãğóç ïåğåìåùåíèÿ
+		,curr_dir_cargo.id_group as current_cargo_id_group
+		,curr_dir_group_cargo.cargo_group_name_ru as current_cargo_group_name_ru
+		,curr_dir_group_cargo.cargo_group_name_en as current_cargo_group_name_en
+		,wimc_curr.[id_cargo] as current_cargo_id_cargo
+		,curr_dir_cargo.cargo_name_ru as current_cargo_name_ru
+		,curr_dir_cargo.cargo_name_en as current_cargo_name_en
+		-->
+		,curr_dir_int_cargo.id_group as current_internal_cargo_id_group
+		,curr_dir_group_int_cargo.cargo_group_name_ru as current_internal_cargo_group_name_ru
+		,curr_dir_group_int_cargo.cargo_group_name_en as current_internal_cargo_group_name_en
+		,wimc_curr.[id_internal_cargo] as current_internal_cargo_id_internal_cargo
+		,curr_dir_int_cargo.cargo_name_ru as current_internal_cargo_name_ru
+		,curr_dir_int_cargo.cargo_name_en as current_internal_cargo_name_en
+		-->
+		,wimc_curr.[vesg] as current_vesg
+		--> Òåêóùàÿ ñòàíöèÿ îòïğàâëåíèÿ
+		,wimc_curr.[id_station_from_amkr]
+		,dir_station_from_amkr.[station_name_ru] as current_station_from_amkr_name_ru
+		,dir_station_from_amkr.[station_name_en] as current_station_from_amkr_name_en
+		,dir_station_from_amkr.[station_abbr_ru] as current_station_from_amkr_abbr_ru
+		,dir_station_from_amkr.[station_abbr_en] as current_station_from_amkr_abbr_en
+		--> Òåêóùèé öåõ ïîãğóçêè
+		,wimc_curr.[id_division_from]
+		,dir_division_from.code as current_division_from_code
+		,dir_division_from.name_division_ru as current_division_from_name_ru
+		,dir_division_from.name_division_en as current_division_from_name_en
+		,dir_division_from.division_abbr_ru as current_division_from_abbr_ru
+		,dir_division_from.division_abbr_en as current_division_from_abbr_en
+		,wimc_curr.[id_wim_load]
+		--> Òåêóùàÿ ïåğåîäğåñàöèÿ
+		,wimc_curr.[id_wim_redirection]
+		--> Òåêóùàÿ âíåøíÿÿ ñòàíöèÿ
+		,wimc_curr.[code_external_station]
+		,curr_dir_ext_station.station_name_ru as current_external_station_on_name_ru
+		,curr_dir_ext_station.station_name_en as current_external_station_on_name_en
+		,wimc_curr.[id_station_on_amkr]
+		,dir_station_on_amkr.[station_name_ru] as current_station_on_amkr_name_ru
+		,dir_station_on_amkr.[station_name_en] as current_station_on_amkr_name_en
+		,dir_station_on_amkr.[station_abbr_ru] as current_station_on_amkr_abbr_ru
+		,dir_station_on_amkr.[station_abbr_en] as current_station_on_amkr_abbr_en
+		--> Òåêóùèé âíåùíèé öåõ
+		,wimc_curr.[id_division_on]
+		,dir_division_on.code as current_division_on_code
+		,dir_division_on.name_division_ru as current_division_on_name_ru
+		,dir_division_on.name_division_en as current_division_on_name_en
+		,dir_division_on.division_abbr_ru as current_division_on_abbr_ru
+		,dir_division_on.division_abbr_en as current_division_on_abbr_en
+		-->
+		,wimc_curr.[id_wim_unload]
+		--> 
+		,wimc_curr.[create] as move_cargo_create
+		,wimc_curr.[create_user] as move_cargo_create_user
+		,wimc_curr.[change] as move_cargo_change
+		,wimc_curr.[change_user] as move_cargo_change_user
+		,wimc_curr.[close] as move_cargo_close
+		,wimc_curr.[close_user] as move_cargo_close_user
 	FROM IDS.WagonFiling as wf 
 		--> Ñïèñîê ïîäà÷
 		INNER JOIN IDS.WagonInternalMovement as wim_filing ON wim_filing.id_filing = wf.id 
@@ -348,6 +426,8 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		--INNER JOIN IDS.WagonInternalMovement as curr_wim ON curr_wim.id = (SELECT TOP (1) [id] FROM [IDS].[WagonInternalMovement] where [id_wagon_internal_routes]= wir.id order by id desc) 
 		--> Îïåğàöèÿ ïîäà÷è		
 		LEFT JOIN IDS.WagonInternalOperation as wio_filing  ON wio_filing.[id] = wim_filing.[id_wio]
+		--> Òåêóùàÿ ñòğîêà ïåğåâîçêè ãğóçîâ 	
+		LEFT JOIN [IDS].[WagonInternalMoveCargo] as wimc_curr  ON wimc_curr.[id] = (SELECT TOP (1) [id] FROM [IDS].[WagonInternalMoveCargo] where [id_wagon_internal_routes]= wir.id order by id desc) 
 	   --==== ÏĞÈÁÛÒÈÅ È ÏĞÈÅÌ ÂÀÃÎÍÀ =====================================================================
 		--> Ïğèáûòèå íà ÀÌÊĞ
 		Left JOIN IDS.ArrivalCars as arr_car ON wir.id_arrival_car = arr_car.id
@@ -401,6 +481,25 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		Left JOIN [IDS].[Directory_Ways] as dir_way_filing ON wim_filing.[id_way] = dir_way_filing.id 
 		--> Ñïğàâî÷íè Ïóòü îòïğàâêè
 		Left JOIN [IDS].[Directory_ParkWays] as dir_park_filing ON dir_way_filing.id_park = dir_park_filing.id
+				--> Ãğóç òåêóùèé
+		Left JOIN IDS.Directory_Cargo as curr_dir_cargo ON curr_dir_cargo.id =  wimc_curr.[id_cargo]
+		--> Ãğóïïà òåêóùåãî ãğóçà.
+		Left JOIN IDS.Directory_CargoGroup as curr_dir_group_cargo ON curr_dir_group_cargo.id = curr_dir_cargo.id_group
+		--> Ãğóç(âíóòğåííèé) òåêóùèé
+		Left JOIN IDS.[Directory_InternalCargo] as curr_dir_int_cargo ON curr_dir_int_cargo.id = wimc_curr.[id_internal_cargo]
+		--> Ãğóïïà ãğóçà(âíóòğåííåãî) òåêóùèé
+		Left JOIN IDS.[Directory_InternalCargoGroup] as curr_dir_group_int_cargo ON curr_dir_group_int_cargo.id = curr_dir_int_cargo.[id_group]
+		-- Ñïğàâî÷íèê Ñòàíöèÿ îòïğàâêè
+		Left JOIN [IDS].[Directory_Station] as dir_station_from_amkr ON dir_station_from_amkr.id = wimc_curr.[id_station_from_amkr]
+		--> Ñïğàâî÷íèê Ïîäğàçäåëåíèÿ (öåõ îòïğàâèòåëü)
+		Left JOIN IDS.Directory_Divisions as dir_division_from ON dir_division_from.id = wimc_curr.[id_division_from]
+		--> Ñïğàâî÷íèê Ñòàíöèÿ îòïğàâëåíèÿ (Âíåøíÿÿ ñòàíöèÿ ïîëó÷åíèÿ)
+		Left JOIN IDS.Directory_ExternalStation as curr_dir_ext_station ON curr_dir_ext_station.code = wimc_curr.[code_external_station]
+		-- Ñïğàâî÷íèê Ñòàíöèÿ îòïğàâêè
+		Left JOIN [IDS].[Directory_Station] as dir_station_on_amkr ON dir_station_on_amkr.id = wimc_curr.[id_station_on_amkr]
+		--> Ñïğàâî÷íèê Ïîäğàçäåëåíèÿ (öåõ îòïğàâèòåëü)
+		Left JOIN IDS.Directory_Divisions as dir_division_on ON dir_division_on.id = wimc_curr.[id_division_on]
+
 	where ((wf.[create] is not null and wf.[close] is null) or (wf.[create] >= @start and wf.[create]<=@stop))
 	and wim_filing.id_station = @id_station	ORDER BY wf.[create], wim_filing.position		RETURN
  END
