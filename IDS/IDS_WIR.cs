@@ -1886,7 +1886,7 @@ namespace IDS_
                     {
                         res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.start, wf.Note, user);
                         // Если погрузка создать строку перемещения внутрених грузов
-                        if (vag is List<LoadingWagons>)
+                        if (vag is LoadingWagons)
                         {
                             LoadingWagons wagl = (LoadingWagons)vag;
                             res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl.num_nakl, null,
