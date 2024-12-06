@@ -99,6 +99,10 @@ public partial class WagonInternalMoveCargo
     [InverseProperty("WagonInternalMoveCargoIdDivisionOnNavigations")]
     public virtual DirectoryDivision? IdDivisionOnNavigation { get; set; }
 
+    [ForeignKey("IdInternalCargo")]
+    [InverseProperty("WagonInternalMoveCargos")]
+    public virtual DirectoryInternalCargo? IdInternalCargoNavigation { get; set; }
+
     [ForeignKey("IdStationFromAmkr")]
     [InverseProperty("WagonInternalMoveCargoIdStationFromAmkrNavigations")]
     public virtual DirectoryStation? IdStationFromAmkrNavigation { get; set; }
@@ -129,8 +133,4 @@ public partial class WagonInternalMoveCargo
     [ForeignKey("ParentId")]
     [InverseProperty("InverseParent")]
     public virtual WagonInternalMoveCargo? Parent { get; set; }
-
-    [ForeignKey("Vesg")]
-    [InverseProperty("WagonInternalMoveCargos")]
-    public virtual DirectoryInternalCargo? VesgNavigation { get; set; }
 }

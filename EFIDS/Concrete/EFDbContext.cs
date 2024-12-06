@@ -909,6 +909,8 @@ public partial class EFDbContext : DbContext
 
             entity.HasOne(d => d.IdDivisionOnNavigation).WithMany(p => p.WagonInternalMoveCargoIdDivisionOnNavigations).HasConstraintName("FK_WagonInternalMoveCargo_Directory_Divisions1");
 
+            entity.HasOne(d => d.IdInternalCargoNavigation).WithMany(p => p.WagonInternalMoveCargos).HasConstraintName("FK_WagonInternalMoveCargo_Directory_InternalCargo1");
+
             entity.HasOne(d => d.IdStationFromAmkrNavigation).WithMany(p => p.WagonInternalMoveCargoIdStationFromAmkrNavigations).HasConstraintName("FK_WagonInternalMoveCargo_Directory_Station");
 
             entity.HasOne(d => d.IdStationOnAmkrNavigation).WithMany(p => p.WagonInternalMoveCargoIdStationOnAmkrNavigations).HasConstraintName("FK_WagonInternalMoveCargo_Directory_Station1");
@@ -924,8 +926,6 @@ public partial class EFDbContext : DbContext
             entity.HasOne(d => d.IdWimUnloadNavigation).WithMany(p => p.WagonInternalMoveCargoIdWimUnloadNavigations).HasConstraintName("FK_WagonInternalMoveCargo_WagonInternalMovement2");
 
             entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent).HasConstraintName("FK_WagonInternalMoveCargo_WagonInternalMoveCargo");
-
-            entity.HasOne(d => d.VesgNavigation).WithMany(p => p.WagonInternalMoveCargos).HasConstraintName("FK_WagonInternalMoveCargo_Directory_InternalCargo");
         });
 
         modelBuilder.Entity<WagonInternalMovement>(entity =>
