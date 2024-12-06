@@ -212,7 +212,7 @@ public partial class EFDbContext : DbContext
 
     public virtual DbSet<UzDocOut> UzDocOuts { get; set; }
     public virtual DbSet<WagonFiling> WagonFilings { get; set; }
-
+    public virtual DbSet<WagonInternalMoveCargo> WagonInternalMoveCargos { get; set; }
     public virtual DbSet<WagonInternalMovement> WagonInternalMovements { get; set; }
 
     public virtual DbSet<WagonInternalOperation> WagonInternalOperations { get; set; }
@@ -899,6 +899,35 @@ public partial class EFDbContext : DbContext
             entity.HasOne(d => d.IdUsageFeePeriodNavigation).WithMany(p => p.UsageFeePeriodDetalis).HasConstraintName("FK_Usage_Fee_Period_Detali_Usage_Fee_Period");
         });
 
+        modelBuilder.Entity<WagonInternalMoveCargo>(entity =>
+        {
+            entity.HasOne(d => d.CodeExternalStationNavigation).WithMany(p => p.WagonInternalMoveCargos).HasConstraintName("FK_WagonInternalMoveCargo_Directory_ExternalStation");
+
+            entity.HasOne(d => d.IdCargoNavigation).WithMany(p => p.WagonInternalMoveCargos).HasConstraintName("FK_WagonInternalMoveCargo_Directory_Cargo");
+
+            entity.HasOne(d => d.IdDivisionFromNavigation).WithMany(p => p.WagonInternalMoveCargoIdDivisionFromNavigations).HasConstraintName("FK_WagonInternalMoveCargo_Directory_Divisions");
+
+            entity.HasOne(d => d.IdDivisionOnNavigation).WithMany(p => p.WagonInternalMoveCargoIdDivisionOnNavigations).HasConstraintName("FK_WagonInternalMoveCargo_Directory_Divisions1");
+
+            entity.HasOne(d => d.IdStationFromAmkrNavigation).WithMany(p => p.WagonInternalMoveCargoIdStationFromAmkrNavigations).HasConstraintName("FK_WagonInternalMoveCargo_Directory_Station");
+
+            entity.HasOne(d => d.IdStationOnAmkrNavigation).WithMany(p => p.WagonInternalMoveCargoIdStationOnAmkrNavigations).HasConstraintName("FK_WagonInternalMoveCargo_Directory_Station1");
+
+            entity.HasOne(d => d.IdWagonInternalRoutesNavigation).WithMany(p => p.WagonInternalMoveCargos)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_WagonInternalMoveCargo_WagonInternalRoutes");
+
+            entity.HasOne(d => d.IdWimLoadNavigation).WithMany(p => p.WagonInternalMoveCargoIdWimLoadNavigations).HasConstraintName("FK_WagonInternalMoveCargo_WagonInternalMovement");
+
+            entity.HasOne(d => d.IdWimRedirectionNavigation).WithMany(p => p.WagonInternalMoveCargoIdWimRedirectionNavigations).HasConstraintName("FK_WagonInternalMoveCargo_WagonInternalMovement1");
+
+            entity.HasOne(d => d.IdWimUnloadNavigation).WithMany(p => p.WagonInternalMoveCargoIdWimUnloadNavigations).HasConstraintName("FK_WagonInternalMoveCargo_WagonInternalMovement2");
+
+            entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent).HasConstraintName("FK_WagonInternalMoveCargo_WagonInternalMoveCargo");
+
+            entity.HasOne(d => d.VesgNavigation).WithMany(p => p.WagonInternalMoveCargos).HasConstraintName("FK_WagonInternalMoveCargo_Directory_InternalCargo");
+        });
+
         modelBuilder.Entity<WagonInternalMovement>(entity =>
         {
             entity.HasOne(d => d.IdFilingNavigation).WithMany(p => p.WagonInternalMovements).HasConstraintName("FK_WagonInternalMovement_WagonFiling");
@@ -970,6 +999,5 @@ public partial class EFDbContext : DbContext
 
         OnModelCreatingPartial(modelBuilder);
     }
-
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

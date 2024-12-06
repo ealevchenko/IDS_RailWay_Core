@@ -52,4 +52,7 @@ public partial class DirectoryInternalCargo
     [ForeignKey("IdGroup")]
     [InverseProperty("DirectoryInternalCargos")]
     public virtual DirectoryInternalCargoGroup IdGroupNavigation { get; set; } = null!;
+
+    [InverseProperty("IdInternalCargoNavigation")]
+    public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargos { get; set; } = new List<WagonInternalMoveCargo>();
 }

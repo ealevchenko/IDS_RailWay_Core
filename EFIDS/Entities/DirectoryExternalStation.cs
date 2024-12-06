@@ -65,4 +65,7 @@ public partial class DirectoryExternalStation
 
     [InverseProperty("CodeStnToNavigation")]
     public virtual ICollection<UsageFeePeriodDetali> UsageFeePeriodDetaliCodeStnToNavigations { get; set; } = new List<UsageFeePeriodDetali>();
+
+    [InverseProperty("CodeExternalStationNavigation")]
+    public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargos { get; set; } = new List<WagonInternalMoveCargo>();
 }

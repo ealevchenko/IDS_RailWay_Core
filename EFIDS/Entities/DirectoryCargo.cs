@@ -80,4 +80,7 @@ public partial class DirectoryCargo
 
     [InverseProperty("IdCargoOutgoingNavigation")]
     public virtual ICollection<UsageFeePeriodDetali> UsageFeePeriodDetaliIdCargoOutgoingNavigations { get; set; } = new List<UsageFeePeriodDetali>();
+
+    [InverseProperty("IdCargoNavigation")]
+    public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargos { get; set; } = new List<WagonInternalMoveCargo>();
 }

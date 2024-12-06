@@ -119,4 +119,13 @@ public partial class WagonInternalMovement
     [ForeignKey("ParentId")]
     [InverseProperty("InverseParent")]
     public virtual WagonInternalMovement? Parent { get; set; }
+
+    [InverseProperty("IdWimLoadNavigation")]
+    public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargoIdWimLoadNavigations { get; set; } = new List<WagonInternalMoveCargo>();
+
+    [InverseProperty("IdWimRedirectionNavigation")]
+    public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargoIdWimRedirectionNavigations { get; set; } = new List<WagonInternalMoveCargo>();
+
+    [InverseProperty("IdWimUnloadNavigation")]
+    public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargoIdWimUnloadNavigations { get; set; } = new List<WagonInternalMoveCargo>();
 }

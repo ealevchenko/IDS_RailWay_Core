@@ -67,4 +67,10 @@ public partial class DirectoryDivision
     [ForeignKey("ParentId")]
     [InverseProperty("InverseParent")]
     public virtual DirectoryDivision? Parent { get; set; }
+
+    [InverseProperty("IdDivisionFromNavigation")]
+    public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargoIdDivisionFromNavigations { get; set; } = new List<WagonInternalMoveCargo>();
+
+    [InverseProperty("IdDivisionOnNavigation")]
+    public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargoIdDivisionOnNavigations { get; set; } = new List<WagonInternalMoveCargo>();
 }

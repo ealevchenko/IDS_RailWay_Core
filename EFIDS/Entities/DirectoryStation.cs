@@ -77,6 +77,12 @@ public partial class DirectoryStation
     [InverseProperty("IdStationNavigation")]
     public virtual ICollection<ParkStateStation> ParkStateStations { get; } = new List<ParkStateStation>();
 
+    [InverseProperty("IdStationFromAmkrNavigation")]
+    public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargoIdStationFromAmkrNavigations { get; set; } = new List<WagonInternalMoveCargo>();
+
+    [InverseProperty("IdStationOnAmkrNavigation")]
+    public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargoIdStationOnAmkrNavigations { get; set; } = new List<WagonInternalMoveCargo>();
+
     [InverseProperty("IdStationNavigation")]
     public virtual ICollection<WagonInternalMovement> WagonInternalMovements { get; } = new List<WagonInternalMovement>();
 }
