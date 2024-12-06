@@ -13,6 +13,9 @@ namespace IDS.Helper
 {
     public static class wir_library
     {
+        public static int oper_load_uz = 15;
+        public static int oper_load_vz = 16;
+
         #region Методы работы с вагонами
 
         #region WIR
@@ -471,6 +474,79 @@ namespace IDS.Helper
             }
         }
 
+        #endregion
+
+        #region WagonInternalMoveCargo
+        // Получить последнюю запись внутризаводского груза
+        public static WagonInternalMoveCargo? GetLastMoveCargo(this WagonInternalRoute wir, ref EFDbContext context)
+        {
+            if (wir.WagonInternalMovements == null) return null;
+            WagonInternalMoveCargo? wimc = context.WagonInternalMoveCargos.Where(m => m.IdWagonInternalRoutes == wir.Id).OrderByDescending(c => c.Id).FirstOrDefault();
+            return wimc;
+        }
+        // Создать новую или обновить созданную строку перемещения груза (погрузка)
+        public static long SetLoadInternalMoveCargo(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, string? num_nakl, int? id_weighing_num, DateTime? doc_received, int? id_cargo, int? id_internal_cargo, int? vesg, int? code_station_uz, int? id_station_amkr_on, int? id_devision_on, string user)
+        {
+            // Проверим вагон и подачу на открытость для операции, и добавим в подачу если небыл добавлен
+            //if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingStart != null) return (int)errors_base.wagon_open_operation; // Вагон операция уже применена
+            WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
+            //WagonInternalOperation? wio = wim.IdWioNavigation;
+            //if (wio == null) return (int)errors_base.not_wio_db;                                                                // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
+            //if (wio != null && wio.IdOperation != oper_load_uz && wio.IdOperation != oper_load_vz) return (int)errors_base.wagon_not_operation;     // Операция вагона не соответсвует выбраной
+            // Получим последнюю запись груза перемещаемого на предприятии
+            WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
+
+            if (wimc == null || (wimc != null && wimc.Close != null))
+            {
+                // Перемещение груза есть и закрыто или перемещение груза нет. Создать новое
+                WagonInternalMoveCargo new_wimc = new WagonInternalMoveCargo()
+                {
+                    Id = 0,
+                    IdWagonInternalRoutes = wir.Id,
+                    InternalDocNum = num_nakl,
+                    IdWeighingNum = null,
+                    DocReceived = doc_received,
+                    IdCargo = id_cargo,
+                    IdInternalCargo = id_internal_cargo,
+                    Vesg = vesg,
+                    IdStationFromAmkr = wim.IdStation,
+                    IdDivisionFrom = wf.IdDivision,
+                    IdWimLoad = wim.Id,
+                    CodeExternalStation = code_station_uz,
+                    IdStationOnAmkr = id_station_amkr_on,
+                    IdDivisionOn = id_devision_on,
+                    Create = DateTime.Now,
+                    CreateUser = user,
+                    ParentId = wimc != null ? wimc.Id : null,
+                };
+                context.WagonInternalMoveCargos.Add(new_wimc);
+                return wim.Id;
+
+            }
+            else if (wimc.IdWimLoad == null && wimc.IdWimLoad == wim.Id)
+            {
+                // Перемещение груза есть, и операция погрузки совподает
+                wimc.InternalDocNum = num_nakl;
+                wimc.IdWeighingNum = null;
+                wimc.DocReceived = doc_received;
+                wimc.IdCargo = id_cargo;
+                wimc.IdInternalCargo = id_internal_cargo;
+                wimc.Vesg = vesg;
+                wimc.IdStationFromAmkr = wim.IdStation;
+                wimc.IdDivisionFrom = wf.IdDivision;
+                wimc.CodeExternalStation = code_station_uz;
+                wimc.IdStationOnAmkr = id_station_amkr_on;
+                wimc.IdDivisionOn = id_devision_on;
+                wimc.Change = DateTime.Now;
+                wimc.ChangeUser = user;
+                context.WagonInternalMoveCargos.Update(wimc);
+                return wim.Id;
+            }
+            else
+            {
+                return (int)errors_base.cargo_not_unload; // Ошибка, вагон не выгружен, погрузка невозможна
+            }
+        }
         #endregion
 
         #region WIO

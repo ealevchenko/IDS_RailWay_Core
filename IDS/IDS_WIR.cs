@@ -1797,15 +1797,16 @@ namespace IDS_
 
         #region  Операция с использованием подач (ВЫГРУЗКА, ПОГРУЗКА)
 
-        public interface IOperationWagons { 
+        public interface IOperationWagons
+        {
             public long id_wim { get; set; }
             public DateTime? start { get; set; }
             public DateTime? stop { get; set; }
             public int? id_wagon_operations { get; set; }
-            public int? id_status_load { get; set; }        
+            public int? id_status_load { get; set; }
         }
 
-        public class UnloadingWagons: IOperationWagons
+        public class UnloadingWagons : IOperationWagons
         {
             public long id_wim { get; set; }
             public DateTime? start { get; set; }
@@ -1814,14 +1815,14 @@ namespace IDS_
             public int? id_status_load { get; set; }
 
         }
-        public class LoadingWagons: IOperationWagons
+        public class LoadingWagons : IOperationWagons
         {
             public long id_wim { get; set; }
             public DateTime? start { get; set; }
             public DateTime? stop { get; set; }
             public int? id_wagon_operations { get; set; }
             public DateTime? doc_received { get; set; }
-            public int? cargo_etsng { get; set; }
+            public int? id_cargo { get; set; }
             public int? code_station_uz { get; set; }
             public int? id_station_amkr_on { get; set; }
             public int? id_devision_on { get; set; }
@@ -1854,6 +1855,7 @@ namespace IDS_
 
                     // mode - можно режимы учитывать
                     long res_open = 0;
+                    long res_load = 0;
                     long res_close = 0;
                     // Только добавить
                     if (vag.id_wagon_operations == null && vag.start == null && vag.stop == null && vag.id_status_load == null)
@@ -1866,17 +1868,33 @@ namespace IDS_
                     if (vag.start != null && vag.stop != null && vag.id_status_load != null)
                     {
                         res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.start, wf.Note, user);
+                        // Если погрузка создать строку перемещения внутрених грузов
+                        if (vag is List<LoadingWagons>)
+                        {
+                            LoadingWagons wagl = (LoadingWagons)vag;
+                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl.num_nakl, null,
+                                wagl.doc_received, wagl.id_cargo, wagl.id_internal_cargo, wagl.vesg, wagl.code_station_uz, wagl.id_station_amkr_on, wagl.id_devision_on, user);
+                        }
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
-                        if (res_open > 0 && res_close > 0) mode_result = mode_obj.close; // open & close 
+                        if (res_open > 0 && res_close > 0 && res_load >= 0) mode_result = mode_obj.close; // open & close 
                         if (res_open < 0) return (int)res_open;                         // Ошибка
+                        if (res_load < 0) return (int)res_load;                         // Ошибка
                         if (res_close < 0) return (int)res_close;                       // Ошибка
                     }
                     // создать
                     if (vag.start != null && vag.stop == null)
                     {
                         res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.start, wf.Note, user);
-                        if (res_open > 0) mode_result = mode_obj.open;                  // update 
+                        // Если погрузка создать строку перемещения внутрених грузов
+                        if (vag is List<LoadingWagons>)
+                        {
+                            LoadingWagons wagl = (LoadingWagons)vag;
+                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl.num_nakl, null,
+                                wagl.doc_received, wagl.id_cargo, wagl.id_internal_cargo, wagl.vesg, wagl.code_station_uz, wagl.id_station_amkr_on, wagl.id_devision_on, user);
+                        }
+                        if (res_open > 0 && res_load >= 0) mode_result = mode_obj.open;                  // update 
                         if (res_open < 0) return (int)res_open;                         // Ошибка
+                        if (res_load < 0) return (int)res_load;                         // Ошибка
                     }
                     // закрыть
                     if (vag.start == null && vag.stop != null)
