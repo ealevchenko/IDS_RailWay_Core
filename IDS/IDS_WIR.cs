@@ -2250,6 +2250,31 @@ namespace IDS_
                             }
                         }
                     }
+                    // Операция "ПОГРУЗКА"
+                    if (vagons is List<LoadingWagons>)
+                    {
+                        rt.count = ((List<LoadingWagons>)vagons).Count();
+                        // Пройдемся по вагонам
+                        foreach (LoadingWagons vag in ((List<LoadingWagons>)vagons).ToList())
+                        {
+                            WagonInternalMovement? wim = context.WagonInternalMovements
+                                .Include(wir => wir.IdWagonInternalRoutesNavigation)
+                                .Include(wio => wio.IdWioNavigation)
+                                .Where(m => m.Id == vag.id_wim).FirstOrDefault();
+                            // Определим номер вагона
+                            int num = wim != null && wim.IdWagonInternalRoutesNavigation != null ? wim.IdWagonInternalRoutesNavigation.Num : 0;
+                            int result = UpdateWagonFiling(ref context, mode, wf, vag, user);
+                            // Отметим операцию
+                            if (result >= 0)
+                            {
+                                rt.SetModeResult((mode_obj)result, vag.id_wim, 1, num); // Операция выполнена
+                            }
+                            else
+                            {
+                                rt.SetErrorResult(vag.id_wim, result, num);
+                            }
+                        }
+                    }
                     // Проверка на закрытие подачи
                     if (rt.error == 0)
                     {
