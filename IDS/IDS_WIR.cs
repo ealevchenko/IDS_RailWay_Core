@@ -1805,7 +1805,6 @@ namespace IDS_
             public int? id_wagon_operations { get; set; }
             public int? id_status_load { get; set; }
         }
-
         public class UnloadingWagons : IOperationWagons
         {
             public long id_wim { get; set; }
