@@ -256,6 +256,53 @@ public class ViewWagonsFiling
     [StringLength(50)]
     public string? WagonTypeEn { get; set; }
 
+    [Column("wagon_gruzp")]
+    public double? WagonGruzp { get; set; }
+
+    [Column("wagon_tara")]
+    public double? WagonTara { get; set; }
+
+    [Column("wagon_kol_os")]
+    public int? WagonKolOs { get; set; }
+
+    [Column("wagon_usl_tip")]
+    [StringLength(10)]
+    public string? WagonUslTip { get; set; }
+
+    [Column("wagon_date_rem_uz", TypeName = "datetime")]
+    public DateTime? WagonDateRemUz { get; set; }
+
+    [Column("wagon_date_rem_vag", TypeName = "datetime")]
+    public DateTime? WagonDateRemVag { get; set; }
+
+    [Column("wagon_sign")]
+    public int? WagonSign { get; set; }
+
+    [Column("wagon_factory_number")]
+    [StringLength(10)]
+    public string? WagonFactoryNumber { get; set; }
+
+    [Column("wagon_inventory_number")]
+    [StringLength(10)]
+    public string? WagonInventoryNumber { get; set; }
+
+    [Column("wagon_year_built")]
+    public int? WagonYearBuilt { get; set; }
+
+    [Column("wagon_exit_ban")]
+    public bool? WagonExitBan { get; set; }
+
+    [Column("wagon_note")]
+    [StringLength(1000)]
+    public string? WagonNote { get; set; }
+
+    [Column("wagon_closed_route")]
+    public bool? WagonClosedRoute { get; set; }
+
+    [Column("wagon_new_construction")]
+    [StringLength(200)]
+    public string? WagonNewConstruction { get; set; }
+
     [Column("id_operator")]
     public int? IdOperator { get; set; }
 
