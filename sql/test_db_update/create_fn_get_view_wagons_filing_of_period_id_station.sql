@@ -1,7 +1,7 @@
 USE [KRR-PA-CNT-Railway-Archive]
 GO
 
-/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 06.12.2024 16:33:55 ******/
+/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 13.12.2024 15:37:44 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -88,6 +88,20 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 	[wagon_rod_abbr_en] [nvarchar](5) NULL,
 	[wagon_type_ru] [nvarchar](50) NULL,
 	[wagon_type_en] [nvarchar](50) NULL,
+	[wagon_gruzp] [float] NULL,
+	[wagon_tara] [float] NULL,
+	[wagon_kol_os] [int] NULL,
+	[wagon_usl_tip] [nvarchar](10) NULL,
+	[wagon_date_rem_uz] [datetime] NULL,
+	[wagon_date_rem_vag] [datetime] NULL,
+	[wagon_sign] [int] NULL,
+	[wagon_factory_number] [nvarchar](10) NULL,
+	[wagon_inventory_number] [nvarchar](10) NULL,
+	[wagon_year_built] [int] NULL,
+	[wagon_exit_ban] [bit] NULL,
+	[wagon_note] [nvarchar](1000) NULL,
+	[wagon_closed_route] [bit] NULL,
+	[wagon_new_construction] [nchar](200) NULL,
 	[id_operator] [int] NULL,
 	[operators_ru] [nvarchar](100) NULL,
 	[operators_en] [nvarchar](100) NULL,
@@ -285,6 +299,21 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		--> Тип вагона
 		,dir_type.type_ru as wagon_type_ru
 		,dir_type.type_en as wagon_type_en
+		--> Справочные данные по вагону
+		,dir_wagon.[gruzp] as wagon_gruzp
+		,dir_wagon.[tara] as wagon_tara
+		,dir_wagon.[kol_os] as wagon_kol_os
+		,dir_wagon.[usl_tip] as wagon_usl_tip
+		,dir_wagon.[date_rem_uz] as wagon_date_rem_uz
+		,dir_wagon.[date_rem_vag] as wagon_date_rem_vag
+		,dir_wagon.[sign] as wagon_sign
+		,dir_wagon.[factory_number] as wagon_factory_number
+		,dir_wagon.[inventory_number] as wagon_inventory_number
+		,dir_wagon.[year_built] as wagon_year_built
+		,dir_wagon.[exit_ban] as wagon_exit_ban
+		,dir_wagon.[note] as wagon_note
+		,dir_wagon.[closed_route] as wagon_closed_route
+		,dir_wagon.[new_construction] as wagon_new_construction
 		--> Оператор
 		,dir_operator.[id] as id_operator
 		,dir_operator.[operators_ru]
