@@ -1845,7 +1845,11 @@ namespace IDS_
             try
             {
                 mode_obj mode_result = mode_obj.not;
-                if ((vag.id_wagon_operations != null && (vag.start != null || vag.stop != null)) || (vag.id_wagon_operations == null) || (mode == 4 && vag.id_status_load != null))
+                if ((vag.id_wagon_operations != null && (vag.start != null || vag.stop != null)) || 
+                    (vag is LoadingWagons && vag.start == null && vag.stop == null) ||
+                    (vag.id_wagon_operations == null) || 
+                    (mode == 4 && (vag.id_status_load != null || vag.id_status_load != -1))
+                    )
                 {
                     WagonInternalMovement? wim = context.WagonInternalMovements
                         .Include(wir => wir.IdWagonInternalRoutesNavigation)
@@ -1867,6 +1871,7 @@ namespace IDS_
                     if (vag.id_wagon_operations != null && vag.start == null && vag.stop == null && vag is LoadingWagons) {
                         LoadingWagons wagl = (LoadingWagons)vag;
                         res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl, user);
+                        if (res_load >= 0) mode_result = mode_obj.update; // update 
                         if (res_load < 0) return (int)res_load; // Ошибка
                     }
                     // Создать и закрыть
@@ -1899,7 +1904,7 @@ namespace IDS_
                             //res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (int)wagl.id_wagon_operations, wagl.num_nakl, null,
                             //    wagl.doc_received, wagl.id_cargo, wagl.id_internal_cargo, wagl.vesg, wagl.code_station_uz, wagl.id_station_amkr_on, wagl.id_devision_on, user);
                         }
-                        if (res_open > 0 && res_load >= 0) mode_result = mode_obj.open;                  // update 
+                        if (res_open > 0 && res_load >= 0) mode_result = mode_obj.open; // open 
                         if (res_open < 0) return (int)res_open;                         // Ошибка
                         if (res_load < 0) return (int)res_load;                         // Ошибка
                     }
