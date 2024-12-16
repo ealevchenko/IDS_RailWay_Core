@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static IDS_.IDS_WIR;
 
 namespace IDS.Helper
 {
@@ -485,36 +486,126 @@ namespace IDS.Helper
             return wimc;
         }
         // Создать новую или обновить созданную строку перемещения груза (погрузка)
-        public static long SetLoadInternalMoveCargo(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, string? num_nakl, int? id_weighing_num, DateTime? doc_received, int? id_cargo, int? id_internal_cargo, int? vesg, int? code_station_uz, int? id_station_amkr_on, int? id_devision_on, string user)
+        //public static long SetLoadInternalMoveCargo(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, int id_wagon_operations,
+        //    string? num_nakl, int? id_weighing_num, DateTime? doc_received, int? id_cargo, int? id_internal_cargo, int? vesg, int? code_station_uz, int? id_station_amkr_on, int? id_devision_on, string user)
+        //{
+        //    // Проверим вагон и подачу на открытость для операции, и добавим в подачу если небыл добавлен
+        //    //if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingStart != null) return (int)errors_base.wagon_open_operation; // Вагон операция уже применена
+        //    WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
+        //    // Проверим если есть дата документа тогда проверим все необходимые входные данные
+        //    if (doc_received != null)
+        //    {
+        //        // операция вз
+        //        if (id_wagon_operations == oper_load_vz && (String.IsNullOrWhiteSpace(num_nakl) || vesg == null || id_internal_cargo == null || id_station_amkr_on == null || id_devision_on == null))
+        //        {
+        //            return (int)errors_base.error_value_load_vz;  // Ошибка, неверный формат или не все праметры заданы для создания загрузки ВЗ
+        //        }
+        //        // операция уз
+        //        if (id_wagon_operations == oper_load_uz && (vesg == null || id_cargo == null || code_station_uz == null))
+        //        {
+        //            return (int)errors_base.error_value_load_uz;  // Ошибка, неверный формат или не все праметры заданы для создания загрузки УЗ
+        //        }
+        //        return (int)errors_base.error_value_operation;  // Ошибка, неверный код операции
+        //    }
+        //    //WagonInternalOperation? wio = wim.IdWioNavigation;
+        //    //if (wio == null) return (int)errors_base.not_wio_db;                                                                // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
+        //    //if (wio != null && wio.IdOperation != oper_load_uz && wio.IdOperation != oper_load_vz) return (int)errors_base.wagon_not_operation;     // Операция вагона не соответсвует выбраной
+        //    // Получим последнюю запись груза перемещаемого на предприятии
+        //    WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
+
+        //    if (wimc == null || (wimc != null && wimc.Close != null))
+        //    {
+        //        // Перемещение груза есть и закрыто или перемещение груза нет. Создать новое
+        //        WagonInternalMoveCargo new_wimc = new WagonInternalMoveCargo()
+        //        {
+        //            Id = 0,
+        //            IdWagonInternalRoutes = wir.Id,
+        //            InternalDocNum = num_nakl,
+        //            IdWeighingNum = null,
+        //            DocReceived = doc_received,
+        //            IdCargo = id_cargo,
+        //            IdInternalCargo = id_internal_cargo,
+        //            Vesg = vesg,
+        //            IdStationFromAmkr = wim.IdStation,
+        //            IdDivisionFrom = wf.IdDivision,
+        //            IdWimLoad = wim.Id,
+        //            CodeExternalStation = code_station_uz,
+        //            IdStationOnAmkr = id_station_amkr_on,
+        //            IdDivisionOn = id_devision_on,
+        //            Create = DateTime.Now,
+        //            CreateUser = user,
+        //            ParentId = wimc != null ? wimc.Id : null,
+        //        };
+        //        context.WagonInternalMoveCargos.Add(new_wimc);
+        //        return wim.Id;
+
+        //    }
+        //    else if (wimc.IdWimLoad == null && wimc.IdWimLoad == wim.Id)
+        //    {
+        //        // Перемещение груза есть, и операция погрузки совподает
+        //        wimc.InternalDocNum = num_nakl;
+        //        wimc.IdWeighingNum = null;
+        //        wimc.DocReceived = doc_received;
+        //        wimc.IdCargo = id_cargo;
+        //        wimc.IdInternalCargo = id_internal_cargo;
+        //        wimc.Vesg = vesg;
+        //        wimc.IdStationFromAmkr = wim.IdStation;
+        //        wimc.IdDivisionFrom = wf.IdDivision;
+        //        wimc.CodeExternalStation = code_station_uz;
+        //        wimc.IdStationOnAmkr = id_station_amkr_on;
+        //        wimc.IdDivisionOn = id_devision_on;
+        //        wimc.Change = DateTime.Now;
+        //        wimc.ChangeUser = user;
+        //        context.WagonInternalMoveCargos.Update(wimc);
+        //        return wim.Id;
+        //    }
+        //    else
+        //    {
+        //        return (int)errors_base.cargo_not_unload; // Ошибка, вагон не выгружен, погрузка невозможна
+        //    }
+        //}
+        public static long SetLoadInternalMoveCargo(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, LoadingWagons wagon, string user)
         {
             // Проверим вагон и подачу на открытость для операции, и добавим в подачу если небыл добавлен
             //if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingStart != null) return (int)errors_base.wagon_open_operation; // Вагон операция уже применена
             WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
-            //WagonInternalOperation? wio = wim.IdWioNavigation;
-            //if (wio == null) return (int)errors_base.not_wio_db;                                                                // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
-            //if (wio != null && wio.IdOperation != oper_load_uz && wio.IdOperation != oper_load_vz) return (int)errors_base.wagon_not_operation;     // Операция вагона не соответсвует выбраной
+            // Проверим если есть дата документа тогда проверим все необходимые входные данные
+            if (wagon.doc_received != null)
+            {
+                // операция вз
+                if (wagon.id_wagon_operations == oper_load_vz && (String.IsNullOrWhiteSpace(wagon.num_nakl) || wagon.vesg == null || wagon.id_internal_cargo == null || wagon.id_station_amkr_on == null || wagon.id_devision_on == null))
+                {
+                    return (int)errors_base.error_value_load_vz;  // Ошибка, неверный формат или не все праметры заданы для создания загрузки ВЗ
+                }
+                // операция уз
+                if (wagon.id_wagon_operations == oper_load_uz && (wagon.vesg == null || wagon.id_cargo == null || wagon.code_station_uz == null))
+                {
+                    return (int)errors_base.error_value_load_uz;  // Ошибка, неверный формат или не все праметры заданы для создания загрузки УЗ
+                }
+                return (int)errors_base.error_value_operation;  // Ошибка, неверный код операции
+            }
             // Получим последнюю запись груза перемещаемого на предприятии
             WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
 
-            if (wimc == null || (wimc != null && wimc.Close != null))
+            if (wimc == null || (wimc != null && wimc.Close != null && wimc.DocReceived!= null))
             {
-                // Перемещение груза есть и закрыто или перемещение груза нет. Создать новое
+                // Перемещение груза есть и закрыто (введен документ) или перемещение груза нет. Создать новое
                 WagonInternalMoveCargo new_wimc = new WagonInternalMoveCargo()
                 {
                     Id = 0,
                     IdWagonInternalRoutes = wir.Id,
-                    InternalDocNum = num_nakl,
+                    InternalDocNum = wagon.num_nakl,
                     IdWeighingNum = null,
-                    DocReceived = doc_received,
-                    IdCargo = id_cargo,
-                    IdInternalCargo = id_internal_cargo,
-                    Vesg = vesg,
+                    DocReceived = wagon.doc_received,
+                    IdCargo = wagon.id_cargo,
+                    IdInternalCargo = wagon.id_internal_cargo,
+                    Vesg = wagon.vesg,
                     IdStationFromAmkr = wim.IdStation,
                     IdDivisionFrom = wf.IdDivision,
                     IdWimLoad = wim.Id,
-                    CodeExternalStation = code_station_uz,
-                    IdStationOnAmkr = id_station_amkr_on,
-                    IdDivisionOn = id_devision_on,
+                    CodeExternalStation = wagon.code_station_uz,
+                    IdStationOnAmkr = wagon.id_station_amkr_on,
+                    IdDivisionOn = wagon.id_devision_on,
                     Create = DateTime.Now,
                     CreateUser = user,
                     ParentId = wimc != null ? wimc.Id : null,
@@ -523,20 +614,20 @@ namespace IDS.Helper
                 return wim.Id;
 
             }
-            else if (wimc.IdWimLoad == null && wimc.IdWimLoad == wim.Id)
+            else if (wimc.IdWimLoad != null && wimc.IdWimUnload == null && wimc.IdWimRedirection == null && wimc.DocReceived == null && wimc.IdWimLoad == wim.Id)
             {
                 // Перемещение груза есть, и операция погрузки совподает
-                wimc.InternalDocNum = num_nakl;
+                wimc.InternalDocNum = wagon.num_nakl;
                 wimc.IdWeighingNum = null;
-                wimc.DocReceived = doc_received;
-                wimc.IdCargo = id_cargo;
-                wimc.IdInternalCargo = id_internal_cargo;
-                wimc.Vesg = vesg;
+                wimc.DocReceived = wagon.doc_received;
+                wimc.IdCargo = wagon.id_cargo;
+                wimc.IdInternalCargo = wagon.id_internal_cargo;
+                wimc.Vesg = wagon.vesg;
                 wimc.IdStationFromAmkr = wim.IdStation;
                 wimc.IdDivisionFrom = wf.IdDivision;
-                wimc.CodeExternalStation = code_station_uz;
-                wimc.IdStationOnAmkr = id_station_amkr_on;
-                wimc.IdDivisionOn = id_devision_on;
+                wimc.CodeExternalStation = wagon.code_station_uz;
+                wimc.IdStationOnAmkr = wagon.id_station_amkr_on;
+                wimc.IdDivisionOn = wagon.id_devision_on;
                 wimc.Change = DateTime.Now;
                 wimc.ChangeUser = user;
                 context.WagonInternalMoveCargos.Update(wimc);
@@ -544,7 +635,7 @@ namespace IDS.Helper
             }
             else
             {
-                return (int)errors_base.cargo_not_unload; // Ошибка, вагон не выгружен, погрузка невозможна
+                return (int)errors_base.error_update_load; // Ошибка, обновления операции погрузки
             }
         }
         #endregion
