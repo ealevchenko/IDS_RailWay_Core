@@ -1845,9 +1845,9 @@ namespace IDS_
             try
             {
                 mode_obj mode_result = mode_obj.not;
-                if ((vag.id_wagon_operations != null && (vag.start != null || vag.stop != null)) || 
+                if ((vag.id_wagon_operations != null && (vag.start != null || vag.stop != null)) ||
                     (vag is LoadingWagons && vag.start == null && vag.stop == null) ||
-                    (vag.id_wagon_operations == null) || 
+                    (vag.id_wagon_operations == null) ||
                     (mode == 4 && (vag.id_status_load != null || vag.id_status_load != -1))
                     )
                 {
@@ -1868,29 +1868,26 @@ namespace IDS_
                         if (res_add < 0) return (int)res_add;           // Ошибка
                     }
                     // Обновить операцию (только погрузка)
-                    if (vag.id_wagon_operations != null && vag.start == null && vag.stop == null && vag is LoadingWagons) {
-                        LoadingWagons wagl = (LoadingWagons)vag;
-                        res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl, user);
-                        if (res_load >= 0) mode_result = mode_obj.update; // update 
+                    if (vag.id_wagon_operations != null && vag.start == null && vag.stop == null && vag is LoadingWagons)
+                    {
+                        res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, user);
+                        if (res_load > 0) mode_result = mode_obj.update; // update 
                         if (res_load < 0) return (int)res_load; // Ошибка
                     }
                     // Создать и закрыть
                     if (vag.start != null && vag.stop != null && vag.id_status_load != null)
                     {
                         res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.start, wf.Note, user);
+                        if (res_open < 0) return (int)res_open; // Ошибка
                         // Если погрузка создать строку перемещения внутрених грузов
                         if (vag is LoadingWagons)
                         {
-                            LoadingWagons wagl = (LoadingWagons)vag;
-                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl, user);
-                            //res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (int)wagl.id_wagon_operations, wagl.num_nakl, null,
-                            //    wagl.doc_received, wagl.id_cargo, wagl.id_internal_cargo, wagl.vesg, wagl.code_station_uz, wagl.id_station_amkr_on, wagl.id_devision_on, user);
+                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, user);
+                            if (res_load < 0) return (int)res_load;                         // Ошибка
                         }
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
-                        if (res_open > 0 && res_close > 0 && res_load >= 0) mode_result = mode_obj.close; // open & close 
-                        if (res_open < 0) return (int)res_open;                         // Ошибка
-                        if (res_load < 0) return (int)res_load;                         // Ошибка
-                        if (res_close < 0) return (int)res_close;                       // Ошибка
+                        if (res_close > 0) mode_result = mode_obj.close; // open & close 
+                        if (res_close < 0) return (int)res_close;        // Ошибка
                     }
                     // открыть операцию
                     if (vag.start != null && vag.stop == null)
@@ -1899,27 +1896,26 @@ namespace IDS_
                         // Если погрузка создать строку перемещения внутрених грузов
                         if (vag is LoadingWagons)
                         {
-                            LoadingWagons wagl = (LoadingWagons)vag;
-                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl, user);
-                            //res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (int)wagl.id_wagon_operations, wagl.num_nakl, null,
-                            //    wagl.doc_received, wagl.id_cargo, wagl.id_internal_cargo, wagl.vesg, wagl.code_station_uz, wagl.id_station_amkr_on, wagl.id_devision_on, user);
+                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, user);
+                            if (res_load < 0) return (int)res_load;                         // Ошибка
                         }
-                        if (res_open > 0 && res_load >= 0) mode_result = mode_obj.open; // open 
-                        if (res_open < 0) return (int)res_open;                         // Ошибка
-                        if (res_load < 0) return (int)res_load;                         // Ошибка
+                        if (res_open > 0) mode_result = mode_obj.open;  // open 
+                        if (res_open < 0) return (int)res_open;         // Ошибка
+
                     }
                     // закрыть операцию
                     if (vag.start == null && vag.stop != null)
                     {
                         // Операция погрузка
-                        if (vag is LoadingWagons) {
-                            LoadingWagons wagl = (LoadingWagons)vag;
-                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl, user);
-/*                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (int)wagl.id_wagon_operations, wagl.num_nakl, null, wagl.doc_received, wagl.id_cargo, wagl.id_internal_cargo, wagl.vesg, wagl.code_station_uz, wagl.id_station_amkr_on, wagl.id_devision_on, user);*/                        }
-                        
+                        if (vag is LoadingWagons)
+                        {
+                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, user);
+                            if (res_load < 0) return (int)res_load;
+                        }
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
-                        if (res_close > 0) mode_result = mode_obj.close;                // update 
-                        if (res_close < 0) return (int)res_close;                       // Ошибка
+                        if (res_close > 0) mode_result = mode_obj.close;    // update
+                        if (res_close < 0) return (int)res_close;           // Ошибка                                                              
+
                     }
                     // Обновляю если опреация по вагону выгрузки закрыта
                     if (res_close > 0 && (vag is UnloadingWagons))
