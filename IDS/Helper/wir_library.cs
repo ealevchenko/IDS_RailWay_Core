@@ -572,22 +572,25 @@ namespace IDS.Helper
             // Проверим если есть дата документа тогда проверим все необходимые входные данные
             if (wagon.doc_received != null)
             {
-                // операция вз
-                if (wagon.id_wagon_operations == oper_load_vz && (String.IsNullOrWhiteSpace(wagon.num_nakl) || wagon.vesg == null || wagon.id_internal_cargo == null || wagon.id_station_amkr_on == null || wagon.id_devision_on == null))
+                if (wagon.id_wagon_operations == oper_load_vz || wagon.id_wagon_operations == oper_load_uz)
                 {
-                    return (int)errors_base.error_value_load_vz;  // Ошибка, неверный формат или не все праметры заданы для создания загрузки ВЗ
+                    // операция вз
+                    if (wagon.id_wagon_operations == oper_load_vz && (String.IsNullOrWhiteSpace(wagon.num_nakl) || wagon.vesg == null || wagon.id_internal_cargo == null || wagon.id_station_amkr_on == null || wagon.id_devision_on == null))
+                    {
+                        return (int)errors_base.error_value_load_vz;  // Ошибка, неверный формат или не все праметры заданы для создания загрузки ВЗ
+                    }
+                    // операция уз
+                    if (wagon.id_wagon_operations == oper_load_uz && (wagon.vesg == null || wagon.id_cargo == null || wagon.code_station_uz == null))
+                    {
+                        return (int)errors_base.error_value_load_uz;  // Ошибка, неверный формат или не все праметры заданы для создания загрузки УЗ
+                    }
                 }
-                // операция уз
-                if (wagon.id_wagon_operations == oper_load_uz && (wagon.vesg == null || wagon.id_cargo == null || wagon.code_station_uz == null))
-                {
-                    return (int)errors_base.error_value_load_uz;  // Ошибка, неверный формат или не все праметры заданы для создания загрузки УЗ
-                }
-                return (int)errors_base.error_value_operation;  // Ошибка, неверный код операции
+                else return (int)errors_base.error_value_operation;  // Ошибка, неверный код операции
             }
             // Получим последнюю запись груза перемещаемого на предприятии
             WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
 
-            if (wimc == null || (wimc != null && wimc.Close != null && wimc.DocReceived!= null))
+            if (wimc == null || (wimc != null && wimc.Close != null && wimc.DocReceived != null))
             {
                 // Перемещение груза есть и закрыто (введен документ) или перемещение груза нет. Создать новое
                 WagonInternalMoveCargo new_wimc = new WagonInternalMoveCargo()
