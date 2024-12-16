@@ -1863,16 +1863,23 @@ namespace IDS_
                         if (res_add > 0) mode_result = mode_obj.add;    // INSERT
                         if (res_add < 0) return (int)res_add;           // Ошибка
                     }
+                    // Обновить операцию (только погрузка)
+                    if (vag.id_wagon_operations != null && vag.start == null && vag.stop == null && vag is LoadingWagons) {
+                        LoadingWagons wagl = (LoadingWagons)vag;
+                        res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl, user);
+                        if (res_load < 0) return (int)res_load; // Ошибка
+                    }
                     // Создать и закрыть
                     if (vag.start != null && vag.stop != null && vag.id_status_load != null)
                     {
                         res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.start, wf.Note, user);
                         // Если погрузка создать строку перемещения внутрених грузов
-                        if (vag is List<LoadingWagons>)
+                        if (vag is LoadingWagons)
                         {
                             LoadingWagons wagl = (LoadingWagons)vag;
-                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl.num_nakl, null,
-                                wagl.doc_received, wagl.id_cargo, wagl.id_internal_cargo, wagl.vesg, wagl.code_station_uz, wagl.id_station_amkr_on, wagl.id_devision_on, user);
+                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl, user);
+                            //res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (int)wagl.id_wagon_operations, wagl.num_nakl, null,
+                            //    wagl.doc_received, wagl.id_cargo, wagl.id_internal_cargo, wagl.vesg, wagl.code_station_uz, wagl.id_station_amkr_on, wagl.id_devision_on, user);
                         }
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
                         if (res_open > 0 && res_close > 0 && res_load >= 0) mode_result = mode_obj.close; // open & close 
@@ -1880,7 +1887,7 @@ namespace IDS_
                         if (res_load < 0) return (int)res_load;                         // Ошибка
                         if (res_close < 0) return (int)res_close;                       // Ошибка
                     }
-                    // создать
+                    // открыть операцию
                     if (vag.start != null && vag.stop == null)
                     {
                         res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.start, wf.Note, user);
@@ -1888,22 +1895,29 @@ namespace IDS_
                         if (vag is LoadingWagons)
                         {
                             LoadingWagons wagl = (LoadingWagons)vag;
-                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl.num_nakl, null,
-                                wagl.doc_received, wagl.id_cargo, wagl.id_internal_cargo, wagl.vesg, wagl.code_station_uz, wagl.id_station_amkr_on, wagl.id_devision_on, user);
+                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl, user);
+                            //res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (int)wagl.id_wagon_operations, wagl.num_nakl, null,
+                            //    wagl.doc_received, wagl.id_cargo, wagl.id_internal_cargo, wagl.vesg, wagl.code_station_uz, wagl.id_station_amkr_on, wagl.id_devision_on, user);
                         }
                         if (res_open > 0 && res_load >= 0) mode_result = mode_obj.open;                  // update 
                         if (res_open < 0) return (int)res_open;                         // Ошибка
                         if (res_load < 0) return (int)res_load;                         // Ошибка
                     }
-                    // закрыть
+                    // закрыть операцию
                     if (vag.start == null && vag.stop != null)
                     {
+                        // Операция погрузка
+                        if (vag is LoadingWagons) {
+                            LoadingWagons wagl = (LoadingWagons)vag;
+                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, wagl, user);
+/*                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (int)wagl.id_wagon_operations, wagl.num_nakl, null, wagl.doc_received, wagl.id_cargo, wagl.id_internal_cargo, wagl.vesg, wagl.code_station_uz, wagl.id_station_amkr_on, wagl.id_devision_on, user);*/                        }
+                        
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
                         if (res_close > 0) mode_result = mode_obj.close;                // update 
                         if (res_close < 0) return (int)res_close;                       // Ошибка
                     }
-                    // Обновляю если опреация по вагону закрыта
-                    if (res_close > 0)
+                    // Обновляю если опреация по вагону выгрузки закрыта
+                    if (res_close > 0 && (vag is UnloadingWagons))
                     {
                         ArrivalCar? arr_car = context.ArrivalCars.Where(c => c.Id == wim.IdWagonInternalRoutesNavigation.IdArrivalCar).Include(doc => doc.IdArrivalUzVagonNavigation).FirstOrDefault();
                         // TODO: ДОБАВИТЬ ПРОВЕРКУ НА ВЫГРУЗКА С ПРИБЫТИЯ
