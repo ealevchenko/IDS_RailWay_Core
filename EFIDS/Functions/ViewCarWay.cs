@@ -360,6 +360,15 @@ public class ViewCarWay
     [Column("current_wagon_busy")]
     public int CurrentWagonBusy { get; set; }
 
+    [Column("current_move_busy")]
+    public int CurrentMoveBusy { get; set; }
+
+    [Column("current_load_busy")]
+    public int CurrentLoadBusy { get; set; }
+
+    [Column("current_unload_busy")]
+    public int CurrentUnloadBusy { get; set; }
+
     [Column("current_id_operation")]
     public int? CurrentIdOperation { get; set; }
 
