@@ -18,13 +18,13 @@ public partial class WagonFiling
     public string NumFiling { get; set; } = null!;
 
     [Column("type_filing")]
-    public int typeFiling { get; set; }
+    public int TypeFiling { get; set; }
 
     [Column("id_division")]
     public int IdDivision { get; set; }
 
     [Column("vesg")]
-    public int? vesg { get; set; }
+    public int? Vesg { get; set; }
 
     [Column("note")]
     [StringLength(250)]

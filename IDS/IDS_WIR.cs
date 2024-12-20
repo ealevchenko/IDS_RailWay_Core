@@ -108,6 +108,8 @@ namespace IDS_
         private String? connectionString;
 
         private List<int> list_groups_cargo = new List<int>() { 11, 16, 20, 24 }; // Список id групп груза с порожними вагонами
+        public int oper_load_uz = 15;
+        public int oper_load_vz = 16;
 
         public IDS_WIR(ILogger<Object> logger, IConfiguration configuration) : base()
         {
@@ -1870,7 +1872,7 @@ namespace IDS_
                     // Обновить операцию (только погрузка)
                     if (vag.id_wagon_operations != null && vag.start == null && vag.stop == null && vag is LoadingWagons)
                     {
-                        res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, user);
+                        res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, true, user);
                         if (res_load > 0) mode_result = mode_obj.update; // update 
                         if (res_load < 0) return (int)res_load; // Ошибка
                     }
@@ -1882,7 +1884,7 @@ namespace IDS_
                         // Если погрузка создать строку перемещения внутрених грузов
                         if (vag is LoadingWagons)
                         {
-                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, user);
+                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, false, user);
                             if (res_load < 0) return (int)res_load;                         // Ошибка
                         }
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
@@ -1896,7 +1898,7 @@ namespace IDS_
                         // Если погрузка создать строку перемещения внутрених грузов
                         if (vag is LoadingWagons)
                         {
-                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, user);
+                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, false, user);
                             if (res_load < 0) return (int)res_load;                         // Ошибка
                         }
                         if (res_open > 0) mode_result = mode_obj.open;  // open 
@@ -1909,7 +1911,7 @@ namespace IDS_
                         // Операция погрузка
                         if (vag is LoadingWagons)
                         {
-                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, user);
+                            res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, false, user);
                             if (res_load < 0) return (int)res_load;
                         }
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
@@ -1979,8 +1981,8 @@ namespace IDS_
                     {
                         Id = id_filing,
                         NumFiling = num_filing != null ? num_filing : "", //id_way.ToString() + "-" + id_division.ToString() + "-" + ((DateTime)create).ToString("dd.MM.yyyy hh:mm:ss"),
-                        typeFiling = type_filing,
-                        vesg = null,
+                        TypeFiling = type_filing,
+                        Vesg = null,
                         IdDivision = id_division,
                         Note = "",
                         StartFiling = null,
@@ -2223,7 +2225,7 @@ namespace IDS_
         /// <param name="vagons"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public ResultUpdateIDWagon UpdateOperationFiling(int id_filing, int mode, Object vagons, string user)
+        public ResultUpdateIDWagon UpdateOperationFiling(int id_filing, string? num_filing, int? vesg, DateTime? doc_received, int mode, Object vagons, string user)
         {
             ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, 0);
             DateTime start = DateTime.Now;
@@ -2269,24 +2271,62 @@ namespace IDS_
                     if (vagons is List<LoadingWagons>)
                     {
                         rt.count = ((List<LoadingWagons>)vagons).Count();
-                        // Пройдемся по вагонам
-                        foreach (LoadingWagons vag in ((List<LoadingWagons>)vagons).ToList())
+                        // Обновим общие параметры подачи погрузки
+                        if (wf != null && mode > 2) {
+                            wf.NumFiling = num_filing!=null ? num_filing : "";
+                            wf.Vesg = vesg;
+                            wf.DocReceived = doc_received;
+                            wf.Change = DateTime.Now;
+                            wf.ChangeUser = user;
+                        }
+                        // Проверка на ввод общих документов и веса
+                        if (wf != null && mode > 2 && (doc_received != null || num_filing != null || vesg != null))
                         {
-                            WagonInternalMovement? wim = context.WagonInternalMovements
-                                .Include(wir => wir.IdWagonInternalRoutesNavigation)
-                                .Include(wio => wio.IdWioNavigation)
-                                .Where(m => m.Id == vag.id_wim).FirstOrDefault();
-                            // Определим номер вагона
-                            int num = wim != null && wim.IdWagonInternalRoutesNavigation != null ? wim.IdWagonInternalRoutesNavigation.Num : 0;
-                            int result = UpdateWagonFiling(ref context, mode, wf, vag, user);
-                            // Отметим операцию
-                            if (result >= 0)
+                            List<WagonInternalMovement> list_wim = wf.WagonInternalMovements.ToList();
+                            // Переданы не все вагоны для общей операции
+                            if (rt.count != list_wim.Count())
                             {
-                                rt.SetModeResult((mode_obj)result, vag.id_wim, 1, num); // Операция выполнена
+                                rt.SetResult((int)errors_base.err_total_value_wf); // Операция не соответсвует общим документам
                             }
-                            else
+                            //foreach (WagonInternalMovement wim in list_wim)
+                            //{
+                            //    if (wim.IdWio != null)
+                            //    {
+                            //        WagonInternalOperation? wio = context.WagonInternalOperations.FirstOrDefault(o => o.Id == wim.IdWio);
+                            //        if (wio != null)
+                            //        {
+                            //            if (wio.IdOperation != oper_load_vz)
+                            //            {
+                            //                rt.SetResult((int)errors_base.err_total_value_wf); // Операция не соответсвует общим документам
+                            //                break;
+                            //            }
+                            //        }
+                            //    }
+                            //}
+                        }
+                        // Если ошибок нет продолжим
+                        if (rt.error == 0)
+                        {
+
+                            // Пройдемся по вагонам
+                            foreach (LoadingWagons vag in ((List<LoadingWagons>)vagons).ToList())
                             {
-                                rt.SetErrorResult(vag.id_wim, result, num);
+                                WagonInternalMovement? wim = context.WagonInternalMovements
+                                    .Include(wir => wir.IdWagonInternalRoutesNavigation)
+                                    .Include(wio => wio.IdWioNavigation)
+                                    .Where(m => m.Id == vag.id_wim).FirstOrDefault();
+                                // Определим номер вагона
+                                int num = wim != null && wim.IdWagonInternalRoutesNavigation != null ? wim.IdWagonInternalRoutesNavigation.Num : 0;
+                                int result = UpdateWagonFiling(ref context, mode, wf, vag, user);
+                                // Отметим операцию
+                                if (result >= 0)
+                                {
+                                    rt.SetModeResult((mode_obj)result, vag.id_wim, 1, num); // Операция выполнена
+                                }
+                                else
+                                {
+                                    rt.SetErrorResult(vag.id_wim, result, num);
+                                }
                             }
                         }
                     }

@@ -154,6 +154,9 @@ namespace WebAPI.Controllers.Directory
     public class OperationUpdateFilingOperationLoading
     {
         public int id_filing { get; set; }
+        public string? num_filing { get; set; }
+        public int? vesg { get; set; }
+        public DateTime? doc_received { get; set; }
         public int mode { get; set; }
         public List<LoadingWagons> wagons { get; set; }
     }
@@ -815,7 +818,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, value.mode, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, null, null, null, value.mode, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
@@ -839,7 +842,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, value.mode, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, value.num_filing, value.vesg, value.doc_received, value.mode, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
