@@ -636,7 +636,7 @@ namespace IDS.Helper
                 // Перемещение груза есть, и операция погрузки совподает
                 wimc.InternalDocNum = wf.NumFiling == null ? wagon.num_nakl : null;
                 wimc.IdWeighingNum = null;
-                wimc.DocReceived = wf.DocReceived == null ? wagon.doc_received : null;
+                wimc.DocReceived = wf.DocReceived == null ? wagon.doc_received : wagon.doc_received;
                 wimc.IdCargo = wagon.id_cargo;
                 wimc.IdInternalCargo = wagon.id_internal_cargo;
                 wimc.Vesg = wf.Vesg == null ? wagon.vesg : null;
