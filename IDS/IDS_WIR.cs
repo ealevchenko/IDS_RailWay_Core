@@ -2241,6 +2241,7 @@ namespace IDS_
                     WagonFiling? wf = context.WagonFilings
                             .Where(f => f.Id == id_filing)
                             .Include(wim => wim.WagonInternalMovements)
+                                .ThenInclude(wimcL => wimcL.WagonInternalMoveCargoIdWimLoadNavigations)
                             .FirstOrDefault();
                     // Операция "ВЫГРУЗКА"
                     if (vagons is List<UnloadingWagons>)
@@ -2272,8 +2273,9 @@ namespace IDS_
                     {
                         rt.count = ((List<LoadingWagons>)vagons).Count();
                         // Обновим общие параметры подачи погрузки
-                        if (wf != null && mode > 2) {
-                            wf.NumFiling = num_filing!=null ? num_filing : "";
+                        if (wf != null && mode > 2)
+                        {
+                            wf.NumFiling = num_filing != null ? num_filing : "";
                             wf.Vesg = vesg;
                             wf.DocReceived = doc_received;
                             wf.Change = DateTime.Now;

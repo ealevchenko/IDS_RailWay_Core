@@ -385,7 +385,7 @@ namespace IDS.Helper
             int count = wf.WagonInternalMovements.Count();
             int count_close = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).Count();
 
-            if (wf.TypeFiling != 2 && count == count_close)
+            if (wf.TypeFiling == 1 && count == count_close)
             {
                 WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).OrderByDescending(c => c.FilingEnd).FirstOrDefault();
                 DateTime? close = wim_close_max != null ? wim_close_max.FilingEnd : null;
@@ -394,6 +394,33 @@ namespace IDS.Helper
                 wf.CloseUser = user;
                 return wf.Id;
             }
+            if (wf.TypeFiling == 2 && count == count_close)
+            {
+                // Проверим на закрытый документ внутри подачи
+                bool document = true;
+                foreach (WagonInternalMovement wim in wf.WagonInternalMovements)
+                {
+                    WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.Close == null);
+                    if (wimc == null || wimc.InternalDocNum == null)
+                    {
+                        document = false; break;
+                    }
+                }
+                // Закроем
+                if (wf.DocReceived != null || (wf.DocReceived == null && document))
+                {
+                    WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).OrderByDescending(c => c.FilingEnd).FirstOrDefault();
+                    DateTime? close = wim_close_max != null ? wim_close_max.FilingEnd : null;
+                    wf.EndFiling = close;
+                    wf.Close = close;
+                    wf.CloseUser = user;
+                    return wf.Id;
+                }
+
+
+            }
+
+
             return 0; // не все позиции закрыты
         }
         /// <summary>
