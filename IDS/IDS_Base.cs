@@ -43,9 +43,11 @@
         close_wim = -308,                           // Вагон закрыт
 
         // таблица подач wf -350...
-        not_wf_db = -351,                          // В базе данных нет записи по WagonFiling (Подача вагонов)
-        close_wf = -352,                           // Запись WagonFiling - закрыта
-        wf_not_wagon = -353,                       // Запись WagonFiling не имеет вагонов
+        not_wf_db = -351,                           // В базе данных нет записи по WagonFiling (Подача вагонов)
+        close_wf = -352,                            // Запись WagonFiling - закрыта
+        wf_not_wagon = -353,                        // Запись WagonFiling не имеет вагонов
+        err_total_value_wf = -354,                  // Ошибка, общих параметров операции
+
 
         // таблица wio -400...
         not_wio_db = -401,                          // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
