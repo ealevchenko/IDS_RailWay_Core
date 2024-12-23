@@ -2392,30 +2392,51 @@ namespace IDS_
                     WagonFiling? wf = context.WagonFilings
                             .Where(f => f.Id == id_filing)
                             .Include(wim => wim.WagonInternalMovements)
+                            .ThenInclude(wimcL => wimcL.WagonInternalMoveCargoIdWimLoadNavigations)
                             .FirstOrDefault();
                     if (wf != null)
                     {
                         if (wf.Close == null || mode == 9)
                         {
                             wf.IdDivision = id_division;
+                            wf.Change = DateTime.Now;
+                            wf.ChangeUser = user;
+
                             rt.count = wf.WagonInternalMovements.Count();
                             foreach (WagonInternalMovement wim in wf.WagonInternalMovements.Where(m => m.FilingStart != null).ToList())
                             {
                                 WagonInternalRoute? wir = context.WagonInternalRoutes.Where(r => r.Id == wim.IdWagonInternalRoutes).FirstOrDefault();
                                 if (wir != null)
                                 {
-                                    ArrivalCar? arr_car = context.ArrivalCars.Where(c => c.Id == wir.IdArrivalCar).Include(doc => doc.IdArrivalUzVagonNavigation).FirstOrDefault();
-                                    // TODO: ДОБАВИТЬ ПРОВЕРКУ НА ВЫГРУЗКА С ПРИБЫТИЯ
-                                    // Обновим информацию в документе по прибытию
-                                    if (arr_car != null && arr_car.IdArrivalUzVagonNavigation != null && true)
+
+                                    // Погрузка
+                                    if (wf.TypeFiling == 2)
                                     {
-                                        arr_car.IdArrivalUzVagonNavigation.IdDivisionOnAmkr = wf.IdDivision;
-                                        //arr_car.IdArrivalUzVagonNavigation.IdStationOnAmkr = wim.IdStation;
-                                        rt.SetUpdateResult(wim.Id, 1, wir.Num); // Отметим операцию.
+                                        WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.Close == null);
+                                        if (wimc != null)
+                                        {
+                                            wimc.IdDivisionFrom = id_division;
+                                            wimc.Change = DateTime.Now;
+                                            wimc.ChangeUser = user;
+                                        }
                                     }
-                                    else
+
+                                    // Выгрузка
+                                    if (wf.TypeFiling == 1)
                                     {
-                                        rt.SetSkipResult(wim.Id, 1, wir.Num);
+                                        bool is_loading = wim.WagonInternalMoveCargoIdWimLoadNavigations.Count() > 0;
+                                        ArrivalCar? arr_car = context.ArrivalCars.Where(c => c.Id == wir.IdArrivalCar).Include(doc => doc.IdArrivalUzVagonNavigation).FirstOrDefault();
+                                        // Обновим информацию в документе по прибытию если нет истории погрузки
+                                        if (arr_car != null && arr_car.IdArrivalUzVagonNavigation != null && !is_loading)
+                                        {
+                                            arr_car.IdArrivalUzVagonNavigation.IdDivisionOnAmkr = wf.IdDivision;
+                                            //arr_car.IdArrivalUzVagonNavigation.IdStationOnAmkr = wim.IdStation;
+                                            rt.SetUpdateResult(wim.Id, 1, wir.Num); // Отметим операцию.
+                                        }
+                                        else
+                                        {
+                                            rt.SetSkipResult(wim.Id, 1, wir.Num);
+                                        }
                                     }
                                 }
                                 else
