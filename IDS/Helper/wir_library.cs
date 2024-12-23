@@ -401,7 +401,7 @@ namespace IDS.Helper
                 foreach (WagonInternalMovement wim in wf.WagonInternalMovements)
                 {
                     WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.Close == null);
-                    if (wimc == null || wimc.InternalDocNum == null)
+                    if (wimc == null || wimc.DocReceived == null)
                     {
                         document = false; break;
                     }
