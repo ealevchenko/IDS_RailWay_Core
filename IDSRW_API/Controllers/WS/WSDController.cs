@@ -855,7 +855,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/update/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing")]
-        public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFilingUnloading([FromBody] OperationUpdateFiling value)
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFiling([FromBody] OperationUpdateFiling value)
         {
             try
             {
