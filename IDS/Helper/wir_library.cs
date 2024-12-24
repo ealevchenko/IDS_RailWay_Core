@@ -661,7 +661,7 @@ namespace IDS.Helper
             else if (wimc.IdWimLoad != null && wimc.IdWimUnload == null && wimc.IdWimRedirection == null && wimc.DocReceived == null && wimc.IdWimLoad == wim.Id)
             {
                 // Перемещение груза есть, и операция погрузки совподает
-                wimc.InternalDocNum = wf.NumFiling == null ? wagon.num_nakl : null;
+                wimc.InternalDocNum = String.IsNullOrWhiteSpace(wf.NumFiling) ? wagon.num_nakl : null;
                 wimc.IdWeighingNum = null;
                 wimc.DocReceived = wf.DocReceived == null ? wagon.doc_received : wf.DocReceived;
                 wimc.IdCargo = wagon.id_cargo;
