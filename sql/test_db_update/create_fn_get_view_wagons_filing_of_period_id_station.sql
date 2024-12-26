@@ -1,7 +1,7 @@
 USE [KRR-PA-CNT-Railway-Archive]
 GO
 
-/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 13.12.2024 15:37:44 ******/
+/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 26.12.2024 17:38:37 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -340,7 +340,7 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		,arr_dir_cond.condition_abbr_en as arrival_condition_abbr_en
 		,arr_dir_cond.red as arrival_condition_red
 		--> Разметка по текущей операции
-		,wio_filing.id_condition as current_condition_id_condition
+		,wio.id_condition as current_condition_id_condition
 		,cur_dir_cond.condition_name_ru as current_condition_name_ru
 		,cur_dir_cond.condition_name_en as current_condition_name_en
 		,cur_dir_cond.condition_abbr_ru as current_condition_abbr_ru
@@ -382,8 +382,8 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		,cur_dir_operation.[id] as current_id_operation
 		,cur_dir_operation.[operation_name_ru] as current_operation_name_ru
 		,cur_dir_operation.[operation_name_en] as current_operation_name_en
-		,wio_filing.[operation_start] as current_operation_start
-		,wio_filing.[operation_end] as current_operation_end
+		,wio.[operation_start] as current_operation_start
+		,wio.[operation_end] as current_operation_end
 		--> Добавил 06-12-2024
 		--> Текушая информация по перемещению груза на АМКР
 		,wimc_curr.[internal_doc_num]
@@ -455,6 +455,8 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		--INNER JOIN IDS.WagonInternalMovement as curr_wim ON curr_wim.id = (SELECT TOP (1) [id] FROM [IDS].[WagonInternalMovement] where [id_wagon_internal_routes]= wir.id order by id desc) 
 		--> Операция подачи		
 		LEFT JOIN IDS.WagonInternalOperation as wio_filing  ON wio_filing.[id] = wim_filing.[id_wio]
+		--> Текущая операция
+		Left JOIN IDS.WagonInternalOperation as wio ON wio.id = (SELECT TOP (1) [id] FROM [IDS].[WagonInternalOperation] where [id_wagon_internal_routes]= wir.id order by id desc)
 		--> Текущая строка перевозки грузов 	
 		LEFT JOIN [IDS].[WagonInternalMoveCargo] as wimc_curr  ON wimc_curr.[id] = (SELECT TOP (1) [id] FROM [IDS].[WagonInternalMoveCargo] where [id_wagon_internal_routes]= wir.id order by id desc) 
 	   --==== ПРИБЫТИЕ И ПРИЕМ ВАГОНА =====================================================================
@@ -485,7 +487,7 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		--> Техническое сотояние по прибытию
 		Left JOIN IDS.Directory_ConditionArrival as arr_dir_cond ON arr_doc_vag.id_condition =  arr_dir_cond.id 
 		--> Справочник Разметка по текущей операции
-		Left JOIN IDS.Directory_ConditionArrival as cur_dir_cond ON wio_filing.id_condition =  cur_dir_cond.id
+		Left JOIN IDS.Directory_ConditionArrival as cur_dir_cond ON wio.id_condition =  cur_dir_cond.id
 		--> Груз по прибытию
 		Left JOIN IDS.Directory_Cargo as arr_dir_cargo ON arr_doc_vag.id_cargo =  arr_dir_cargo.id 	
 		--> Группа груза по прибытию
@@ -501,9 +503,13 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		--> Справочник Подразделения (цех получатель по прибытию)
 		Left JOIN IDS.Directory_Divisions as arr_dir_division_amkr ON arr_doc_vag.id_division_on_amkr =  arr_dir_division_amkr.id
 		--> Справочник Операции над вагоном (текущая операция)
-		Left JOIN IDS.Directory_WagonOperations as cur_dir_operation ON wio_filing.id_operation =  cur_dir_operation.id
+		Left JOIN IDS.Directory_WagonOperations as cur_dir_operation ON wio.id_operation =  cur_dir_operation.id
 		--> Справочник Сотояния загрузки
-		Left JOIN [IDS].[Directory_WagonLoadingStatus] as cur_load ON wio_filing.id_loading_status = cur_load.id
+		Left JOIN [IDS].[Directory_WagonLoadingStatus] as cur_load ON wio.id_loading_status = cur_load.id
+		----> Справочник Операции над вагоном (в подаче)
+		--Left JOIN IDS.Directory_WagonOperations as filing_dir_operation ON wio_filing.id_operation =  cur_dir_operation.id
+		----> Справочник Сотояния загрузки (в подаче)
+		--Left JOIN [IDS].[Directory_WagonLoadingStatus] as filing_load ON wio_filing.id_loading_status = cur_load.id
 		-- Справочник Станция отправки
 		Left JOIN [IDS].[Directory_Station] as dir_station_filing ON wim_filing.[id_station] = dir_station_filing.id
 		--> Справочни Путь отправки
