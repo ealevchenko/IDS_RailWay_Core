@@ -1862,6 +1862,7 @@ namespace IDS_
                     long res_open = 0;
                     long res_load = 0;
                     long res_close = 0;
+                    long res_unload = 0;
                     // Только добавить
                     if (vag.id_wagon_operations == null && vag.start == null && vag.stop == null && vag.id_status_load == null)
                     {
@@ -1888,7 +1889,13 @@ namespace IDS_
                             if (res_load < 0) return (int)res_load;                         // Ошибка
                         }
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
-                        if (res_close > 0) mode_result = mode_obj.close; // open & close 
+                        if (res_close > 0) mode_result = mode_obj.close; // open & close
+                        // если выгрузка  закрыта
+                        if (vag is UnloadingWagons && res_close > 0)
+                        {
+                            res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, user);
+                            if (res_unload < 0) return (int)res_unload;                         // Ошибка
+                        }
                         if (res_close < 0) return (int)res_close;        // Ошибка
                     }
                     // открыть операцию
@@ -1914,6 +1921,12 @@ namespace IDS_
                             res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, false, user);
                             if (res_load < 0) return (int)res_load;
                         }
+                        // если выгрузка
+                        if (vag is UnloadingWagons)
+                        {
+                            res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, user);
+                            if (res_unload < 0) return (int)res_unload;                         // Ошибка
+                        }
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
                         if (res_close > 0) mode_result = mode_obj.close;    // update
                         if (res_close < 0) return (int)res_close;           // Ошибка                                                              
@@ -1922,13 +1935,23 @@ namespace IDS_
                     // Обновляю если опреация по вагону выгрузки закрыта
                     if (res_close > 0 && (vag is UnloadingWagons))
                     {
-                        ArrivalCar? arr_car = context.ArrivalCars.Where(c => c.Id == wim.IdWagonInternalRoutesNavigation.IdArrivalCar).Include(doc => doc.IdArrivalUzVagonNavigation).FirstOrDefault();
-                        // TODO: ДОБАВИТЬ ПРОВЕРКУ НА ВЫГРУЗКА С ПРИБЫТИЯ
-                        // Обновим информацию в документе по прибытию
-                        if (arr_car != null && arr_car.IdArrivalUzVagonNavigation != null && true)
+                        WagonInternalRoute? wir = wim.IdWagonInternalRoutesNavigation;
+                        if (wir != null)
                         {
-                            arr_car.IdArrivalUzVagonNavigation.IdDivisionOnAmkr = wf.IdDivision;
-                            arr_car.IdArrivalUzVagonNavigation.IdStationOnAmkr = wim.IdStation;
+                            WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
+                            // Это первый заход, тогда это выгрузка с уз (Обновим информацию в документе по прибытию)
+                            if (wimc == null)
+                            {
+                                ArrivalCar? arr_car = context.ArrivalCars.Where(c => c.Id == wir.IdArrivalCar).Include(doc => doc.IdArrivalUzVagonNavigation).FirstOrDefault();
+                                // Обновим информацию в документе по прибытию
+                                if (arr_car != null && arr_car.IdArrivalUzVagonNavigation != null)
+                                {
+                                    arr_car.IdArrivalUzVagonNavigation.IdDivisionOnAmkr = wf.IdDivision;
+                                    arr_car.IdArrivalUzVagonNavigation.IdStationOnAmkr = wim.IdStation;
+                                    arr_car.Change = DateTime.Now;
+                                    arr_car.ChangeUser = user;
+                                }
+                            }
                         }
                     }
                     // Отметим операцию
