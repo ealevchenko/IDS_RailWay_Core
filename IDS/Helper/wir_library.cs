@@ -269,12 +269,12 @@ namespace IDS.Helper
             WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
             WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
             if (wim_last != null && wim_last.Id != wim.Id) return (int)errors_base.err_last_wim_db; // Ошибка позиция вагона несоответсвует последней позиции в базе
-            WagonInternalOperation? wio = wim.IdWioNavigation;
+            WagonInternalOperation? wio = wim.IdWioNavigation; // Последняя операция над вагоном
             WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
             if (wio != null && wio_last.Id != wio.Id) return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует последней
             if (id_wagon_operations != null)
             {
-                if (wio == null)
+                if (wio == null || wio.Close != null)
                 {
                     if (date_start != null)
                     {
@@ -292,7 +292,7 @@ namespace IDS.Helper
                 }
                 else
                 {
-                    if (wio.Id == id_wagon_operations)
+                    if (wio.IdOperation == id_wagon_operations && wio.Close == null)
                     {
                         if (date_start != null && wio.OperationEnd == null)
                         {
