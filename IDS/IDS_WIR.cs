@@ -1896,7 +1896,7 @@ namespace IDS_
                             res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, user);
                             if (res_unload < 0) return (int)res_unload;                         // Ошибка
                         }
-                        if (res_close < 0) return (int)res_close;        // Ошибка
+                        if (res_close < 0) return (int)res_close;        // Ошибка                        
                     }
                     // открыть операцию
                     if (vag.start != null && vag.stop == null)

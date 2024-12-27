@@ -620,7 +620,9 @@ namespace IDS.Helper
             if (wir == null) return (int)errors_base.not_wir_db;    // В базе данных нет записи по WagonInternalRoutes (Внутреннее перемещение вагонов)
                                                                     // Получим последнюю запись груза перемещаемого на предприятии
             WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
-            if (wimc == null) return (int)errors_base.not_wimc_db;              // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+            //if (wimc == null) return (int)errors_base.not_wimc_db;              // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+            if (wimc == null) return 0; // В базе данных еще нет записи
+            
             if (wimc.Close != null) return (int)errors_base.wimc_cargo_close;   // Ошибка, строка груза закрыта
             if (wimc.IdWimLoad == null) return (int)errors_base.cargo_not_load; // Ошибка, вагон не погружен, выгрузка невозможна
             if (wimc.IdWimLoad != null && wimc.IdWimUnload == null && wimc.DocReceived == null && wf.DocReceived == null) return (int)errors_base.cargo_not_load_doc;
