@@ -1814,6 +1814,7 @@ namespace IDS_
             public DateTime? stop { get; set; }
             public int? id_wagon_operations { get; set; }
             public int? id_status_load { get; set; }
+            public bool? clear_cargo { get; set; }
 
         }
         public class LoadingWagons : IOperationWagons
@@ -1890,8 +1891,8 @@ namespace IDS_
                         }
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
                         if (res_close > 0) mode_result = mode_obj.close; // open & close
-                        // если выгрузка  закрыта
-                        if (vag is UnloadingWagons && res_close > 0)
+                        // если выгрузка  закрыта (и статус соответсвует выгрузке)
+                        if (vag is UnloadingWagons && res_close > 0 && ((UnloadingWagons)vag).clear_cargo == true)
                         {
                             res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, user);
                             if (res_unload < 0) return (int)res_unload;                         // Ошибка
@@ -1922,7 +1923,7 @@ namespace IDS_
                             if (res_load < 0) return (int)res_load;
                         }
                         // если выгрузка
-                        if (vag is UnloadingWagons)
+                        if (vag is UnloadingWagons && ((UnloadingWagons)vag).clear_cargo == true)
                         {
                             res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, user);
                             if (res_unload < 0) return (int)res_unload;                         // Ошибка
@@ -1933,7 +1934,7 @@ namespace IDS_
 
                     }
                     // Обновляю если опреация по вагону выгрузки закрыта
-                    if (res_close > 0 && (vag is UnloadingWagons))
+                    if (res_close > 0 && vag is UnloadingWagons)
                     {
                         WagonInternalRoute? wir = wim.IdWagonInternalRoutesNavigation;
                         if (wir != null)
