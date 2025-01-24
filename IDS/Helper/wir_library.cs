@@ -542,7 +542,8 @@ namespace IDS.Helper
                         return (int)errors_base.error_value_load_vz;  // Ошибка, неверный формат или не все праметры заданы для создания загрузки ВЗ
                     }
                     // операция уз
-                    if (wagon.id_wagon_operations == oper_load_uz && (wagon.id_cargo == null || wagon.code_station_uz == null))
+                    //if (wagon.id_wagon_operations == oper_load_uz && (wagon.id_cargo == null || wagon.code_station_uz == null))
+                    if (wagon.id_wagon_operations == oper_load_uz && (wagon.id_cargo == null))
                     {
                         return (int)errors_base.error_value_load_uz;  // Ошибка, неверный формат или не все праметры заданы для создания загрузки УЗ
                     }
