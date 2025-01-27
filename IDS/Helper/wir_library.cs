@@ -558,7 +558,8 @@ namespace IDS.Helper
                 (wimc.Close == null && wimc.Empty == true && wimc.IdWimLoad != wim.Id))
                 )
             {
-                if (wimc.Close == null && wimc.Empty == true)
+                // Закроем груз с признаком пустой груз (Вагоны порожние)
+                if (wimc != null && wimc.Close == null && wimc.Empty == true)
                 {
                     wimc.Change = DateTime.Now;
                     wimc.ChangeUser = user;
