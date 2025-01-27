@@ -553,8 +553,18 @@ namespace IDS.Helper
             // Получим последнюю запись груза перемещаемого на предприятии
             WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
 
-            if (wimc == null || (wimc != null && wimc.Close != null && wimc.DocReceived != null))
+            if (wimc == null || (wimc != null &&
+                (wimc.Close != null && wimc.Empty != true && wimc.DocReceived != null) ||
+                (wimc.Close == null && wimc.Empty == true && wimc.IdWimLoad != wim.Id))
+                )
             {
+                if (wimc.Close == null && wimc.Empty == true)
+                {
+                    wimc.Change = DateTime.Now;
+                    wimc.ChangeUser = user;
+                    wimc.Close = DateTime.Now;
+                    wimc.CloseUser = user;
+                }
                 // Перемещение груза есть и закрыто (введен документ) или перемещение груза нет. Создать новое
                 WagonInternalMoveCargo new_wimc = new WagonInternalMoveCargo()
                 {
@@ -565,6 +575,7 @@ namespace IDS.Helper
                     DocReceived = wagon.doc_received,
                     IdCargo = wagon.id_cargo,
                     IdInternalCargo = wagon.id_internal_cargo,
+                    Empty = wagon.id_status_load == 0, // если пустой тогда true
                     Vesg = wagon.vesg,
                     IdStationFromAmkr = wim.IdStation,
                     IdDivisionFrom = wf.IdDivision,
@@ -588,6 +599,7 @@ namespace IDS.Helper
                 wimc.DocReceived = wf.DocReceived == null ? wagon.doc_received : wf.DocReceived;
                 wimc.IdCargo = wagon.id_cargo;
                 wimc.IdInternalCargo = wagon.id_internal_cargo;
+                wimc.Empty = wagon.id_status_load == 0;                 // если пустой тогда true
                 wimc.Vesg = wf.Vesg == null ? wagon.vesg : null;
                 wimc.IdStationFromAmkr = wim.IdStation;
                 wimc.IdDivisionFrom = wf.IdDivision;
@@ -623,7 +635,7 @@ namespace IDS.Helper
             WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
             //if (wimc == null) return (int)errors_base.not_wimc_db;              // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
             if (wimc == null) return 0; // В базе данных еще нет записи
-            
+
             if (wimc.Close != null) return (int)errors_base.wimc_cargo_close;   // Ошибка, строка груза закрыта
             if (wimc.IdWimLoad == null) return (int)errors_base.cargo_not_load; // Ошибка, вагон не погружен, выгрузка невозможна
             if (wimc.IdWimLoad != null && wimc.IdWimUnload == null && wimc.DocReceived == null && wf.DocReceived == null) return (int)errors_base.cargo_not_load_doc;
