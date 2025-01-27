@@ -24,6 +24,9 @@ public partial class DirectoryInternalCargo
     [StringLength(50)]
     public string CargoNameEn { get; set; } = null!;
 
+    [Column("empty_weight")]
+    public bool? EmptyWeight { get; set; }
+
     [Column("code_sap")]
     [StringLength(20)]
     public string? CodeSap { get; set; }

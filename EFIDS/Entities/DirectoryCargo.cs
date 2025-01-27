@@ -31,6 +31,9 @@ public partial class DirectoryCargo
     [StringLength(20)]
     public string? CodeSap { get; set; }
 
+    [Column("empty_weight")]
+    public bool? EmptyWeight { get; set; }
+
     [Column("sending")]
     public bool? Sending { get; set; }
 

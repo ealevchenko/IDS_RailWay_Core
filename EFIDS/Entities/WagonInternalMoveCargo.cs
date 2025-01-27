@@ -32,6 +32,9 @@ public partial class WagonInternalMoveCargo
     [Column("id_internal_cargo")]
     public int? IdInternalCargo { get; set; }
 
+    [Column("empty")]
+    public bool? Empty { get; set; }
+
     [Column("vesg")]
     public int? Vesg { get; set; }
 
