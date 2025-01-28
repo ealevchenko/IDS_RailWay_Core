@@ -555,7 +555,7 @@ namespace IDS.Helper
                 {
                     // операция вз
                     if (wagon.id_wagon_operations == oper_load_vz && (
-                        (wagon.doc_received != null && (String.IsNullOrWhiteSpace(wagon.num_nakl) || wagon.vesg == null || wagon.id_internal_cargo == null || wagon.id_station_amkr_on == null || wagon.id_devision_on == null))
+                        (wagon.doc_received != null && (String.IsNullOrWhiteSpace(wagon.num_nakl) || (wagon.vesg == null && wagon.id_status_load != 0) || wagon.id_internal_cargo == null || wagon.id_station_amkr_on == null || wagon.id_devision_on == null))
                         ||
                         (wf.DocReceived != null && (String.IsNullOrWhiteSpace(wf.NumFiling) || wf.Vesg == null || wagon.id_internal_cargo == null || wagon.id_station_amkr_on == null || wagon.id_devision_on == null))
                         ))

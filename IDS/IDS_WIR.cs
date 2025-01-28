@@ -1876,6 +1876,10 @@ namespace IDS_
                     // Обновить операцию (только погрузка)
                     if (vag.id_wagon_operations != null && vag.start == null && vag.stop == null && vag is LoadingWagons)
                     {
+                        // Обновим статус операции
+                        if (wim.IdWioNavigation != null && wim.IdWioNavigation.IdOperation == vag.id_wagon_operations && vag.id_status_load != null && wim.IdWioNavigation.IdLoadingStatus != vag.id_status_load) {
+                            wim.IdWioNavigation.IdLoadingStatus = (int)vag.id_status_load;
+                        }
                         res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, true, user);
                         if (res_load > 0) mode_result = mode_obj.update; // update 
                         if (res_load < 0) return (int)res_load; // Ошибка
