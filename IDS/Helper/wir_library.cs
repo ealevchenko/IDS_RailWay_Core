@@ -544,7 +544,10 @@ namespace IDS.Helper
                 Empty = cargo != null ? cargo.EmptyWeight : null;
             }
             // Проверка мы грузим не порожний груз
-            if (Empty == true) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
+            if (Empty == true && wagon.start != null) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
+            if (wagon.id_status_load!=null && wagon.id_status_load == 0 && Empty != true) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
+            if (wagon.id_status_load!=null && wagon.id_status_load > 0 && Empty == true) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
+
             // Проверим если есть дата документа тогда проверим все необходимые входные данные
             if (wagon.doc_received != null || wf.DocReceived != null)
             {
@@ -572,7 +575,7 @@ namespace IDS.Helper
             WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
 
 
-            if (wimc == null || wimc != null && wimc.Empty == true && wagon.id_status_load != 0)
+            if (wimc == null || wimc != null && wimc.IdWimLoad != wim.Id && wimc.Empty == true && wagon.id_status_load != 0)
             {
                 // Закроем груз с признаком пустой груз (Вагоны порожние)
                 if (wimc != null && wimc.Empty == true)
@@ -606,7 +609,7 @@ namespace IDS.Helper
                 return wim.Id;
             }
             else {
-                if (wimc != null && wimc.Empty != true && wimc.IdWimLoad != null && wimc.IdWimRedirection == null && wimc.DocReceived == null && wimc.IdWimLoad == wim.Id)
+                if (wimc != null && wimc.IdWimLoad != null && wimc.IdWimLoad == wim.Id && wimc.IdWimRedirection == null && wimc.DocReceived == null && wf.DocReceived == null)
                 {
                     // Перемещение груза есть, и операция погрузки совподает
                     wimc.InternalDocNum = String.IsNullOrWhiteSpace(wf.NumFiling) ? wagon.num_nakl : null;
