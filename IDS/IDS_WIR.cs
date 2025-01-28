@@ -110,6 +110,8 @@ namespace IDS_
         private List<int> list_groups_cargo = new List<int>() { 11, 16, 20, 24 }; // Список id групп груза с порожними вагонами
         public int oper_load_uz = 15;
         public int oper_load_vz = 16;
+        public int oper_unload_uz = 13;
+        public int oper_unload_vz = 14;
 
         public IDS_WIR(ILogger<Object> logger, IConfiguration configuration) : base()
         {
@@ -1814,7 +1816,7 @@ namespace IDS_
             public DateTime? stop { get; set; }
             public int? id_wagon_operations { get; set; }
             public int? id_status_load { get; set; }
-            public bool? clear_cargo { get; set; }
+            //public bool? clear_cargo { get; set; }
 
         }
         public class LoadingWagons : IOperationWagons
@@ -1892,9 +1894,10 @@ namespace IDS_
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
                         if (res_close > 0) mode_result = mode_obj.close; // open & close
                         // если выгрузка  закрыта (и статус соответсвует выгрузке)
-                        if (vag is UnloadingWagons && res_close > 0 && ((UnloadingWagons)vag).clear_cargo == true)
+                        //if (vag is UnloadingWagons && res_close > 0 && ((UnloadingWagons)vag).clear_cargo == true)
+                        if (vag is UnloadingWagons && res_close > 0 && ((UnloadingWagons)vag).id_status_load == 0)
                         {
-                            res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, user);
+                            res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, (UnloadingWagons)vag, user);
                             if (res_unload < 0) return (int)res_unload;                         // Ошибка
                         }
                         if (res_close < 0) return (int)res_close;        // Ошибка                        
@@ -1923,9 +1926,10 @@ namespace IDS_
                             if (res_load < 0) return (int)res_load;
                         }
                         // если выгрузка
-                        if (vag is UnloadingWagons && ((UnloadingWagons)vag).clear_cargo == true)
+                        //if (vag is UnloadingWagons && ((UnloadingWagons)vag).clear_cargo == true)
+                        if (vag is UnloadingWagons && ((UnloadingWagons)vag).id_status_load == 0)
                         {
-                            res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, user);
+                            res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, (UnloadingWagons)vag, user);
                             if (res_unload < 0) return (int)res_unload;                         // Ошибка
                         }
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);

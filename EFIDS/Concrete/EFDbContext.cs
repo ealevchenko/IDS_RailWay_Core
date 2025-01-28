@@ -923,7 +923,7 @@ public partial class EFDbContext : DbContext
 
             entity.HasOne(d => d.IdWimRedirectionNavigation).WithMany(p => p.WagonInternalMoveCargoIdWimRedirectionNavigations).HasConstraintName("FK_WagonInternalMoveCargo_WagonInternalMovement1");
 
-            entity.HasOne(d => d.IdWimUnloadNavigation).WithMany(p => p.WagonInternalMoveCargoIdWimUnloadNavigations).HasConstraintName("FK_WagonInternalMoveCargo_WagonInternalMovement2");
+            //entity.HasOne(d => d.IdWimUnloadNavigation).WithMany(p => p.WagonInternalMoveCargoIdWimUnloadNavigations).HasConstraintName("FK_WagonInternalMoveCargo_WagonInternalMovement2");
 
             entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent).HasConstraintName("FK_WagonInternalMoveCargo_WagonInternalMoveCargo");
         });

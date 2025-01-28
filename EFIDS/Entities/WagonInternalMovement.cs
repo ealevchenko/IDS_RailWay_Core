@@ -126,6 +126,6 @@ public partial class WagonInternalMovement
     [InverseProperty("IdWimRedirectionNavigation")]
     public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargoIdWimRedirectionNavigations { get; set; } = new List<WagonInternalMoveCargo>();
 
-    [InverseProperty("IdWimUnloadNavigation")]
-    public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargoIdWimUnloadNavigations { get; set; } = new List<WagonInternalMoveCargo>();
+    //[InverseProperty("IdWimUnloadNavigation")]
+    //public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargoIdWimUnloadNavigations { get; set; } = new List<WagonInternalMoveCargo>();
 }
