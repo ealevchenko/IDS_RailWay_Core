@@ -544,8 +544,8 @@ public class ViewCarWay
     [StringLength(50)]
     public string? CurrentDivisionOnAbbrEn { get; set; }
 
-    [Column("id_wim_unload")]
-    public long? IdWimUnload { get; set; }
+    //[Column("id_wim_unload")]
+    //public long? IdWimUnload { get; set; }
 
     [Column("move_cargo_create", TypeName = "datetime")]
     public DateTime? MoveCargoCreate { get; set; }
