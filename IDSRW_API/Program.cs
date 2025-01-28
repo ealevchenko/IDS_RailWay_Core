@@ -16,9 +16,21 @@ logger.Debug("init main");
 
 try
 {
+    var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
     var builder = WebApplication.CreateBuilder(args);
     IConfiguration Configuration = builder.Configuration;
     var connectionString = Configuration["ConnectionStrings:IDS"];
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(MyAllowSpecificOrigins,
+            policy =>
+            {
+                policy.WithOrigins("http://localhost:53848")
+                       .AllowCredentials().AllowAnyHeader().AllowAnyMethod();
+            });
+    });
     builder.Services.AddDbContext<EFDbContext>(x => x.UseSqlServer(connectionString));
     // Add services to the container.
     builder.Services.AddControllers().AddJsonOptions(options =>
@@ -56,8 +68,8 @@ try
 
     var app = builder.Build();
 
-    app.UseCors(builder => builder.WithOrigins("http://localhost:53848").AllowCredentials());
-
+    //app.UseCors(builder => builder.WithOrigins("http://localhost:53848").AllowCredentials());
+    app.UseCors(MyAllowSpecificOrigins);
 
     // Configure the HTTP request pipeline.
     //if (app.Environment.IsDevelopment())
