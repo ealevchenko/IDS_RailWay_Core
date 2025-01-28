@@ -1,7 +1,7 @@
 USE [KRR-PA-CNT-Railway-Archive]
 GO
 
-/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 26.12.2024 17:38:37 ******/
+/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 28.01.2025 11:44:48 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -205,7 +205,7 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 	[current_division_on_name_en] [nvarchar](250) NULL,
 	[current_division_on_abbr_ru] [nvarchar](50) NULL,
 	[current_division_on_abbr_en] [nvarchar](50) NULL,
-	[id_wim_unload] [bigint] NULL,
+	--[id_wim_unload] [bigint] NULL,
 	[move_cargo_create] [datetime] NULL,
 	[move_cargo_create_user] [nvarchar](50) NULL,
 	[move_cargo_change] [datetime] NULL,
@@ -438,7 +438,7 @@ CREATE FUNCTION [IDS].[get_view_wagons_filing_of_period_id_station]
 		,dir_division_on.division_abbr_ru as current_division_on_abbr_ru
 		,dir_division_on.division_abbr_en as current_division_on_abbr_en
 		-->
-		,wimc_curr.[id_wim_unload]
+		--,wimc_curr.[id_wim_unload]
 		--> 
 		,wimc_curr.[create] as move_cargo_create
 		,wimc_curr.[create_user] as move_cargo_create_user

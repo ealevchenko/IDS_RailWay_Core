@@ -25,7 +25,7 @@ CREATE TABLE [IDS].[WagonInternalMoveCargo](
 	[code_external_station] [int] NULL,
 	[id_station_on_amkr] [int] NULL,
 	[id_division_on] [int] NULL,
-	[id_wim_unload] [bigint] NULL,
+	--[id_wim_unload] [bigint] NULL,
 	[create] [datetime] NOT NULL,
 	[create_user] [nvarchar](50) NOT NULL,
 	[change] [datetime] NULL,
@@ -110,12 +110,12 @@ GO
 ALTER TABLE [IDS].[WagonInternalMoveCargo] CHECK CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalMovement1]
 GO
 
-ALTER TABLE [IDS].[WagonInternalMoveCargo]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalMovement2] FOREIGN KEY([id_wim_unload])
-REFERENCES [IDS].[WagonInternalMovement] ([id])
-GO
+--ALTER TABLE [IDS].[WagonInternalMoveCargo]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalMovement2] FOREIGN KEY([id_wim_unload])
+--REFERENCES [IDS].[WagonInternalMovement] ([id])
+--GO
 
-ALTER TABLE [IDS].[WagonInternalMoveCargo] CHECK CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalMovement2]
-GO
+--ALTER TABLE [IDS].[WagonInternalMoveCargo] CHECK CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalMovement2]
+--GO
 
 ALTER TABLE [IDS].[WagonInternalMoveCargo]  WITH CHECK ADD  CONSTRAINT [FK_WagonInternalMoveCargo_WagonInternalRoutes] FOREIGN KEY([id_wagon_internal_routes])
 REFERENCES [IDS].[WagonInternalRoutes] ([id])
