@@ -370,6 +370,35 @@ namespace IDS.Helper
                 return (int)errors_base.err_create_wim_db; // Ошибка создания новой позиции вагона.
             }
         }
+        /// <summary>
+        /// Закрыть уже созданную операцию в подаче (проверить если подача закрыта или введен документ тогда запрет)
+        /// </summary>
+        /// <param name="wim"></param>
+        /// <param name="context"></param>
+        /// <param name="wf"></param>
+        /// <param name="date_start"></param>
+        /// <param name="date_stop"></param>
+        /// <param name="id_status_load"></param>
+        /// <param name="note"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public static long SetUpdateOperationFiling(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, DateTime? date_start, DateTime? date_stop, int id_status_load, string note, string user)
+        {
+            if (wf.Close != null) return (int)errors_base.close_wf; // подача закрыта
+            if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && (wim.FilingStart == null || wim.FilingEnd == null)) return (int)errors_base.wagon_not_operation; // По вагону нет операций
+            WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
+            if (wir == null) return (int)errors_base.not_wir_db; // нет wir
+            // Внутренее перемещение существует
+            if (wir.Close != null) return (int)errors_base.close_wir; // wir закрыт
+            WagonInternalOperation? wio = wim.IdWioNavigation;
+            if (wio == null) return (int)errors_base.not_wio_db; // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
+            wio.UpdateOperation(date_start, date_stop, null, id_status_load, user);
+            wim.FilingStart = date_start != null ? date_start : wim.FilingStart;
+            wim.FilingEnd = date_stop!=null ? date_stop : wim.FilingEnd;
+            wf.Change = DateTime.Now;
+            wf.ChangeUser = user;
+            return wim.Id;
+        }
 
         #endregion
 
@@ -545,8 +574,8 @@ namespace IDS.Helper
             }
             // Проверка мы грузим не порожний груз
             if (Empty == true && wagon.start != null) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
-            if (wagon.id_status_load!=null && wagon.id_status_load == 0 && Empty != true) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
-            if (wagon.id_status_load!=null && wagon.id_status_load > 0 && Empty == true) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
+            if (wagon.id_status_load != null && wagon.id_status_load == 0 && Empty != true) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
+            if (wagon.id_status_load != null && wagon.id_status_load > 0 && Empty == true) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
 
             // Проверим если есть дата документа тогда проверим все необходимые входные данные
             if (wagon.doc_received != null || wf.DocReceived != null)
@@ -608,7 +637,8 @@ namespace IDS.Helper
                 context.WagonInternalMoveCargos.Add(new_wimc);
                 return wim.Id;
             }
-            else {
+            else
+            {
                 if (wimc != null && wimc.IdWimLoad != null && wimc.IdWimLoad == wim.Id && wimc.IdWimRedirection == null && wimc.DocReceived == null && wf.DocReceived == null)
                 {
                     // Перемещение груза есть, и операция погрузки совподает
@@ -629,7 +659,8 @@ namespace IDS.Helper
                     context.WagonInternalMoveCargos.Update(wimc);
                     return wim.Id;
                 }
-                else {
+                else
+                {
                     return (int)errors_base.error_update_load; // Ошибка, обновления операции погрузки
                 }
             }
@@ -647,7 +678,7 @@ namespace IDS.Helper
             // Проверим вагон и подачу на открытость для операции, и добавим в подачу если небыл добавлен
             //if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingStart != null) return (int)errors_base.wagon_open_operation; // Вагон операция уже применена
             WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
-            if (wagon.id_status_load !=0) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
+            if (wagon.id_status_load != 0) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
             WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);// Получим последнюю запись груза перемещаемого на предприятии
             if (wimc == null || wimc != null && wimc.Empty == false && wagon.id_status_load == 0)
             {
@@ -682,7 +713,8 @@ namespace IDS.Helper
                 context.WagonInternalMoveCargos.Add(new_wimc);
                 return wim.Id;
             }
-            else {
+            else
+            {
                 if (wimc != null && wimc.Empty == true && wimc.IdWimLoad != null && wimc.IdWimLoad == wim.Id)
                 {
                     // Перемещение груза есть, и операция погрузки совподает
@@ -888,6 +920,17 @@ namespace IDS.Helper
                 wio.Close = date_end;
                 wio.CloseUser = user;
             }
+            return wio.Id;
+        }
+        public static long? UpdateOperation(this WagonInternalOperation wio, DateTime? date_start, DateTime? date_end, string? note, int? id_loading_status, string user)
+        {
+            if (wio == null) return null;
+            wio.OperationStart = date_start != null ? (DateTime)date_start : wio.OperationStart;
+            wio.OperationEnd = date_end != null ? date_end : wio.OperationEnd;
+            wio.Note = note != null ? note : wio.Note;
+            wio.IdLoadingStatus = id_loading_status != null ? (int)id_loading_status : wio.IdLoadingStatus;
+            wio.Close = DateTime.Now;
+            wio.CloseUser = user;
             return wio.Id;
         }
 

@@ -1877,7 +1877,8 @@ namespace IDS_
                     if (vag.id_wagon_operations != null && vag.start == null && vag.stop == null && vag is LoadingWagons)
                     {
                         // Обновим статус операции
-                        if (wim.IdWioNavigation != null && wim.IdWioNavigation.IdOperation == vag.id_wagon_operations && vag.id_status_load != null && wim.IdWioNavigation.IdLoadingStatus != vag.id_status_load) {
+                        if (wim.IdWioNavigation != null && wim.IdWioNavigation.IdOperation == vag.id_wagon_operations && vag.id_status_load != null && wim.IdWioNavigation.IdLoadingStatus != vag.id_status_load)
+                        {
                             wim.IdWioNavigation.IdLoadingStatus = (int)vag.id_status_load;
                         }
                         res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, true, user);
@@ -1936,7 +1937,16 @@ namespace IDS_
                             res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, (UnloadingWagons)vag, user);
                             if (res_unload < 0) return (int)res_unload;                         // Ошибка
                         }
-                        res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
+                        if (mode == 4)
+                        {
+                            // Обновить (закрытые операции) 
+                            res_close = wim.SetUpdateOperationFiling(ref context, wf, vag.start, vag.stop, (int)vag.id_status_load, wf.Note, user);
+                        }
+                        else
+                        {
+                            res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
+                        }
+
                         if (res_close > 0) mode_result = mode_obj.close;    // update
                         if (res_close < 0) return (int)res_close;           // Ошибка                                                              
 
