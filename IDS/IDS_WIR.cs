@@ -1900,7 +1900,7 @@ namespace IDS_
                         if (res_close > 0) mode_result = mode_obj.close; // open & close
                         // если выгрузка  закрыта (и статус соответсвует выгрузке)
                         //if (vag is UnloadingWagons && res_close > 0 && ((UnloadingWagons)vag).clear_cargo == true)
-                        if (vag is UnloadingWagons && res_close > 0 && ((UnloadingWagons)vag).id_status_load == 0)
+                        if (vag is UnloadingWagons && res_close > 0 && ((UnloadingWagons)vag).id_status_load.IsEmpty())
                         {
                             res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, (UnloadingWagons)vag, user);
                             if (res_unload < 0) return (int)res_unload;                         // Ошибка
@@ -1932,7 +1932,7 @@ namespace IDS_
                         }
                         // если выгрузка
                         //if (vag is UnloadingWagons && ((UnloadingWagons)vag).clear_cargo == true)
-                        if (vag is UnloadingWagons && ((UnloadingWagons)vag).id_status_load == 0)
+                        if (vag is UnloadingWagons && ((UnloadingWagons)vag).id_status_load.IsEmpty())
                         {
                             res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, (UnloadingWagons)vag, user);
                             if (res_unload < 0) return (int)res_unload;                         // Ошибка
@@ -2284,6 +2284,8 @@ namespace IDS_
                             .Where(f => f.Id == id_filing)
                             .Include(wim => wim.WagonInternalMovements)
                                 .ThenInclude(wimcL => wimcL.WagonInternalMoveCargoIdWimLoadNavigations)
+                            .Include(wim1 => wim1.WagonInternalMovements)
+                                .ThenInclude(wim_wio => wim_wio.IdWioNavigation)
                             .FirstOrDefault();
                     // Операция "ВЫГРУЗКА"
                     if (vagons is List<UnloadingWagons>)
