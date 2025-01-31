@@ -68,7 +68,6 @@ try
 
     var app = builder.Build();
 
-    //app.UseCors(builder => builder.WithOrigins("http://localhost:53848").AllowCredentials());
     app.UseCors(MyAllowSpecificOrigins);
 
     // Configure the HTTP request pipeline.
