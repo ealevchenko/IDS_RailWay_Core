@@ -19,6 +19,11 @@ namespace IDS.Helper
         public static int oper_unload_uz = 13;
         public static int oper_unload_vz = 14;
 
+        public static bool IsEmpty(this int? id_status_load)
+        {
+            return (id_status_load == 0 || id_status_load == 3) ? true : false;
+        }
+
         #region Методы работы с вагонами
 
         #region WIR
@@ -394,7 +399,7 @@ namespace IDS.Helper
             if (wio == null) return (int)errors_base.not_wio_db; // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
             wio.UpdateOperation(date_start, date_stop, null, id_status_load, user);
             wim.FilingStart = date_start != null ? date_start : wim.FilingStart;
-            wim.FilingEnd = date_stop!=null ? date_stop : wim.FilingEnd;
+            wim.FilingEnd = date_stop != null ? date_stop : wim.FilingEnd;
             wf.Change = DateTime.Now;
             wf.ChangeUser = user;
             return wim.Id;
@@ -431,8 +436,13 @@ namespace IDS.Helper
                 bool document = true;
                 foreach (WagonInternalMovement wim in wf.WagonInternalMovements)
                 {
+                    WagonInternalOperation? wio = wim.IdWioNavigation;
+
                     WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.Close == null);
-                    if (wimc == null || wimc.DocReceived == null)
+                    if (wimc == null ||
+                        (wio != null && wimc.DocReceived == null && wio.IdLoadingStatus != 0) //|| 
+                                                                                              //(wio != null && wimc.DocReceived != null && wio.IdLoadingStatus == 0 )
+                        )
                     {
                         document = false; break;
                     }
@@ -574,8 +584,8 @@ namespace IDS.Helper
             }
             // Проверка мы грузим не порожний груз
             if (Empty == true && wagon.start != null) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
-            if (wagon.id_status_load != null && wagon.id_status_load == 0 && Empty != true) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
-            if (wagon.id_status_load != null && wagon.id_status_load > 0 && Empty == true) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
+            if (wagon.id_status_load != null && wagon.id_status_load.IsEmpty() && Empty != true) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
+            if (wagon.id_status_load != null && !wagon.id_status_load.IsEmpty() && Empty == true) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
 
             // Проверим если есть дата документа тогда проверим все необходимые входные данные
             if (wagon.doc_received != null || wf.DocReceived != null)
@@ -584,7 +594,7 @@ namespace IDS.Helper
                 {
                     // операция вз
                     if (wagon.id_wagon_operations == oper_load_vz && (
-                        (wagon.doc_received != null && (String.IsNullOrWhiteSpace(wagon.num_nakl) || (wagon.vesg == null && wagon.id_status_load != 0) || wagon.id_internal_cargo == null || wagon.id_station_amkr_on == null || wagon.id_devision_on == null))
+                        (wagon.doc_received != null && (String.IsNullOrWhiteSpace(wagon.num_nakl) || (wagon.vesg == null && !wagon.id_status_load.IsEmpty()) || wagon.id_internal_cargo == null || wagon.id_station_amkr_on == null || wagon.id_devision_on == null))
                         ||
                         (wf.DocReceived != null && (String.IsNullOrWhiteSpace(wf.NumFiling) || wf.Vesg == null || wagon.id_internal_cargo == null || wagon.id_station_amkr_on == null || wagon.id_devision_on == null))
                         ))
@@ -604,7 +614,7 @@ namespace IDS.Helper
             WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
 
 
-            if (wimc == null || wimc != null && wimc.IdWimLoad != wim.Id && wimc.Empty == true && wagon.id_status_load != 0)
+            if (wimc == null || wimc != null && wimc.IdWimLoad != wim.Id && wimc.Empty == true && !wagon.id_status_load.IsEmpty())
             {
                 // Закроем груз с признаком пустой груз (Вагоны порожние)
                 if (wimc != null && wimc.Empty == true)
@@ -639,7 +649,7 @@ namespace IDS.Helper
             }
             else
             {
-                if (wimc != null && wimc.IdWimLoad != null && wimc.IdWimLoad == wim.Id && wimc.IdWimRedirection == null && wimc.DocReceived == null && wf.DocReceived == null)
+                if (wimc != null && wimc.IdWimLoad != null && wimc.IdWimLoad == wim.Id && wimc.IdWimRedirection == null && wimc.DocReceived == null)
                 {
                     // Перемещение груза есть, и операция погрузки совподает
                     wimc.InternalDocNum = String.IsNullOrWhiteSpace(wf.NumFiling) ? wagon.num_nakl : null;
@@ -678,9 +688,9 @@ namespace IDS.Helper
             // Проверим вагон и подачу на открытость для операции, и добавим в подачу если небыл добавлен
             //if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingStart != null) return (int)errors_base.wagon_open_operation; // Вагон операция уже применена
             WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
-            if (wagon.id_status_load != 0) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
+            if (!wagon.id_status_load.IsEmpty()) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
             WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);// Получим последнюю запись груза перемещаемого на предприятии
-            if (wimc == null || wimc != null && wimc.Empty == false && wagon.id_status_load == 0)
+            if (wimc == null || wimc != null && wimc.Empty != true && wagon.id_status_load.IsEmpty())
             {
                 // Закроем груз с признаком не пустой  (Вагоны не порожние)
                 if (wimc != null && wimc.Empty == false)
