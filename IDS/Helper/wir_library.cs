@@ -654,7 +654,8 @@ namespace IDS.Helper
                     // Перемещение груза есть, и операция погрузки совподает
                     wimc.InternalDocNum = String.IsNullOrWhiteSpace(wf.NumFiling) ? wagon.num_nakl : null;
                     wimc.IdWeighingNum = null;
-                    wimc.DocReceived = wf.DocReceived == null ? wagon.doc_received : wf.DocReceived;
+                    //wimc.DocReceived = wf.DocReceived == null ? wagon.doc_received : wf.DocReceived;
+                    wimc.DocReceived = wagon.doc_received!=null ? wagon.doc_received : null;
                     wimc.IdCargo = wagon.id_cargo;
                     wimc.IdInternalCargo = wagon.id_internal_cargo;
                     wimc.Empty = Empty;
