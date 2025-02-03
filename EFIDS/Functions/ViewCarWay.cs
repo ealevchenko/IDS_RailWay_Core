@@ -74,6 +74,57 @@ public class ViewCarWay
     [StringLength(50)]
     public string? CloseUserFiling { get; set; }
 
+    //-------------
+    [Column("id_previous_filing")]
+    public long? IdPreviousFiling { get; set; }
+
+    [Column("num_previous_filing")]
+    [StringLength(50)]
+    public string? NumPreviousFiling { get; set; }
+
+    [Column("type_previous_filing")]
+    public int? TypePreviousFiling { get; set; }
+
+    [Column("id_division_previous_filing")]
+    public int? IdDivisionPreviousFiling { get; set; }
+
+    [Column("vesg_previous_filing")]
+    public int? VesgPreviousFiling { get; set; }
+
+    [Column("note_previous_filing")]
+    [StringLength(250)]
+    public string? NotePreviousFiling { get; set; }
+
+    [Column("start_previous_filing", TypeName = "datetime")]
+    public DateTime? StartPreviousFiling { get; set; }
+
+    [Column("end_previous_filing", TypeName = "datetime")]
+    public DateTime? EndPreviousFiling { get; set; }
+
+    [Column("doc_received_previous_filing", TypeName = "datetime")]
+    public DateTime? DocReceivedPreviousFiling { get; set; }
+
+    [Column("create_previous_filing", TypeName = "datetime")]
+    public DateTime? CreatePreviousFiling { get; set; }
+
+    [Column("create_user_previous_filing")]
+    [StringLength(50)]
+    public string? CreateUserPreviousFiling { get; set; }
+
+    [Column("change_previous_filing", TypeName = "datetime")]
+    public DateTime? ChangePreviousFiling { get; set; }
+
+    [Column("change_user_previous_filing")]
+    [StringLength(50)]
+    public string? ChangeUserPreviousFiling { get; set; }
+
+    [Column("close_previous_filing", TypeName = "datetime")]
+    public DateTime? ClosePreviousFiling { get; set; }
+
+    [Column("close_user_previous_filing")]
+    [StringLength(50)]
+    public string? CloseUserPreviousFiling { get; set; }
+    //--------------
     [Column("way_filing_start", TypeName = "datetime")]
     public DateTime? WayFilingStart { get; set; }
 
