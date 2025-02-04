@@ -409,16 +409,19 @@ public class ViewCarWay
     public string? CurrentLoadingStatusEn { get; set; }
 
     [Column("current_wagon_busy")]
-    public int CurrentWagonBusy { get; set; }
+    public bool? CurrentWagonBusy { get; set; }
 
     [Column("current_move_busy")]
-    public int CurrentMoveBusy { get; set; }
+    public bool? CurrentMoveBusy { get; set; }
 
     [Column("current_load_busy")]
-    public int CurrentLoadBusy { get; set; }
+    public bool? CurrentLoadBusy { get; set; }
 
     [Column("current_unload_busy")]
-    public int CurrentUnloadBusy { get; set; }
+    public bool? CurrentUnloadBusy { get; set; }
+
+    [Column("exist_load_document")]
+    public bool? ExistLoadDocument { get; set; }
 
     [Column("current_id_operation")]
     public int? CurrentIdOperation { get; set; }
