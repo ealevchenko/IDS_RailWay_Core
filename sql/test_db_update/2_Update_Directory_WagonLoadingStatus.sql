@@ -39,7 +39,7 @@ INSERT [IDS].[Directory_WagonLoadingStatus] ([id], [loading_status_ru], [loading
 INSERT [IDS].[Directory_WagonLoadingStatus] ([id], [loading_status_ru], [loading_status_en], [create], [create_user], [change], [change_user]) VALUES (5, N'Тех. неисправность', N'Tech. malfunction', CAST(N'2024-11-06T08:00:00.000' AS DateTime), N'EUROPE\ealevchenko', NULL, NULL)
 INSERT [IDS].[Directory_WagonLoadingStatus] ([id], [loading_status_ru], [loading_status_en], [create], [create_user], [change], [change_user]) VALUES (6, N'Груженый УЗ', N'Loaded UZ', CAST(N'2024-11-06T08:00:00.000' AS DateTime), N'EUROPE\ealevchenko', NULL, NULL)
 INSERT [IDS].[Directory_WagonLoadingStatus] ([id], [loading_status_ru], [loading_status_en], [create], [create_user], [change], [change_user]) VALUES (7, N'Перекантовка', N'Re-edging', CAST(N'2025-01-01T08:00:00.000' AS DateTime), N'EUROPE\ealevchenko', NULL, NULL)
-
+INSERT [IDS].[Directory_WagonLoadingStatus] ([id], [loading_status_ru], [loading_status_en], [create], [create_user], [change], [change_user]) VALUES (8, N'Порожний ЧИСТ', N'Empty CLEAN', CAST(N'2025-02-01T08:00:00.000' AS DateTime), N'EUROPE\ealevchenko', NULL, NULL)
 SET IDENTITY_INSERT [IDS].[Directory_WagonLoadingStatus] OFF
 GO
 
