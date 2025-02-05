@@ -421,7 +421,7 @@ namespace IDS.Helper
             int count = wf.WagonInternalMovements.Count();
             int count_close = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).Count();
 
-            if (wf.TypeFiling == 1 && count == count_close)
+            if ((wf.TypeFiling == 1 || wf.TypeFiling == 3 || wf.TypeFiling == 4) && count == count_close)
             {
                 WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).OrderByDescending(c => c.FilingEnd).FirstOrDefault();
                 DateTime? close = wim_close_max != null ? wim_close_max.FilingEnd : null;
