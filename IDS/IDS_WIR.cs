@@ -626,7 +626,7 @@ namespace IDS_
                 string note_sostav = "Состав:" + wim.NumSostav + "- принят";
 
                 // Установим и закроем операцию принять -6              
-                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, 6, lead_time.AddMinutes(-10), null, null, locomotive1, locomotive2, note_sostav, user).SetCloseOperation(lead_time, null, null, user);
+                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, 6, lead_time.AddMinutes(-10), null, null, null, locomotive1, locomotive2, note_sostav, user).SetCloseOperation(lead_time, null, null, null, user);
                 if (new_operation == null) return (int)errors_base.err_create_wio_db;   // Ошибка создания новой операции над вагоном.
 
                 // Установим и вагон на путь станции
@@ -769,9 +769,9 @@ namespace IDS_
                                                                                                 // Вагон не стоит, переставим.
 
                 // Установим и закроем операцию отправления -5              
-                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, 5, lead_time.AddMinutes(-10), null, null, locomotive1, locomotive2, "Состав:" + num_sostav, user);
+                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, 5, lead_time.AddMinutes(-10), null, null, null, locomotive1, locomotive2, "Состав:" + num_sostav, user);
                 if (new_operation == null) return (int)errors_base.err_create_wio_db;   // Ошибка создания новой операции над вагоном.
-                long? id = new_operation.CloseOperation(lead_time, null, null, user);
+                long? id = new_operation.CloseOperation(lead_time, null, null, null, user);
 
                 // Установим и вагон на внешний путь
                 WagonInternalMovement? new_movement = wagon.SetSendingWagon(ref context, id_outer_ways, lead_time, position_on, num_sostav, null, user);
@@ -933,7 +933,7 @@ namespace IDS_
                 }
 
                 // Установим и закроем операцию принять -11- возрат 12 - отмена              
-                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, (type_return ? 12 : 11), lead_time_start, null, null, locomotive1, locomotive2, note_sostav, user).SetCloseOperation(lead_time_stop, null, null, user);
+                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, (type_return ? 12 : 11), lead_time_start, null, null, null, locomotive1, locomotive2, note_sostav, user).SetCloseOperation(lead_time_stop, null, null, null, user);
                 if (new_operation == null) return (int)errors_base.err_create_wio_db;   // Ошибка создания новой операции над вагоном.
 
                 // Установим и вагон на путь станции без проверки 
@@ -1063,7 +1063,7 @@ namespace IDS_
                 //wagon.SetStationWagon_old(ref context, id_station_on, id_way_on, date_stop, position_on, null, user);
                 wagon.SetStationWagon(ref context, id_station_on, id_way_on, date_stop, position_on, null, user, true);
                 // Установим и закроем операцию роспуск -4              
-                wagon.SetOpenOperation(ref context, 4, date_start, null, null, null, null, null, user).SetCloseOperation(date_stop, null, null, user);
+                wagon.SetOpenOperation(ref context, 4, date_start, null, null, null, null, null, null, user).SetCloseOperation(date_stop, null, null, null, user);
                 //context.Update(wagon); // Обновим контекст
                 return 1;
             }
@@ -1254,7 +1254,7 @@ namespace IDS_
                 if (wim.IdWay != id_way_from) return (int)errors_base.wagon_not_way;
                 wagon.SetStationWagon(ref context, wim.IdStation, id_way_on, lead_time, position_on, null, user, true);
                 // Установим и закроем операцию дислокация -3              
-                wagon.SetOpenOperation(ref context, wagon_outgoing ? 8 : 3, lead_time.AddMinutes(-10), null, null, null, null, null, user).SetCloseOperation(lead_time, null, null, user);
+                wagon.SetOpenOperation(ref context, wagon_outgoing ? 8 : 3, lead_time.AddMinutes(-10), null, null, null, null, null, null, user).SetCloseOperation(lead_time, null, null, null, user);
                 //context.Update(wagon); // Обновим контекст
                 return 1;
             }
@@ -1542,7 +1542,7 @@ namespace IDS_
                 string note = "Перенесен для формирования состава предъявления";
                 wagon.SetStationWagon(ref context, id_station, id_way_on, lead_time, position, note, user, true);
                 // Установим и закроем операцию ручная расстановка -3              
-                wagon.SetOpenOperation(ref context, 8, lead_time.AddMinutes(-1), null, null, null, null, null, user).SetCloseOperation(lead_time, null, null, user);
+                wagon.SetOpenOperation(ref context, 8, lead_time.AddMinutes(-1), null, null, null, null, null, null, user).SetCloseOperation(lead_time, null, null, null, user);
                 //context.Update(wagon); // Обновим контекст
                 return 1;
             }
@@ -1695,7 +1695,7 @@ namespace IDS_
                     //ef_sap_os.Update(sap_os);
                 }
                 // Установим и закроем операцию отпрака на УЗ             
-                wir.SetOpenOperation(ref context, 2, lead_time.AddMinutes(-10), null, null, null, null, null, user).SetCloseOperation(lead_time, null, null, user);
+                wir.SetOpenOperation(ref context, 2, lead_time.AddMinutes(-10), null, null, null, null, null, null, user).SetCloseOperation(lead_time, null, null, null, user);
                 wir.CloseWagon(context, lead_time, null, user);
                 //ef_wir.Update(wir);
                 return 1;
@@ -1808,6 +1808,7 @@ namespace IDS_
             public DateTime? stop { get; set; }
             public int? id_wagon_operations { get; set; }
             public int? id_status_load { get; set; }
+            public int? id_organization_service { get; set; }
         }
         public class UnloadingWagons : IOperationWagons
         {
@@ -1816,8 +1817,7 @@ namespace IDS_
             public DateTime? stop { get; set; }
             public int? id_wagon_operations { get; set; }
             public int? id_status_load { get; set; }
-            //public bool? clear_cargo { get; set; }
-
+            public int? id_organization_service { get; set; }
         }
         public class LoadingWagons : IOperationWagons
         {
@@ -1834,6 +1834,7 @@ namespace IDS_
             public int? id_internal_cargo { get; set; }
             public int? vesg { get; set; }
             public int? id_status_load { get; set; }
+            public int? id_organization_service { get; set; }
         }
         public class CleaningWagons : IOperationWagons
         {
@@ -1842,6 +1843,7 @@ namespace IDS_
             public DateTime? stop { get; set; }
             public int? id_wagon_operations { get; set; }
             public int? id_status_load { get; set; }
+            public int? id_organization_service { get; set; }
 
         }
 
@@ -1862,8 +1864,10 @@ namespace IDS_
                 mode_obj mode_result = mode_obj.not;
                 if ((vag.id_wagon_operations != null && (vag.start != null || vag.stop != null)) ||
                     (vag is LoadingWagons && vag.start == null && vag.stop == null) ||
+                    (vag is CleaningWagons && vag.start == null && vag.stop == null) ||
                     (vag.id_wagon_operations == null) ||
-                    (mode == 4 && (vag.id_status_load != null || vag.id_status_load != -1))
+                    (mode == 4 && (vag.id_status_load != null || vag.id_status_load != -1)) ||
+                    (mode == 4 && (vag.id_organization_service != null || vag.id_organization_service != -1))
                     )
                 {
                     WagonInternalMovement? wim = context.WagonInternalMovements
@@ -1886,7 +1890,7 @@ namespace IDS_
                     // Обновить операцию (только погрузка)
                     if (vag.id_wagon_operations != null && vag.start == null && vag.stop == null && vag is LoadingWagons)
                     {
-                        // Обновим статус операции
+                        // Обновим организацию
                         if (wim.IdWioNavigation != null && wim.IdWioNavigation.IdOperation == vag.id_wagon_operations && vag.id_status_load != null && wim.IdWioNavigation.IdLoadingStatus != vag.id_status_load)
                         {
                             wim.IdWioNavigation.IdLoadingStatus = (int)vag.id_status_load;
@@ -1895,10 +1899,20 @@ namespace IDS_
                         if (res_load > 0) mode_result = mode_obj.update; // update 
                         if (res_load < 0) return (int)res_load; // Ошибка
                     }
+                    // Обновить операцию (только очистка)
+                    if (vag.id_wagon_operations != null && vag.start == null && vag.stop == null && vag is CleaningWagons)
+                    {
+                        // Обновим статус операции
+                        if (wim.IdWioNavigation != null && wim.IdWioNavigation.IdOperation == vag.id_wagon_operations && vag.id_organization_service != null && wim.IdWioNavigation.IdOrganizationService != vag.id_organization_service)
+                        {
+                            wim.IdWioNavigation.IdOrganizationService = vag.id_organization_service;
+                            mode_result = mode_obj.update; // update                             
+                        }
+                    }
                     // Создать и закрыть
                     if (vag.start != null && vag.stop != null && vag.id_status_load != null)
                     {
-                        res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.start, wf.Note, user);
+                        res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.id_organization_service, vag.start, wf.Note, user);
                         if (res_open < 0) return (int)res_open; // Ошибка
                         // Если погрузка создать строку перемещения внутрених грузов
                         if (vag is LoadingWagons)
@@ -1906,7 +1920,7 @@ namespace IDS_
                             res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, false, user);
                             if (res_load < 0) return (int)res_load;                         // Ошибка
                         }
-                        res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
+                        res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, vag.id_organization_service, wf.Note, user);
                         if (res_close > 0) mode_result = mode_obj.close; // open & close
                         // если выгрузка  закрыта (и статус соответсвует выгрузке)
                         if (vag is UnloadingWagons && res_close > 0 && ((UnloadingWagons)vag).id_status_load.IsEmpty())
@@ -1925,7 +1939,7 @@ namespace IDS_
                     // открыть операцию
                     if (vag.start != null && vag.stop == null)
                     {
-                        res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.start, wf.Note, user);
+                        res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.id_organization_service, vag.start, wf.Note, user);
                         // Если погрузка создать строку перемещения внутрених грузов
                         if (vag is LoadingWagons)
                         {
@@ -1946,7 +1960,6 @@ namespace IDS_
                             if (res_load < 0) return (int)res_load;
                         }
                         // если выгрузка
-                        //if (vag is UnloadingWagons && ((UnloadingWagons)vag).clear_cargo == true)
                         if (vag is UnloadingWagons && ((UnloadingWagons)vag).id_status_load.IsEmpty())
                         {
                             res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, (UnloadingWagons)vag, user);
@@ -1955,11 +1968,11 @@ namespace IDS_
                         if (mode == 4)
                         {
                             // Обновить (закрытые операции) 
-                            res_close = wim.SetUpdateOperationFiling(ref context, wf, vag.start, vag.stop, (int)vag.id_status_load, wf.Note, user);
+                            res_close = wim.SetUpdateOperationFiling(ref context, wf, vag.start, vag.stop, vag.id_status_load, vag.id_organization_service, wf.Note, user);
                         }
                         else
                         {
-                            res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, wf.Note, user);
+                            res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, vag.id_status_load, vag.id_organization_service, wf.Note, user);
                         }
 
                         if (res_close > 0) mode_result = mode_obj.close;    // update
@@ -2040,7 +2053,7 @@ namespace IDS_
                         NumFiling = num_filing != null ? num_filing : "", //id_way.ToString() + "-" + id_division.ToString() + "-" + ((DateTime)create).ToString("dd.MM.yyyy hh:mm:ss"),
                         TypeFiling = type_filing,
                         Vesg = null,
-                        IdDivision = id_division!= null ? (int)id_division : 0,
+                        IdDivision = id_division != null ? (int)id_division : 0,
                         Note = "",
                         StartFiling = null,
                         EndFiling = null,
@@ -2304,7 +2317,11 @@ namespace IDS_
         /// Обновить вагоны в указаной подаче
         /// </summary>
         /// <param name="id_filing"></param>
+        /// <param name="num_filing"></param>
+        /// <param name="vesg"></param>
+        /// <param name="doc_received"></param>
         /// <param name="mode"></param>
+        /// <param name="id_organization_service"></param>
         /// <param name="vagons"></param>
         /// <param name="user"></param>
         /// <returns></returns>
@@ -2472,8 +2489,8 @@ namespace IDS_
             }
             catch (Exception e)
             {
-                _logger.LogError(e, String.Format("UpdateOperationFiling(id_filing={0}, mode={1}, vagons={2}, user={3})",
-                    id_filing, vagons, user));
+                _logger.LogError(e, String.Format("UpdateOperationFiling(id_filing = {0}, num_filing = {1}, vesg = {2}, doc_received = {3}, mode = {4}, vagons = {5}, user = {6})",
+                    id_filing, num_filing, vesg, doc_received, mode, vagons, user));
                 rt.SetResult((int)errors_base.global);
                 return rt;  // Возвращаем id=-1 , Ошибка
             }
@@ -2797,7 +2814,7 @@ namespace IDS_
                 // Добавим сылку на выходной вагон
                 wagon.IdOutgoingCarNavigation = out_car;
                 // Откроем операцию предявить на уз 
-                wagon.SetOpenOperation(ref context, 9, lead_time, null, null, null, null, note, user);
+                wagon.SetOpenOperation(ref context, 9, lead_time, null, null, null, null, null, note, user);
                 //context.Update(wagon); // Обновим контекст
                 return 1;
             }

@@ -55,7 +55,7 @@ namespace IDS.Helper
                 wir.Close = DateTime.Now;
                 wir.CloseUser = user;
                 wir.GetLastMovement(ref context).CloseMovement(date_end, note, user);
-                wir.GetLastOperation(ref context).CloseOperation(date_end, note, null, user);
+                wir.GetLastOperation(ref context).CloseOperation(date_end, note, null, null, user);
                 // Далее добавить закрытие перемещений по требованию
             }
             return wir.Id;
@@ -267,7 +267,7 @@ namespace IDS.Helper
             if (wir.Close != null) return (int)errors_base.close_wir; // wir закрыт
             return wim.Id; // 
         }
-        public static long SetOpenOperationFiling(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, int? id_wagon_operations, DateTime? date_start, string note, string user)
+        public static long SetOpenOperationFiling(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, int? id_wagon_operations, int? id_organization_service, DateTime? date_start, string note, string user)
         {
             // Проверим вагон и подачу на открытость для операции, и добавим в подачу если небыл добавлен
             long res_add = wf.SetAddWagonFiling(wim, user);
@@ -286,7 +286,7 @@ namespace IDS.Helper
                     if (date_start != null)
                     {
                         // Создать операцию
-                        WagonInternalOperation new_operation = wir.SetOpenOperation(ref context, (int)id_wagon_operations, (DateTime)date_start, null, null, null, null, note, user);
+                        WagonInternalOperation new_operation = wir.SetOpenOperation(ref context, (int)id_wagon_operations, (DateTime)date_start, null, null, id_organization_service, null, null, note, user);
                         wim.FilingStart = date_start;
                         wim.IdWioNavigation = new_operation; // добавим новую операцию
                         long res_of = wf.SetOpenFiling(user); // Обновим общее начало в подаче + обновим кто произвел обновление
@@ -346,7 +346,7 @@ namespace IDS.Helper
         /// <param name="note"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public static long SetCloseOperationFiling(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, DateTime date_stop, int id_status_load, string note, string user)
+        public static long SetCloseOperationFiling(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, DateTime date_stop, int? id_status_load, int? id_organization_service, string note, string user)
         {
             long result = wf.IsFreeFiling(wim);
             if (result <= 0) return result;// Ошибка
@@ -359,7 +359,7 @@ namespace IDS.Helper
             WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
             if (wio != null && wio.Id > 0 && wio_last.Id != wio.Id) return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует последней
             // Закроем операцию и позицию создадим новую строку
-            wio.SetCloseOperation((DateTime)date_stop, null, id_status_load, user);
+            wio.SetCloseOperation((DateTime)date_stop, null, id_status_load, id_organization_service, user);
             wim.FilingEnd = date_stop;
             //wim.CloseMovement((DateTime)date_stop, note, user);
             // Создать новую позицию закрыв старую
@@ -387,7 +387,7 @@ namespace IDS.Helper
         /// <param name="note"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public static long SetUpdateOperationFiling(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, DateTime? date_start, DateTime? date_stop, int id_status_load, string note, string user)
+        public static long SetUpdateOperationFiling(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, DateTime? date_start, DateTime? date_stop, int? id_status_load, int? id_organization_service, string note, string user)
         {
             if (wf.Close != null) return (int)errors_base.close_wf; // подача закрыта
             if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && (wim.FilingStart == null || wim.FilingEnd == null)) return (int)errors_base.wagon_not_operation; // По вагону нет операций
@@ -397,7 +397,7 @@ namespace IDS.Helper
             if (wir.Close != null) return (int)errors_base.close_wir; // wir закрыт
             WagonInternalOperation? wio = wim.IdWioNavigation;
             if (wio == null) return (int)errors_base.not_wio_db; // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
-            wio.UpdateOperation(date_start, date_stop, null, id_status_load, user);
+            wio.UpdateOperation(date_start, date_stop, null, id_status_load, id_organization_service, user);
             wim.FilingStart = date_start != null ? date_start : wim.FilingStart;
             wim.FilingEnd = date_stop != null ? date_stop : wim.FilingEnd;
             wf.Change = DateTime.Now;
@@ -655,7 +655,7 @@ namespace IDS.Helper
                     wimc.InternalDocNum = String.IsNullOrWhiteSpace(wf.NumFiling) ? wagon.num_nakl : null;
                     wimc.IdWeighingNum = null;
                     //wimc.DocReceived = wf.DocReceived == null ? wagon.doc_received : wf.DocReceived;
-                    wimc.DocReceived = wagon.doc_received!=null ? wagon.doc_received : null;
+                    wimc.DocReceived = wagon.doc_received != null ? wagon.doc_received : null;
                     wimc.IdCargo = wagon.id_cargo;
                     wimc.IdInternalCargo = wagon.id_internal_cargo;
                     wimc.Empty = Empty;
@@ -755,7 +755,7 @@ namespace IDS.Helper
         #endregion
 
         #region WIO
-        public static WagonInternalOperation SetOpenOperation(this WagonInternalRoute wir, ref EFDbContext context, int id_operation, DateTime date_start, int? id_condition, int? id_loading_status, string locomotive1, string locomotive2, string note, string user)
+        public static WagonInternalOperation SetOpenOperation(this WagonInternalRoute wir, ref EFDbContext context, int id_operation, DateTime date_start, int? id_condition, int? id_loading_status, int? id_organization_service, string locomotive1, string locomotive2, string note, string user)
         {
             WagonInternalOperation wio_new = null;
 
@@ -776,18 +776,19 @@ namespace IDS.Helper
                     Note = note,
                     Create = DateTime.Now,
                     CreateUser = user,
-                    ParentId = wio_last.CloseOperation(date_start, null, id_loading_status, user)
+                    ParentId = wio_last.CloseOperation(date_start, null, id_loading_status, null, user),
+                    IdOrganizationService = id_organization_service
                 };
 
                 wir.WagonInternalOperations.Add(wio_new);
             }
             return wio_new;
         }
-        public static WagonInternalOperation SetCloseOperation(this WagonInternalOperation wio, DateTime date_end, string note, int? id_loading_status, string user)
+        public static WagonInternalOperation SetCloseOperation(this WagonInternalOperation wio, DateTime date_end, string note, int? id_loading_status, int? id_organization_service, string user)
         {
             if (wio != null && wio.Close == null)
             {
-                wio.CloseOperation(date_end, note, id_loading_status, user);
+                wio.CloseOperation(date_end, note, id_loading_status, id_organization_service, user);
             }
             return wio;
         }
@@ -920,7 +921,7 @@ namespace IDS.Helper
             return wio;
         }
 
-        public static long? CloseOperation(this WagonInternalOperation wio, DateTime date_end, string? note, int? id_loading_status, string user)
+        public static long? CloseOperation(this WagonInternalOperation wio, DateTime date_end, string? note, int? id_loading_status, int? id_organization_service, string user)
         {
             if (wio == null) return null;
             if (wio.Close == null)
@@ -928,24 +929,24 @@ namespace IDS.Helper
                 wio.OperationEnd = wio.OperationEnd == null ? date_end : wio.OperationEnd;
                 wio.Note = note != null ? note : wio.Note;
                 wio.IdLoadingStatus = id_loading_status != null ? (int)id_loading_status : wio.IdLoadingStatus;
+                wio.IdOrganizationService = id_organization_service != null ? id_organization_service : wio.IdOrganizationService;
                 wio.Close = date_end;
                 wio.CloseUser = user;
             }
             return wio.Id;
         }
-        public static long? UpdateOperation(this WagonInternalOperation wio, DateTime? date_start, DateTime? date_end, string? note, int? id_loading_status, string user)
+        public static long? UpdateOperation(this WagonInternalOperation wio, DateTime? date_start, DateTime? date_end, string? note, int? id_loading_status, int? id_organization_service, string user)
         {
             if (wio == null) return null;
             wio.OperationStart = date_start != null ? (DateTime)date_start : wio.OperationStart;
             wio.OperationEnd = date_end != null ? date_end : wio.OperationEnd;
             wio.Note = note != null ? note : wio.Note;
             wio.IdLoadingStatus = id_loading_status != null ? (int)id_loading_status : wio.IdLoadingStatus;
+            wio.IdOrganizationService = id_organization_service != null ? id_organization_service : wio.IdOrganizationService;
             wio.Close = DateTime.Now;
             wio.CloseUser = user;
             return wio.Id;
         }
-
-        //public static WagonInternalOperation OpenOperation(this WagonInternalOperation wio, DateTime date_end, string user)
         #endregion
     }
 }

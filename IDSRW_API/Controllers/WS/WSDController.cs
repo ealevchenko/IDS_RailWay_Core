@@ -125,7 +125,6 @@ namespace WebAPI.Controllers.Directory
         public int? vesg { get; set; }
         public int id_way { get; set; }
         public int id_division { get; set; }
-        //public DateTime create { get; set; }
         public List<UnloadingWagons> wagons { get; set; }
     }
     public class OperationAddFilingLoading
@@ -136,7 +135,6 @@ namespace WebAPI.Controllers.Directory
         public int? vesg { get; set; }
         public int id_way { get; set; }
         public int id_division { get; set; }
-        //public DateTime create { get; set; }
         public List<LoadingWagons> wagons { get; set; }
     }
     public class OperationAddFilingCleaning
@@ -144,7 +142,6 @@ namespace WebAPI.Controllers.Directory
         public int id_filing { get; set; }
         public int type_filing { get; set; }
         public int id_way { get; set; }
-        public int id_organization_service { get; set; }
         public List<CleaningWagons> wagons { get; set; }
     }
     public class OperationADWagonFiling
@@ -171,7 +168,6 @@ namespace WebAPI.Controllers.Directory
     {
         public int id_filing { get; set; }
         public int mode { get; set; }
-        public int id_organization_service { get; set; }
         public List<CleaningWagons> wagons { get; set; }
     }
 
