@@ -69,6 +69,9 @@ public partial class WagonInternalOperation
     [StringLength(50)]
     public string? ConChangeUser { get; set; }
 
+    [Column("id_organization_service")]
+    public int? IdOrganizationService { get; set; }
+
     [ForeignKey("IdCondition")]
     [InverseProperty("WagonInternalOperations")]
     public virtual DirectoryConditionArrival IdConditionNavigation { get; set; } = null!;
@@ -80,6 +83,10 @@ public partial class WagonInternalOperation
     [ForeignKey("IdOperation")]
     [InverseProperty("WagonInternalOperations")]
     public virtual DirectoryWagonOperation IdOperationNavigation { get; set; } = null!;
+
+    [ForeignKey("IdOrganizationService")]
+    [InverseProperty("WagonInternalOperations")]
+    public virtual DirectoryOrganizationService? IdOrganizationServiceNavigation { get; set; }
 
     [ForeignKey("IdWagonInternalRoutes")]
     [InverseProperty("WagonInternalOperations")]

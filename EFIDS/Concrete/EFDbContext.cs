@@ -111,6 +111,8 @@ public partial class EFDbContext : DbContext
 
     public virtual DbSet<DirectoryOperatorsWagonsGroup> DirectoryOperatorsWagonsGroups { get; set; }
 
+    public virtual DbSet<DirectoryOrganizationService> DirectoryOrganizationServices { get; set; }
+
     public virtual DbSet<DirectoryOuterWay> DirectoryOuterWays { get; set; }
 
     public virtual DbSet<DirectoryOwnersWagon> DirectoryOwnersWagons { get; set; }
