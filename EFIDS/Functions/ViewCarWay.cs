@@ -440,6 +440,17 @@ public class ViewCarWay
     [Column("current_operation_end", TypeName = "datetime")]
     public DateTime? CurrentOperationEnd { get; set; }
 
+    [Column("current_id_organization_service")]
+    public int? CurrentIdOrganizationService { get; set; }
+
+    [Column("current_organization_service_ru")]
+    [StringLength(50)]
+    public string? CurrentOrganizationServiceRu { get; set; }
+
+    [Column("current_organization_service_en")]
+    [StringLength(50)]
+    public string? CurrentOrganizationServiceEn { get; set; }
+
     [Column("internal_doc_num")]
     [StringLength(20)]
     public string? InternalDocNum { get; set; }
