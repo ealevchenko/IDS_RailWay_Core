@@ -144,6 +144,13 @@ namespace WebAPI.Controllers.Directory
         public int id_way { get; set; }
         public List<CleaningWagons> wagons { get; set; }
     }
+    public class OperationAddFilingProcessing
+    {
+        public int id_filing { get; set; }
+        public int type_filing { get; set; }
+        public int id_way { get; set; }
+        public List<ProcessingWagons> wagons { get; set; }
+    }
     public class OperationADWagonFiling
     {
         public int id_filing { get; set; }
@@ -170,7 +177,12 @@ namespace WebAPI.Controllers.Directory
         public int mode { get; set; }
         public List<CleaningWagons> wagons { get; set; }
     }
-
+    public class OperationUpdateFilingOperationProcessing
+    {
+        public int id_filing { get; set; }
+        public int mode { get; set; }
+        public List<ProcessingWagons> wagons { get; set; }
+    }
     public class OperationUpdateFiling
     {
         public int id_filing { get; set; }
@@ -791,6 +803,30 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        // POST: WSD/add/filing/operation/processing
+        // BODY: WSD (JSON, XML)
+        [HttpPost("add/filing/operation/processing")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostAddFilingProcessing([FromBody] OperationAddFilingProcessing value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateIDWagon result = ids_wir.AddFiling(value.id_filing, null, value.type_filing, value.id_way, null, value.wagons, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         // POST: WSD/add/wagon/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("add/wagon/filing")]
@@ -911,6 +947,30 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        // POST: WSD/update/filing/operation/processing
+        // BODY: WSD (JSON, XML)
+        [HttpPost("update/filing/operation/processing")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFilingOperationProcessing([FromBody] OperationUpdateFilingOperationProcessing value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, null, null, null, value.mode, value.wagons, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }        
+        
         // POST: WSD/update/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing")]

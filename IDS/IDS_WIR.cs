@@ -1846,7 +1846,16 @@ namespace IDS_
             public int? id_organization_service { get; set; }
 
         }
+        public class ProcessingWagons : IOperationWagons
+        {
+            public long id_wim { get; set; }
+            public DateTime? start { get; set; }
+            public DateTime? stop { get; set; }
+            public int? id_wagon_operations { get; set; }
+            public int? id_status_load { get; set; }
+            public int? id_organization_service { get; set; }
 
+        }
 
         /// <summary>
         /// Обновить информацию по вагону в подаче
@@ -2143,6 +2152,33 @@ namespace IDS_
                             }
                         }
                     }
+                    // Операция "ОБРАБОТКА"
+                    if (vagons is List<ProcessingWagons>)
+                    {
+                        rt.count = ((List<ProcessingWagons>)vagons).Count();
+                        // Пройдемся по вагонам
+                        foreach (ProcessingWagons vag in ((List<ProcessingWagons>)vagons).ToList())
+                        {
+
+                            WagonInternalMovement? wim = context.WagonInternalMovements
+                                .Where(m => m.Id == vag.id_wim)
+                                .Include(wir => wir.IdWagonInternalRoutesNavigation)
+                                .FirstOrDefault();
+                            // Определим номер вагона
+                            int num = wim != null && wim.IdWagonInternalRoutesNavigation != null ? wim.IdWagonInternalRoutesNavigation.Num : 0;
+                            int result = UpdateWagonFiling(ref context, 0, wf, vag, user);
+                            // Отметим операцию
+                            if (result >= 0)
+                            {
+                                rt.SetModeResult((mode_obj)result, vag.id_wim, 1, num); // Операция выполнена
+                            }
+                            else
+                            {
+                                rt.SetErrorResult(vag.id_wim, result, num);
+                            }
+                        }
+                    }
+
                     // Проверка на закрытие подачи
                     if (rt.error == 0)
                     {
@@ -2440,6 +2476,31 @@ namespace IDS_
                         rt.count = ((List<CleaningWagons>)vagons).Count();
                         // Пройдемся по вагонам
                         foreach (CleaningWagons vag in ((List<CleaningWagons>)vagons).ToList())
+                        {
+                            WagonInternalMovement? wim = context.WagonInternalMovements
+                                .Include(wir => wir.IdWagonInternalRoutesNavigation)
+                                .Include(wio => wio.IdWioNavigation)
+                                .Where(m => m.Id == vag.id_wim).FirstOrDefault();
+                            // Определим номер вагона
+                            int num = wim != null && wim.IdWagonInternalRoutesNavigation != null ? wim.IdWagonInternalRoutesNavigation.Num : 0;
+                            int result = UpdateWagonFiling(ref context, mode, wf, vag, user);
+                            // Отметим операцию
+                            if (result >= 0)
+                            {
+                                rt.SetModeResult((mode_obj)result, vag.id_wim, 1, num); // Операция выполнена
+                            }
+                            else
+                            {
+                                rt.SetErrorResult(vag.id_wim, result, num);
+                            }
+                        }
+                    }
+                    // Операция "ОБРАБОТКА"
+                    if (vagons is List<ProcessingWagons>)
+                    {
+                        rt.count = ((List<ProcessingWagons>)vagons).Count();
+                        // Пройдемся по вагонам
+                        foreach (ProcessingWagons vag in ((List<ProcessingWagons>)vagons).ToList())
                         {
                             WagonInternalMovement? wim = context.WagonInternalMovements
                                 .Include(wir => wir.IdWagonInternalRoutesNavigation)
