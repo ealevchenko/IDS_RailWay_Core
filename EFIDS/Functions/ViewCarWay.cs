@@ -423,6 +423,9 @@ public class ViewCarWay
     [Column("exist_load_document")]
     public bool? ExistLoadDocument { get; set; }
 
+    [Column("current_processing_busy")]
+    public bool? CurrentProcessingBusy { get; set; }
+
     [Column("current_id_operation")]
     public int? CurrentIdOperation { get; set; }
 
