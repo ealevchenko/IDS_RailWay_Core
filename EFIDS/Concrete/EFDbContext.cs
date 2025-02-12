@@ -253,6 +253,8 @@ public partial class EFDbContext : DbContext
     public IQueryable<ViewWagonsFiling> getViewWagonsFilingOfPeriodIdStation(DateTime start, DateTime stop, int id_station) => FromExpression(() => getViewWagonsFilingOfPeriodIdStation(start, stop, id_station));
 
     //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => optionsBuilder.UseSqlServer("data source=;initial catalog=;integrated security=True;TrustServerCertificate=true");
+    public IQueryable<ViewIncomingCars> getViewIncomingCarsOfIdSostav(int id_station) => FromExpression(() => getViewIncomingCarsOfIdSostav(id_station));
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -274,6 +276,8 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOutgoingSostavOfIdSostav), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_wagons_outgoing_sostav_of_id_sostav");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewDislocationAMKRWagonOfNum), new[] { typeof(int) })).HasSchema("IDS").HasName("get_dislocation_wagon_of_num");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsFilingOfPeriodIdStation), new[] { typeof(DateTime), typeof(DateTime), typeof(int) })).HasSchema("IDS").HasName("get_view_wagons_filing_of_period_id_station");
+
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewIncomingCarsOfIdSostav), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_incoming_cars_of_id_sostav");
 
 
         modelBuilder.Entity<ArrivalCar>(entity =>
