@@ -5,4 +5,4 @@ dotnet-ef dbcontext scaffold "data source=krr-sql-paclx03;initial catalog=KRR-PA
 dotnet-ef dbcontext scaffold "Data Source=krr-sql-paclx02;Initial Catalog=KRR-PA-CNT-Railway-Archive;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;" Microsoft.EntityFrameworkCore.SqlServer --schema IDS --data-annotations -o Models
 
 3. ≈сли только несколько таблиц, набрать: 
-dotnet-ef dbcontext scaffold "Data Source=krr-sql-paclx02;Initial Catalog=KRR-PA-CNT-Railway-Archive;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;" Microsoft.EntityFrameworkCore.SqlServer --schema dbo --table wagons_filing --data-annotations -o Models
+dotnet-ef dbcontext scaffold "Data Source=krr-sql-paclx02;Initial Catalog=KRR-PA-CNT-Railway-Archive;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;" Microsoft.EntityFrameworkCore.SqlServer --schema dbo --table wag_inc --data-annotations -o Models
