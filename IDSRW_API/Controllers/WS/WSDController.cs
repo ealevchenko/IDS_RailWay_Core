@@ -303,6 +303,7 @@ namespace WebAPI.Controllers.Directory
         }
         #endregion
 
+
         // GET: WSD/view/wagon/way/115
         [HttpGet("view/wagon/way/{id_way}")]
         public async Task<ActionResult<IEnumerable<ViewCarWay>>> GetViewWagonsOfIdWay(int id_way)
