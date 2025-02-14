@@ -18,7 +18,8 @@ namespace IDS.Helper
         public static int oper_load_vz = 16;
         public static int oper_unload_uz = 13;
         public static int oper_unload_vz = 14;
-
+        public static int oper_cleaning = 17;
+        public static int oper_processing = 18;
         public static bool IsEmpty(this int? id_status_load)
         {
             return (id_status_load == 0 || id_status_load == 3) ? true : false;
@@ -274,11 +275,11 @@ namespace IDS.Helper
             if (res_add < 0) return res_add; // Ошибка
             if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingStart != null) return (int)errors_base.wagon_open_operation; // Вагон операция уже применена
             WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
-            WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
-            if (wim_last != null && wim_last.Id != wim.Id) return (int)errors_base.err_last_wim_db; // Ошибка позиция вагона несоответсвует последней позиции в базе
+            //WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
+            //if (wim_last != null && wim_last.Id != wim.Id) return (int)errors_base.err_last_wim_db; // Ошибка позиция вагона несоответсвует последней позиции в базе
             WagonInternalOperation? wio = wim.IdWioNavigation; // Последняя операция над вагоном
-            WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
-            if (wio != null && wio_last.Id != wio.Id) return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует последней
+            //WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
+            //if (wio != null && wio_last.Id != wio.Id) return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует последней
             if (id_wagon_operations != null)
             {
                 if (wio == null || wio.Close != null)
@@ -286,7 +287,7 @@ namespace IDS.Helper
                     if (date_start != null)
                     {
                         // Создать операцию
-                        WagonInternalOperation new_operation = wir.SetOpenOperation(ref context, (int)id_wagon_operations, (DateTime)date_start, null, null, id_organization_service, null, null, note, user);
+                        WagonInternalOperation new_operation = wir.SetOpenOperation(ref context, (int)id_wagon_operations, (DateTime)date_start, null, null, id_organization_service, null, null, note, user, true); // id_wagon_operations != oper_processing
                         wim.FilingStart = date_start;
                         wim.IdWioNavigation = new_operation; // добавим новую операцию
                         long res_of = wf.SetOpenFiling(user); // Обновим общее начало в подаче + обновим кто произвел обновление
@@ -352,12 +353,12 @@ namespace IDS.Helper
             if (result <= 0) return result;// Ошибка
             if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingEnd != null) return (int)errors_base.wagon_close_operation; // Вагон операция закрыта
             WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
-            WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
-            if (wim_last != null && wim_last.Id != wim.Id) return (int)errors_base.err_last_wim_db; // Ошибка позиция вагона несоответсвует последней позиции в базе
+            //WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
+            //if (wim_last != null && wim_last.Id != wim.Id) return (int)errors_base.err_last_wim_db; // Ошибка позиция вагона несоответсвует последней позиции в базе
             WagonInternalOperation? wio = wim.IdWioNavigation;
             if (wio == null) return (int)errors_base.not_wio_db; // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
-            WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
-            if (wio != null && wio.Id > 0 && wio_last.Id != wio.Id) return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует последней
+            //WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
+            //if (wio != null && wio.Id > 0 && wio_last.Id != wio.Id) return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует последней
             // Закроем операцию и позицию создадим новую строку
             wio.SetCloseOperation((DateTime)date_stop, null, id_status_load, id_organization_service, user);
             wim.FilingEnd = date_stop;
@@ -755,13 +756,29 @@ namespace IDS.Helper
         #endregion
 
         #region WIO
-        public static WagonInternalOperation SetOpenOperation(this WagonInternalRoute wir, ref EFDbContext context, int id_operation, DateTime date_start, int? id_condition, int? id_loading_status, int? id_organization_service, string locomotive1, string locomotive2, string note, string user)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="wir"></param>
+        /// <param name="context"></param>
+        /// <param name="id_operation"></param>
+        /// <param name="date_start"></param>
+        /// <param name="id_condition"></param>
+        /// <param name="id_loading_status"></param>
+        /// <param name="id_organization_service"></param>
+        /// <param name="locomotive1"></param>
+        /// <param name="locomotive2"></param>
+        /// <param name="note"></param>
+        /// <param name="user"></param>
+        /// <param name="close_parent_operation"></param>
+        /// <returns></returns>
+        public static WagonInternalOperation SetOpenOperation(this WagonInternalRoute wir, ref EFDbContext context, int id_operation, DateTime date_start, int? id_condition, int? id_loading_status, int? id_organization_service, string locomotive1, string locomotive2, string note, string user, bool close_parent_operation = true)
         {
-            WagonInternalOperation wio_new = null;
+            WagonInternalOperation? wio_new = null;
 
             if (wir != null && wir.Close == null)
             {
-                WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
+                WagonInternalOperation? wio_last = wir.GetLastOperation(ref context);
                 wio_new = new WagonInternalOperation()
                 {
                     Id = 0,
@@ -776,7 +793,7 @@ namespace IDS.Helper
                     Note = note,
                     Create = DateTime.Now,
                     CreateUser = user,
-                    ParentId = wio_last.CloseOperation(date_start, null, id_loading_status, null, user),
+                    ParentId = close_parent_operation ? (wio_last != null ? wio_last.CloseOperation(date_start, null, id_loading_status, null, user) : null) : (wio_last != null ? wio_last.Id : null),
                     IdOrganizationService = id_organization_service
                 };
 
@@ -914,10 +931,10 @@ namespace IDS.Helper
         #endregion
 
         #region Методы работы с операциями над вагонами
-        public static WagonInternalOperation GetLastOperation(this WagonInternalRoute wir, ref EFDbContext context)
+        public static WagonInternalOperation? GetLastOperation(this WagonInternalRoute wir, ref EFDbContext context)
         {
             if (wir.WagonInternalOperations == null) return null;
-            WagonInternalOperation wio = context.WagonInternalOperations.Where(m => m.IdWagonInternalRoutes == wir.Id).OrderByDescending(c => c.Id).FirstOrDefault();
+            WagonInternalOperation? wio = context.WagonInternalOperations.Where(m => m.IdWagonInternalRoutes == wir.Id).OrderByDescending(c => c.Id).FirstOrDefault();
             return wio;
         }
 
