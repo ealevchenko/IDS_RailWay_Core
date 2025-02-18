@@ -19,7 +19,7 @@ namespace IDS.Helper
         public static int oper_unload_uz = 13;
         public static int oper_unload_vz = 14;
         public static int oper_cleaning = 17;
-        public static int oper_processing = 18;
+        //public static int oper_processing = 18;
         public static bool IsEmpty(this int? id_status_load)
         {
             return (id_status_load == 0 || id_status_load == 3) ? true : false;
