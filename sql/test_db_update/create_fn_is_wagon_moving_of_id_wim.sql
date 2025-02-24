@@ -1,4 +1,4 @@
-USE [KRR-PA-CNT-Railway-Archive]
+USE [KRR-PA-CNT-Railway]
 GO
 
 /****** Object:  UserDefinedFunction [IDS].[get_count_all_wagons_of_way]    Script Date: 11.11.2024 9:44:23 ******/

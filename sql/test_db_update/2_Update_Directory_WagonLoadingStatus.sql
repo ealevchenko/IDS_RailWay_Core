@@ -1,4 +1,4 @@
-USE [KRR-PA-CNT-Railway-Archive]--[KRR-PA-CNT-Railway]
+USE [KRR-PA-CNT-Railway]
 GO
 
 ALTER TABLE [IDS].[WagonInternalOperation] DROP CONSTRAINT [FK_WagonInternalOperation_Directory_WagonLoadingStatus]

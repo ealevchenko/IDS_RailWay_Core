@@ -1,4 +1,4 @@
-USE [KRR-PA-CNT-Railway-Archive]
+USE [KRR-PA-CNT-Railway]
 GO
 
 /****** Object:  UserDefinedFunction [IDS].[get_view_wagons_filing_of_period_id_station]    Script Date: 06.02.2025 17:00:24 ******/
