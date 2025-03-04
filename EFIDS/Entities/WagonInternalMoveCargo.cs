@@ -59,9 +59,6 @@ public partial class WagonInternalMoveCargo
     [Column("id_division_on")]
     public int? IdDivisionOn { get; set; }
 
-    //[Column("id_wim_unload")]
-    //public long? IdWimUnload { get; set; }
-
     [Column("create", TypeName = "datetime")]
     public DateTime Create { get; set; }
 
@@ -125,10 +122,6 @@ public partial class WagonInternalMoveCargo
     [ForeignKey("IdWimRedirection")]
     [InverseProperty("WagonInternalMoveCargoIdWimRedirectionNavigations")]
     public virtual WagonInternalMovement? IdWimRedirectionNavigation { get; set; }
-
-    //[ForeignKey("IdWimUnload")]
-    //[InverseProperty("WagonInternalMoveCargoIdWimUnloadNavigations")]
-    //public virtual WagonInternalMovement? IdWimUnloadNavigation { get; set; }
 
     [InverseProperty("Parent")]
     public virtual ICollection<WagonInternalMoveCargo> InverseParent { get; set; } = new List<WagonInternalMoveCargo>();

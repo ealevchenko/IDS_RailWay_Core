@@ -8,10 +8,10 @@ namespace EFIDS.Functions;
 
 public class ViewCarWay
 {
-    [Key]
     [Column("wir_id")]
     public long WirId { get; set; }
 
+    [Key]
     [Column("wim_id")]
     public long WimId { get; set; }
 
@@ -74,7 +74,6 @@ public class ViewCarWay
     [StringLength(50)]
     public string? CloseUserFiling { get; set; }
 
-    //-------------
     [Column("id_previous_filing")]
     public long? IdPreviousFiling { get; set; }
 
@@ -85,8 +84,8 @@ public class ViewCarWay
     [Column("type_previous_filing")]
     public int? TypePreviousFiling { get; set; }
 
-    [Column("id_division_previous_filing")]
-    public int? IdDivisionPreviousFiling { get; set; }
+    [Column("id_previous_division_filing")]
+    public int? IdPreviousDivisionFiling { get; set; }
 
     [Column("vesg_previous_filing")]
     public int? VesgPreviousFiling { get; set; }
@@ -124,7 +123,7 @@ public class ViewCarWay
     [Column("close_user_previous_filing")]
     [StringLength(50)]
     public string? CloseUserPreviousFiling { get; set; }
-    //--------------
+
     [Column("way_filing_start", TypeName = "datetime")]
     public DateTime? WayFilingStart { get; set; }
 
@@ -409,22 +408,22 @@ public class ViewCarWay
     public string? CurrentLoadingStatusEn { get; set; }
 
     [Column("current_wagon_busy")]
-    public bool? CurrentWagonBusy { get; set; }
+    public int CurrentWagonBusy { get; set; }
 
     [Column("current_move_busy")]
-    public bool? CurrentMoveBusy { get; set; }
+    public int CurrentMoveBusy { get; set; }
 
     [Column("current_load_busy")]
-    public bool? CurrentLoadBusy { get; set; }
+    public int CurrentLoadBusy { get; set; }
 
     [Column("current_unload_busy")]
-    public bool? CurrentUnloadBusy { get; set; }
+    public int CurrentUnloadBusy { get; set; }
 
     [Column("exist_load_document")]
-    public bool? ExistLoadDocument { get; set; }
+    public int ExistLoadDocument { get; set; }
 
     [Column("current_processing_busy")]
-    public bool? CurrentProcessingBusy { get; set; }
+    public int CurrentProcessingBusy { get; set; }
 
     [Column("current_id_operation")]
     public int? CurrentIdOperation { get; set; }
@@ -453,6 +452,54 @@ public class ViewCarWay
     [Column("current_organization_service_en")]
     [StringLength(50)]
     public string? CurrentOrganizationServiceEn { get; set; }
+
+    [Column("view_current_cargo_name_ru")]
+    [StringLength(50)]
+    public string? ViewCurrentCargoNameRu { get; set; }
+
+    [Column("view_current_cargo_name_en")]
+    [StringLength(50)]
+    public string? ViewCurrentCargoNameEn { get; set; }
+
+    [Column("view_current_division_from_abbr_ru")]
+    [StringLength(50)]
+    public string? ViewCurrentDivisionFromAbbrRu { get; set; }
+
+    [Column("view_current_division_from_abbr_en")]
+    [StringLength(50)]
+    public string? ViewCurrentDivisionFromAbbrEn { get; set; }
+
+    [Column("view_current_division_on_abbr_ru")]
+    [StringLength(50)]
+    public string? ViewCurrentDivisionOnAbbrRu { get; set; }
+
+    [Column("view_current_division_on_abbr_en")]
+    [StringLength(50)]
+    public string? ViewCurrentDivisionOnAbbrEn { get; set; }
+
+    [Column("view_current_external_station_on_name_ru")]
+    [StringLength(50)]
+    public string? ViewCurrentExternalStationOnNameRu { get; set; }
+
+    [Column("view_current_external_station_on_name_en")]
+    [StringLength(50)]
+    public string? ViewCurrentExternalStationOnNameEn { get; set; }
+
+    [Column("view_current_station_from_amkr_abbr_ru")]
+    [StringLength(50)]
+    public string? ViewCurrentStationFromAmkrAbbrRu { get; set; }
+
+    [Column("view_current_station_from_amkr_abbr_en")]
+    [StringLength(50)]
+    public string? ViewCurrentStationFromAmkrAbbrEn { get; set; }
+
+    [Column("view_current_station_on_amkr_abbr_ru")]
+    [StringLength(50)]
+    public string? ViewCurrentStationOnAmkrAbbrRu { get; set; }
+
+    [Column("view_current_station_on_amkr_abbr_en")]
+    [StringLength(50)]
+    public string? ViewCurrentStationOnAmkrAbbrEn { get; set; }
 
     [Column("internal_doc_num")]
     [StringLength(20)]
@@ -611,9 +658,6 @@ public class ViewCarWay
     [Column("current_division_on_abbr_en")]
     [StringLength(50)]
     public string? CurrentDivisionOnAbbrEn { get; set; }
-
-    //[Column("id_wim_unload")]
-    //public long? IdWimUnload { get; set; }
 
     [Column("move_cargo_create", TypeName = "datetime")]
     public DateTime? MoveCargoCreate { get; set; }
@@ -849,6 +893,10 @@ public class ViewCarWay
     [Column("wir_note")]
     [StringLength(250)]
     public string? WirNote { get; set; }
+
+    [Column("wir_note2")]
+    [StringLength(250)]
+    public string? WirNote2 { get; set; }
 
     [Column("wir_highlight_color")]
     [StringLength(10)]

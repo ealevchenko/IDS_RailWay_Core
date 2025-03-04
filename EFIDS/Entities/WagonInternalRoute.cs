@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EF_IDS.Entities;
 
 [Table("WagonInternalRoutes", Schema = "IDS")]
+[Index("Num", Name = "NCI_WIR_NUM")]
 [Index("ParentId", Name = "NCI_WIR_parent_id")]
 [Index("IdArrivalCar", Name = "NCI_id_arrival_car_id_sap_incoming_supply")]
 [Index("IdOutgoingCar", Name = "NCI_id_outgoing_car")]
@@ -62,6 +63,10 @@ public partial class WagonInternalRoute
     [Column("id_usage_fee")]
     public int? IdUsageFee { get; set; }
 
+    [Column("note2")]
+    [StringLength(250)]
+    public string? Note2 { get; set; }
+
     [ForeignKey("IdArrivalCar")]
     [InverseProperty("WagonInternalRoutes")]
     public virtual ArrivalCar? IdArrivalCarNavigation { get; set; }
@@ -83,7 +88,7 @@ public partial class WagonInternalRoute
     public virtual WagonUsageFee? IdUsageFeeNavigation { get; set; }
 
     [InverseProperty("Parent")]
-    public virtual ICollection<WagonInternalRoute> InverseParent { get; } = new List<WagonInternalRoute>();
+    public virtual ICollection<WagonInternalRoute> InverseParent { get; set; } = new List<WagonInternalRoute>();
 
     [ForeignKey("Num")]
     [InverseProperty("WagonInternalRoutes")]
@@ -97,8 +102,8 @@ public partial class WagonInternalRoute
     public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargos { get; set; } = new List<WagonInternalMoveCargo>();
 
     [InverseProperty("IdWagonInternalRoutesNavigation")]
-    public virtual ICollection<WagonInternalMovement> WagonInternalMovements { get; } = new List<WagonInternalMovement>();
+    public virtual ICollection<WagonInternalMovement> WagonInternalMovements { get; set; } = new List<WagonInternalMovement>();
 
     [InverseProperty("IdWagonInternalRoutesNavigation")]
-    public virtual ICollection<WagonInternalOperation> WagonInternalOperations { get; } = new List<WagonInternalOperation>();
+    public virtual ICollection<WagonInternalOperation> WagonInternalOperations { get; set; } = new List<WagonInternalOperation>();
 }

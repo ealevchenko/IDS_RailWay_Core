@@ -9,8 +9,10 @@ namespace EF_IDS.Entities;
 [Table("WagonInternalMovement", Schema = "IDS")]
 [Index("ParentId", Name = "NCI_Parent_id")]
 [Index("IdStation", "WayEnd", Name = "NCI_WIM_station_way")]
+[Index("IdFiling", Name = "NCI_id_filing")]
 [Index("IdOuterWay", Name = "NCI_id_outer_way")]
 [Index("IdOuterWay", "NumSostav", Name = "NCI_id_outer_way_num_sostav")]
+[Index("IdStation", Name = "NCI_id_station_wim")]
 [Index("IdWay", "WayEnd", Name = "NCI_id_way_way_end")]
 [Index("IdStation", "OuterWayEnd", "WayEnd", "OuterWayStart", Name = "NCI_station_way")]
 [Index("IdStation", Name = "NCI_station_wim")]
@@ -125,7 +127,4 @@ public partial class WagonInternalMovement
 
     [InverseProperty("IdWimRedirectionNavigation")]
     public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargoIdWimRedirectionNavigations { get; set; } = new List<WagonInternalMoveCargo>();
-
-    //[InverseProperty("IdWimUnloadNavigation")]
-    //public virtual ICollection<WagonInternalMoveCargo> WagonInternalMoveCargoIdWimUnloadNavigations { get; set; } = new List<WagonInternalMoveCargo>();
 }
