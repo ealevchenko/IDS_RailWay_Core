@@ -18,6 +18,7 @@ using WebAPI.Controllers.GIVC;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json.Linq;
 using static IDS_.IDS_WIR;
+using System;
 
 namespace WebAPI.Controllers.Directory
 {
@@ -347,22 +348,22 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-        // GET: WSD/view/wagon/nums/61236972;63679914;62853650;64053002;64175037;4772;4838;56968837;62976337;58583949;68026632
-        [HttpGet("view/wagon/nums/{nums}")]
-        public async Task<ActionResult<IEnumerable<ViewCarsGroup>>> getViewWagonsOfListNums(string nums)
-        {
-            try
-            {
-                List<ViewCarsGroup> result = await db.getViewWagonsOfListNums(nums).ToListAsync();
-                if (result == null)
-                    return NotFound();
-                return Ok(result);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
+        //// GET: WSD/view/wagon/nums/61236972;63679914;62853650;64053002;64175037;4772;4838;56968837;62976337;58583949;68026632
+        //[HttpGet("view/wagon/nums/{nums}")]
+        //public async Task<ActionResult<IEnumerable<ViewCarsGroup>>> getViewWagonsOfListNums(string nums)
+        //{
+        //    try
+        //    {
+        //        List<ViewCarsGroup> result = await db.getViewWagonsOfListNums(nums).ToListAsync();
+        //        if (result == null)
+        //            return NotFound();
+        //        return Ok(result);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return BadRequest(e.Message);
+        //    }
+        //}
 
         // GET: WSD/view/total_balance
         [HttpGet("view/total_balance")]
@@ -1042,6 +1043,28 @@ namespace WebAPI.Controllers.Directory
         #endregion
 
         #region ОПЕРАЦИЯ С ГРУППОЙ ВАГОНОВ
+        // POST: WSD/view/wagon/nums [61236972;63679914;62853650;64053002;64175037;4772;4838;56968837;62976337;58583949;68026632]
+        [HttpPost("view/wagon/nums")]
+        public async Task<ActionResult<IEnumerable<ViewCarsGroup>>> postViewWagonsOfListNums([FromBody] List<int> nums)
+        {
+            try
+            {
+                string s_nums = "";
+                foreach (int num in nums.ToList()) {
+                    s_nums += num.ToString() + ";";
+                }
+                s_nums = s_nums.TrimEnd(';');
+                List<ViewCarsGroup> result = await db.getViewWagonsOfListNums(s_nums).ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         // POST: WSD/update/group_wagon/note2
         // BODY: WSD (JSON, XML)
         [HttpPost("update/group_wagon/note2")]
