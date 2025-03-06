@@ -254,7 +254,7 @@ public partial class EFDbContext : DbContext
 
     //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => optionsBuilder.UseSqlServer("data source=;initial catalog=;integrated security=True;TrustServerCertificate=true");
     public IQueryable<ViewIncomingCars> getViewIncomingCarsOfIdSostav(int id_station) => FromExpression(() => getViewIncomingCarsOfIdSostav(id_station));
-
+    public IQueryable<ViewCarsGroup> getViewWagonsOfListNums(string nums) => FromExpression(() => getViewWagonsOfListNums(nums));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -278,7 +278,7 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsFilingOfPeriodIdStation), new[] { typeof(DateTime), typeof(DateTime), typeof(int) })).HasSchema("IDS").HasName("get_view_wagons_filing_of_period_id_station");
 
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewIncomingCarsOfIdSostav), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_incoming_cars_of_id_sostav");
-
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOfListNums), new[] { typeof(string) })).HasSchema("IDS").HasName("get_view_wagons_of_list_nums");
 
         modelBuilder.Entity<ArrivalCar>(entity =>
         {

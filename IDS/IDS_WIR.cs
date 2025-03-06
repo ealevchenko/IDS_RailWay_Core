@@ -151,7 +151,8 @@ namespace IDS_
                 if (context == null)
                 {
                     context = new EFDbContext(this.options);
-                };
+                }
+                ;
                 // Проверим и скорректируем пользователя
                 if (String.IsNullOrWhiteSpace(user))
                 {
@@ -300,7 +301,8 @@ namespace IDS_
                 if (context == null)
                 {
                     context = new EFDbContext(this.options);
-                };
+                }
+                ;
                 // Проверим и скорректируем пользователя
                 if (String.IsNullOrWhiteSpace(user))
                 {
@@ -1846,17 +1848,6 @@ namespace IDS_
             public int? id_organization_service { get; set; }
 
         }
-        //public class ProcessingWagons : IOperationWagons
-        //{
-        //    public long id_wim { get; set; }
-        //    public DateTime? start { get; set; }
-        //    public DateTime? stop { get; set; }
-        //    public int? id_wagon_operations { get; set; }
-        //    public int? id_status_load { get; set; }
-        //    public int? id_organization_service { get; set; }
-
-        //}
-
         /// <summary>
         /// Обновить информацию по вагону в подаче
         /// </summary>
@@ -2671,6 +2662,73 @@ namespace IDS_
         }
         #endregion
 
+        #region  ОПЕРАЦИЯ С ГРУППОЙ ВАГОНОВ
+        /// <summary>
+        /// 
+        /// </summary>
+        public class GroupWagons
+        {
+            public long id_wir { get; set; }
+            public int num { get; set; }
+        }
+        /// <summary>
+        /// Обновить информацию примечание 2
+        /// </summary>
+        /// <param name="note2"></param>
+        /// <param name="wagons"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public ResultUpdateWagon UpdateNoteGroupWagon(string note2, List<GroupWagons> wagons, string user)
+        {
+            ResultUpdateWagon rt = new ResultUpdateWagon(wagons.Count());
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                EFDbContext context = new EFDbContext(this.options);
+                {
+                    foreach (GroupWagons wag in wagons.ToList())
+                    {
+                        WagonInternalRoute? wir = context.WagonInternalRoutes.Where(r => r.Id == wag.id_wir).FirstOrDefault();
+                        if (wir != null)
+                        {
+                            if (wir.Close == null)
+                            {
+                                wir.Note2 = note2;
+                                context.Update(wir);
+                                rt.SetUpdateResult(1, wag.num);
+                            }
+                            else
+                            {
+                                rt.SetUpdateResult((int)errors_base.close_wir, wag.num);
+                            }
+                        }
+                        else
+                        {
+                            rt.SetUpdateResult((int)errors_base.not_wir_db, wag.num);
+                        }
+                    }
+                    // Проверка на закрытие подачи
+                    if (rt.error == 0)
+                    {
+                        rt.SetResult(context.SaveChanges());
+                    }
+                }
+                return rt;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("UpdateNoteGroupWagon(note2={0}, wagons={1}, user={2})",
+                    note2, wagons, user));
+                return rt;
+            }
+        }
+
+        #endregion
+
         #region  Операции "Позицирование вагонов на пути"
         /// <summary>
         /// Операция позицирования вагонов атоматически или реверс с указаной позиции
@@ -3415,7 +3473,8 @@ namespace IDS_
                             if (dt_start == null || dt_end == null)
                             {
                                 cwuf.error = (int)errors_base.not_dt_calc_usage_fee; return cwuf;
-                            };
+                            }
+                            ;
                             // просчитаем временной интервал
                             tm_period = (DateTime)dt_end - (DateTime)dt_start; // первый и последний период
                             hour_period = (int)Math.Truncate(tm_period.TotalHours);
@@ -3555,7 +3614,8 @@ namespace IDS_
                                             calc_time = hour_calc; // округлим до целых суток
                                             calc_fee_amount = (rate_currency_hour * calc_time * (decimal)coefficient_route) * curr_rate.exchange_rate;
                                             break;
-                                        };
+                                        }
+                                        ;
                                     case 1:
                                         {
                                             // Первый период
@@ -3564,7 +3624,8 @@ namespace IDS_
                                             calc_time = hour_calc;
                                             calc_fee_amount = (rate_currency_hour * hour_calc * (decimal)coefficient_route) * curr_rate.exchange_rate;
                                             break;
-                                        };
+                                        }
+                                        ;
                                     case 2:
                                         {
                                             // промежуточный период

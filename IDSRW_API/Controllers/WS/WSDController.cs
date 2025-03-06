@@ -191,6 +191,14 @@ namespace WebAPI.Controllers.Directory
     }
     #endregion
 
+    #region ОПЕРАЦИЯ С ГРУППОЙ ВАГОНОВ
+    public class OperationUpdateGroupWagonNote2
+    {
+        public string note_2 { get; set; }
+        public List<GroupWagons> wagons { get; set; }
+    }
+    #endregion
+
     #region ОПЕРАЦИЯ С ВАГОНАМИ НА ПУТИ (Обновленный АРМ)
     public class OperationAutoPosition
     {
@@ -329,6 +337,23 @@ namespace WebAPI.Controllers.Directory
             {
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
                 StatusWagonDislocation? result = ids_wir.InfoViewDislocationAMKRWagonOfNum(num);
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // GET: WSD/view/wagon/nums/61236972;63679914;62853650;64053002;64175037;4772;4838;56968837;62976337;58583949;68026632
+        [HttpGet("view/wagon/nums/{nums}")]
+        public async Task<ActionResult<IEnumerable<ViewCarsGroup>>> getViewWagonsOfListNums(string nums)
+        {
+            try
+            {
+                List<ViewCarsGroup> result = await db.getViewWagonsOfListNums(nums).ToListAsync();
                 if (result == null)
                     return NotFound();
                 return Ok(result);
@@ -990,7 +1015,7 @@ namespace WebAPI.Controllers.Directory
         //        return BadRequest(e.Message);
         //    }
         //}        
-        
+
         // POST: WSD/update/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing")]
@@ -1007,6 +1032,32 @@ namespace WebAPI.Controllers.Directory
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
                 ResultUpdateIDWagon result = ids_wir.UpdateFiling(value.id_filing, value.mode, value.id_division, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        #endregion
+
+        #region ОПЕРАЦИЯ С ГРУППОЙ ВАГОНОВ
+        // POST: WSD/update/group_wagon/note2
+        // BODY: WSD (JSON, XML)
+        [HttpPost("update/group_wagon/note2")]
+        public async Task<ActionResult<ResultUpdateWagon>> UpdateNote2WagonsGroup([FromBody] OperationUpdateGroupWagonNote2 value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateWagon result = ids_wir.UpdateNoteGroupWagon(value.note_2, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
