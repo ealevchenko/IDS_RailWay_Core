@@ -270,7 +270,8 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsOfStation), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_operators_of_id_station");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsSendOfIdStation), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_operators_send_of_id_station");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOperatorsArrivalOfIdStation), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_operators_arrival_of_id_station");
-        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOpenWagonsOfOuterWaysStationOn), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_open_wagons_of_outer_ways_station_on");
+        //modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOpenWagonsOfOuterWaysStationOn), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_open_wagons_of_outer_ways_station_on");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOpenWagonsOfOuterWaysStationOn), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_wagons_of_outer_ways_station_on1");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewOpenWagonsOfOuterWaysStationFrom), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_open_wagons_of_outer_ways_station_from");
         modelBuilder.HasDbFunction(() => getViewOutgoingSostav()).HasSchema("IDS").HasName("get_outgoing_sostav");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOutgoingSostavOfIdSostav), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_wagons_outgoing_sostav_of_id_sostav");

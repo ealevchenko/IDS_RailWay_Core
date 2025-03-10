@@ -25,7 +25,7 @@ public partial class ViewWagonsOfOuterWay
     public long? OnIdWio { get; set; }
 
     [Column("outer_way_num_sostav")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? OuterWayNumSostav { get; set; }
 
     [Column("num")]
@@ -44,57 +44,57 @@ public partial class ViewWagonsOfOuterWay
     public int? WagonAdm { get; set; }
 
     [Column("wagon_adm_name_ru")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? WagonAdmNameRu { get; set; }
 
     [Column("wagon_adm_name_en")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? WagonAdmNameEn { get; set; }
 
     [Column("wagon_adm_abbr_ru")]
-    [StringLength(10)]
+    ////[StringLength(10)]
     public string? WagonAdmAbbrRu { get; set; }
 
     [Column("wagon_adm_abbr_en")]
-    [StringLength(10)]
+    ////[StringLength(10)]
     public string? WagonAdmAbbrEn { get; set; }
 
     [Column("wagon_rod")]
     public int? WagonRod { get; set; }
 
     [Column("wagon_rod_name_ru")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? WagonRodNameRu { get; set; }
 
     [Column("wagon_rod_name_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? WagonRodNameEn { get; set; }
 
     [Column("wagon_rod_abbr_ru")]
-    [StringLength(5)]
+    ////[StringLength(5)]
     public string? WagonRodAbbrRu { get; set; }
 
     [Column("wagon_rod_abbr_en")]
-    [StringLength(5)]
+    ////[StringLength(5)]
     public string? WagonRodAbbrEn { get; set; }
 
     [Column("id_operator")]
     public int? IdOperator { get; set; }
 
     [Column("operators_ru")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? OperatorsRu { get; set; }
 
     [Column("operators_en")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? OperatorsEn { get; set; }
 
     [Column("operator_abbr_ru")]
-    [StringLength(20)]
+    ////[StringLength(20)]
     public string? OperatorAbbrRu { get; set; }
 
     [Column("operator_abbr_en")]
-    [StringLength(20)]
+    ////[StringLength(20)]
     public string? OperatorAbbrEn { get; set; }
 
     [Column("operator_rent_start", TypeName = "datetime")]
@@ -107,7 +107,7 @@ public partial class ViewWagonsOfOuterWay
     public bool? OperatorPaid { get; set; }
 
     [Column("operator_color")]
-    [StringLength(10)]
+    ////[StringLength(10)]
     public string? OperatorColor { get; set; }
 
     [Column("operator_monitoring_idle_time")]
@@ -117,85 +117,85 @@ public partial class ViewWagonsOfOuterWay
     public int? IdLimitingLoading { get; set; }
 
     [Column("limiting_name_ru")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? LimitingNameRu { get; set; }
 
     [Column("limiting_name_en")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? LimitingNameEn { get; set; }
 
     [Column("limiting_abbr_ru")]
-    [StringLength(30)]
+    ////[StringLength(30)]
     public string? LimitingAbbrRu { get; set; }
 
     [Column("limiting_abbr_en")]
-    [StringLength(30)]
+    ////[StringLength(30)]
     public string? LimitingAbbrEn { get; set; }
 
     [Column("arrival_condition_name_ru")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? ArrivalConditionNameRu { get; set; }
 
     [Column("arrival_condition_name_en")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? ArrivalConditionNameEn { get; set; }
 
     [Column("arrival_condition_abbr_ru")]
-    [StringLength(20)]
+    ////[StringLength(20)]
     public string? ArrivalConditionAbbrRu { get; set; }
 
     [Column("arrival_condition_abbr_en")]
-    [StringLength(20)]
+    ////[StringLength(20)]
     public string? ArrivalConditionAbbrEn { get; set; }
 
     [Column("arrival_condition_red")]
     public bool? ArrivalConditionRed { get; set; }
 
     [Column("arrival_cargo_group_name_ru")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? ArrivalCargoGroupNameRu { get; set; }
 
     [Column("arrival_cargo_group_name_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? ArrivalCargoGroupNameEn { get; set; }
 
     [Column("arrival_cargo_name_ru")]
-    [StringLength(50)]
+    //[StringLength(50)]
     public string? ArrivalCargoNameRu { get; set; }
 
     [Column("arrival_cargo_name_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? ArrivalCargoNameEn { get; set; }
 
     [Column("arrival_id_sertification_data")]
     public int? ArrivalIdSertificationData { get; set; }
 
     [Column("arrival_sertification_data_ru")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? ArrivalSertificationDataRu { get; set; }
 
     [Column("arrival_sertification_data_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? ArrivalSertificationDataEn { get; set; }
 
     [Column("arrival_division_amkr_code")]
-    [StringLength(5)]
+    ////[StringLength(5)]
     public string? ArrivalDivisionAmkrCode { get; set; }
 
     [Column("arrival_division_amkr_name_ru")]
-    [StringLength(250)]
+    ////[StringLength(250)]
     public string? ArrivalDivisionAmkrNameRu { get; set; }
 
     [Column("arrival_division_amkr_name_en")]
-    [StringLength(250)]
+    ////[StringLength(250)]
     public string? ArrivalDivisionAmkrNameEn { get; set; }
 
     [Column("arrival_division_amkr_abbr_ru")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? ArrivalDivisionAmkrAbbrRu { get; set; }
 
     [Column("arrival_division_amkr_abbr_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? ArrivalDivisionAmkrAbbrEn { get; set; }
 
     [Column("id_arrival_car")]
@@ -214,21 +214,21 @@ public partial class ViewWagonsOfOuterWay
     public long? IdSapOutboundSupply { get; set; }
 
     [Column("wir_note")]
-    [StringLength(250)]
+    ////[StringLength(250)]
     public string? WirNote { get; set; }
 
     [Column("wir_create", TypeName = "datetime")]
     public DateTime WirCreate { get; set; }
 
     [Column("wir_create_user")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string WirCreateUser { get; set; } = null!;
 
     [Column("wir_close", TypeName = "datetime")]
     public DateTime? WirClose { get; set; }
 
     [Column("wir_close_user")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? WirCloseUser { get; set; }
 
     [Column("wir_parent_id")]
@@ -238,11 +238,11 @@ public partial class ViewWagonsOfOuterWay
     public int? FromIdOperation { get; set; }
 
     [Column("from_operation_name_ru")]
-    [StringLength(20)]
+    //[StringLength(50)]
     public string? FromOperationNameRu { get; set; }
 
     [Column("from_operation_name_en")]
-    [StringLength(20)]
+    ////[StringLength(50)]
     public string? FromOperationNameEn { get; set; }
 
     [Column("from_busy")]
@@ -258,56 +258,56 @@ public partial class ViewWagonsOfOuterWay
     public int? FromOperationIdCondition { get; set; }
 
     [Column("from_operation_condition_name_ru")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? FromOperationConditionNameRu { get; set; }
 
     [Column("from_operation_condition_name_en")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? FromOperationConditionNameEn { get; set; }
 
     [Column("from_operation_condition_abbr_ru")]
-    [StringLength(20)]
+    ////[StringLength(20)]
     public string? FromOperationConditionAbbrRu { get; set; }
 
     [Column("from_operation_condition_abbr_en")]
-    [StringLength(20)]
+    ////[StringLength(20)]
     public string? FromOperationConditionAbbrEn { get; set; }
 
     [Column("from_operation_id_loading_status")]
     public int? FromOperationIdLoadingStatus { get; set; }
 
     [Column("from_operation_loading_status_ru")]
-    [StringLength(30)]
+    ////[StringLength(30)]
     public string? FromOperationLoadingStatusRu { get; set; }
 
     [Column("from_operation_loading_status_en")]
-    [StringLength(30)]
+    ////[StringLength(30)]
     public string? FromOperationLoadingStatusEn { get; set; }
 
     [Column("from_operation_locomotive1")]
-    [StringLength(20)]
+    ////[StringLength(20)]
     public string? FromOperationLocomotive1 { get; set; }
 
     [Column("from_operation_locomotive2")]
-    [StringLength(20)]
+    ////[StringLength(20)]
     public string? FromOperationLocomotive2 { get; set; }
 
     [Column("from_operation_note")]
-    [StringLength(250)]
+    ////[StringLength(250)]
     public string? FromOperationNote { get; set; }
 
     [Column("from_operation_create", TypeName = "datetime")]
     public DateTime? FromOperationCreate { get; set; }
 
     [Column("from_operation_create_user")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? FromOperationCreateUser { get; set; }
 
     [Column("from_operation_close", TypeName = "datetime")]
     public DateTime? FromOperationClose { get; set; }
 
     [Column("from_operation_close_user")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? FromOperationCloseUser { get; set; }
 
     [Column("from_operation_parent_id")]
@@ -317,19 +317,19 @@ public partial class ViewWagonsOfOuterWay
     public int FromIdStation { get; set; }
 
     [Column("from_station_name_ru")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? FromStationNameRu { get; set; }
 
     [Column("from_station_name_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? FromStationNameEn { get; set; }
 
     [Column("from_station_abbr_ru")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? FromStationAbbrRu { get; set; }
 
     [Column("from_station_abbr_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? FromStationAbbrEn { get; set; }
 
     [Column("from_id_way")]
@@ -339,27 +339,27 @@ public partial class ViewWagonsOfOuterWay
     public int? FromIdPark { get; set; }
 
     [Column("from_way_num_ru")]
-    [StringLength(20)]
+    ////[StringLength(20)]
     public string? FromWayNumRu { get; set; }
 
     [Column("from_way_num_en")]
-    [StringLength(20)]
+    ////[StringLength(20)]
     public string? FromWayNumEn { get; set; }
 
     [Column("from_way_name_ru")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? FromWayNameRu { get; set; }
 
     [Column("from_way_name_en")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? FromWayNameEn { get; set; }
 
     [Column("from_way_abbr_ru")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? FromWayAbbrRu { get; set; }
 
     [Column("from_way_abbr_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? FromWayAbbrEn { get; set; }
 
     [Column("from_way_capacity")]
@@ -372,7 +372,7 @@ public partial class ViewWagonsOfOuterWay
     public DateTime? FromWayDelete { get; set; }
 
     [Column("from_way_note")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? FromWayNote { get; set; }
 
     [Column("from_way_start", TypeName = "datetime")]
@@ -385,11 +385,11 @@ public partial class ViewWagonsOfOuterWay
     public int? IdOuterWay { get; set; }
 
     [Column("name_outer_way_ru")]
-    [StringLength(150)]
+    ////[StringLength(150)]
     public string? NameOuterWayRu { get; set; }
 
     [Column("name_outer_way_en")]
-    [StringLength(150)]
+    ////[StringLength(150)]
     public string? NameOuterWayEn { get; set; }
 
     [Column("outer_way_close", TypeName = "datetime")]
@@ -399,7 +399,7 @@ public partial class ViewWagonsOfOuterWay
     public DateTime? OuterWayDelete { get; set; }
 
     [Column("outer_way_note")]
-    [StringLength(200)]
+    ////[StringLength(200)]
     public string? OuterWayNote { get; set; }
 
     [Column("outer_way_start", TypeName = "datetime")]
@@ -409,21 +409,21 @@ public partial class ViewWagonsOfOuterWay
     public DateTime? OuterWayEnd { get; set; }
 
     [Column("from_wim_note")]
-    [StringLength(250)]
+    ////[StringLength(250)]
     public string? FromWimNote { get; set; }
 
     [Column("from_wim_create", TypeName = "datetime")]
     public DateTime FromWimCreate { get; set; }
 
     [Column("from_wim_create_user")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string FromWimCreateUser { get; set; } = null!;
 
     [Column("from_wim_close", TypeName = "datetime")]
     public DateTime? FromWimClose { get; set; }
 
     [Column("from_wim_close_user")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? FromWimCloseUser { get; set; }
 
     [Column("from_wim_parent_id")]
@@ -433,38 +433,38 @@ public partial class ViewWagonsOfOuterWay
     public int? OnIdStation { get; set; }
 
     [Column("on_station_name_ru")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? OnStationNameRu { get; set; }
 
     [Column("on_station_name_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? OnStationNameEn { get; set; }
 
     [Column("on_station_abbr_ru")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? OnStationAbbrRu { get; set; }
 
     [Column("on_station_abbr_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? OnStationAbbrEn { get; set; }
 
     [Column("arrival_id_station")]
     public int? ArrivalIdStation { get; set; }
 
     [Column("arrival_station_name_ru")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? ArrivalStationNameRu { get; set; }
 
     [Column("arrival_station_name_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? ArrivalStationNameEn { get; set; }
 
     [Column("arrival_station_abbr_ru")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? ArrivalStationAbbrRu { get; set; }
 
     [Column("arrival_station_abbr_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? ArrivalStationAbbrEn { get; set; }
 
     [Column("on_id_way")]
@@ -474,27 +474,27 @@ public partial class ViewWagonsOfOuterWay
     public int? OnIdPark { get; set; }
 
     [Column("on_way_num_ru")]
-    [StringLength(20)]
+    ////[StringLength(20)]
     public string? OnWayNumRu { get; set; }
 
     [Column("on_way_num_en")]
-    [StringLength(20)]
+    ////[StringLength(20)]
     public string? OnWayNumEn { get; set; }
 
     [Column("on_way_name_ru")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? OnWayNameRu { get; set; }
 
     [Column("on_way_name_en")]
-    [StringLength(100)]
+    ////[StringLength(100)]
     public string? OnWayNameEn { get; set; }
 
     [Column("on_way_abbr_ru")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? OnWayAbbrRu { get; set; }
 
     [Column("on_way_abbr_en")]
-    [StringLength(50)]
+    ////[StringLength(50)]
     public string? OnWayAbbrEn { get; set; }
 
     [Column("on_way_capacity")]
@@ -507,7 +507,7 @@ public partial class ViewWagonsOfOuterWay
     public DateTime? OnWayDelete { get; set; }
 
     [Column("on_way_note")]
-    [StringLength(100)]
+    //[StringLength(100)]
     public string? OnWayNote { get; set; }
 
     [Column("on_way_start", TypeName = "datetime")]
@@ -520,21 +520,21 @@ public partial class ViewWagonsOfOuterWay
     public int? OnWayPosition { get; set; }
 
     [Column("on_wim_note")]
-    [StringLength(250)]
+    //[StringLength(250)]
     public string? OnWimNote { get; set; }
 
     [Column("on_wim_create", TypeName = "datetime")]
     public DateTime? OnWimCreate { get; set; }
 
     [Column("on_wim_create_user")]
-    [StringLength(50)]
+    //[StringLength(50)]
     public string? OnWimCreateUser { get; set; }
 
     [Column("on_wim_close", TypeName = "datetime")]
     public DateTime? OnWimClose { get; set; }
 
     [Column("on_wim_close_user")]
-    [StringLength(50)]
+    //[StringLength(50)]
     public string? OnWimCloseUser { get; set; }
 
     [Column("on_wim_parent_id")]
@@ -544,11 +544,11 @@ public partial class ViewWagonsOfOuterWay
     public int? OnIdOperation { get; set; }
 
     [Column("on_operation_name_ru")]
-    [StringLength(20)]
+    //[StringLength(50)]
     public string? OnOperationNameRu { get; set; }
 
     [Column("on_operation_name_en")]
-    [StringLength(20)]
+    //[StringLength(50)]
     public string? OnOperationNameEn { get; set; }
 
     [Column("on_busy")]
@@ -564,56 +564,56 @@ public partial class ViewWagonsOfOuterWay
     public int? OnOperationIdCondition { get; set; }
 
     [Column("on_operation_condition_name_ru")]
-    [StringLength(100)]
+    //[StringLength(100)]
     public string? OnOperationConditionNameRu { get; set; }
 
     [Column("on_operation_condition_name_en")]
-    [StringLength(100)]
+    //[StringLength(100)]
     public string? OnOperationConditionNameEn { get; set; }
 
     [Column("on_operation_condition_abbr_ru")]
-    [StringLength(20)]
+    //[StringLength(20)]
     public string? OnOperationConditionAbbrRu { get; set; }
 
     [Column("on_operation_condition_abbr_en")]
-    [StringLength(20)]
+    //[StringLength(20)]
     public string? OnOperationConditionAbbrEn { get; set; }
 
     [Column("on_operation_id_loading_status")]
     public int? OnOperationIdLoadingStatus { get; set; }
 
     [Column("on_operation_loading_status_ru")]
-    [StringLength(30)]
+    //[StringLength(30)]
     public string? OnOperationLoadingStatusRu { get; set; }
 
     [Column("on_operation_loading_status_en")]
-    [StringLength(30)]
+    //[StringLength(30)]
     public string? OnOperationLoadingStatusEn { get; set; }
 
     [Column("on_operation_locomotive1")]
-    [StringLength(20)]
+    //[StringLength(20)]
     public string? OnOperationLocomotive1 { get; set; }
 
     [Column("on_operation_locomotive2")]
-    [StringLength(20)]
+    //[StringLength(20)]
     public string? OnOperationLocomotive2 { get; set; }
 
     [Column("on_operation_note")]
-    [StringLength(250)]
+    //[StringLength(250)]
     public string? OnOperationNote { get; set; }
 
     [Column("on_operation_create", TypeName = "datetime")]
     public DateTime? OnOperationCreate { get; set; }
 
     [Column("on_operation_create_user")]
-    [StringLength(50)]
+    //[StringLength(50)]
     public string? OnOperationCreateUser { get; set; }
 
     [Column("on_operation_close", TypeName = "datetime")]
     public DateTime? OnOperationClose { get; set; }
 
     [Column("on_operation_close_user")]
-    [StringLength(50)]
+    //[StringLength(50)]
     public string? OnOperationCloseUser { get; set; }
 
     [Column("on_operation_parent_id")]
