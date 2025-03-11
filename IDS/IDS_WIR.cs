@@ -2730,6 +2730,14 @@ namespace IDS_
         #endregion
 
         #region  Операции "Позицирование вагонов на пути"
+
+        public class PositionWagons
+        {
+            public long id_wim { get; set; }
+            public int position { get; set; }
+            public int num { get; set; }
+
+        }
         /// <summary>
         /// Операция позицирования вагонов атоматически или реверс с указаной позиции
         /// </summary>
@@ -2762,6 +2770,41 @@ namespace IDS_
             {
                 _logger.LogError(e, String.Format("AutoPosition(id_way={0}, position={1}, reverse={2}, user={3})",
                     id_way, position, reverse, user));
+                return (int)errors_base.global;// Возвращаем id=-1 , Ошибка
+            }
+        }
+        /// <summary>
+        /// ручная расстановка
+        /// </summary>
+        /// <param name="id_way"></param>
+        /// <param name="positions"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int ManualPosition(int id_way, List<PositionWagons> positions, string user)
+        {
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                EFDbContext context = new EFDbContext(this.options);
+                {
+                    foreach (PositionWagons pw in positions) {
+                        WagonInternalMovement? wim = context.WagonInternalMovements.Where(w => w.Id == pw.id_wim).FirstOrDefault();
+                        if (wim == null) return (int)errors_base.not_wim_db;
+                        if (wim.IdWay != id_way) return (int)errors_base.wagon_not_way;
+                        if (wim.WayEnd != null) return (int)errors_base.close_wim;
+                        wim.Position = pw.position;
+                    }
+                    return context.SaveChanges();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("AutoPosition(id_way={0}, positions={1}, user={2})",
+                    id_way, positions, user));
                 return (int)errors_base.global;// Возвращаем id=-1 , Ошибка
             }
         }

@@ -207,6 +207,11 @@ namespace WebAPI.Controllers.Directory
         public int position { get; set; }
         public bool reverse { get; set; }
     }
+    public class OperationManualPosition
+    {
+        public int id_way { get; set; }
+        public List<PositionWagons> positions { get; set; }
+    }
     #endregion
 
     #region ОПЕРАЦИЯ АДМ
@@ -772,6 +777,31 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // POST: WSD/operation/way/manual_position
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/way/manual_position")]
+        public async Task<ActionResult<int>> postManualPosition([FromBody] OperationManualPosition value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                int result = ids_wir.ManualPosition(value.id_way, value.positions, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
 
         #endregion
 
