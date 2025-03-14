@@ -373,6 +373,8 @@
 
         public long id { get; set; }
 
+        public List<ResultIDWagon> LResult { get { return this.listResult.ToList(); } }
+
         public List<ResultIDWagon> listResult = new List<ResultIDWagon>();
 
         public ResultUpdateIDWagon(long id, int count)
