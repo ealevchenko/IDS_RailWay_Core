@@ -695,7 +695,7 @@ namespace IDS.Helper
             if (wimc == null || wimc != null && wimc.Empty != true && wagon.id_status_load.IsEmpty())
             {
                 // Закроем груз с признаком не пустой  (Вагоны не порожние)
-                if (wimc != null && wimc.Empty == false)
+                if (wimc != null && wimc.Empty != true)
                 {
                     wimc.Close = DateTime.Now;
                     wimc.CloseUser = user;
