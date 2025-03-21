@@ -54,7 +54,7 @@ public partial class ArrivalUzVagonCont
     public string? NomZpu { get; set; }
 
     [InverseProperty("IdContNavigation")]
-    public virtual ICollection<ArrivalUzContPay> ArrivalUzContPays { get; } = new List<ArrivalUzContPay>();
+    public virtual ICollection<ArrivalUzContPay> ArrivalUzContPays { get; set; } = new List<ArrivalUzContPay>();
 
     [ForeignKey("IdCargoGng")]
     [InverseProperty("ArrivalUzVagonConts")]

@@ -9,6 +9,7 @@ namespace EF_IDS.Entities;
 [Table("ArrivalCars", Schema = "IDS")]
 [Index("PositionArrival", Name = "NCI_arrival_position")]
 [Index("IdArrival", Name = "NCI_id_arrival")]
+[Index("IdArrivalUzVagon", Name = "NCI_id_arrival_uz_vagon")]
 public partial class ArrivalCar
 {
     [Key]
@@ -81,8 +82,8 @@ public partial class ArrivalCar
     public virtual UzDoc? NumDocNavigation { get; set; }
 
     [InverseProperty("IdArrivalCarNavigation")]
-    public virtual ICollection<SapincomingSupply> SapincomingSupplies { get; } = new List<SapincomingSupply>();
+    public virtual ICollection<SapincomingSupply> SapincomingSupplies { get; set; } = new List<SapincomingSupply>();
 
     [InverseProperty("IdArrivalCarNavigation")]
-    public virtual ICollection<WagonInternalRoute> WagonInternalRoutes { get; } = new List<WagonInternalRoute>();
+    public virtual ICollection<WagonInternalRoute> WagonInternalRoutes { get; set; } = new List<WagonInternalRoute>();
 }

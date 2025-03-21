@@ -75,10 +75,10 @@ public partial class ArrivalSostav
     public string? ChangeUser { get; set; }
 
     [InverseProperty("IdArrivalNavigation")]
-    public virtual ICollection<ArrivalCar> ArrivalCars { get; } = new List<ArrivalCar>();
+    public virtual ICollection<ArrivalCar> ArrivalCars { get; set; } = new List<ArrivalCar>();
 
     [InverseProperty("IdArrivalNavigation")]
-    public virtual ICollection<ArrivalUzVagon> ArrivalUzVagons { get; } = new List<ArrivalUzVagon>();
+    public virtual ICollection<ArrivalUzVagon> ArrivalUzVagons { get; set; } = new List<ArrivalUzVagon>();
 
     [ForeignKey("IdStationFrom")]
     [InverseProperty("ArrivalSostavIdStationFromNavigations")]

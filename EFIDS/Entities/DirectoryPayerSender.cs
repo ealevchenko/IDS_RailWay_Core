@@ -37,8 +37,8 @@ public partial class DirectoryPayerSender
     public string? ChangeUser { get; set; }
 
     [InverseProperty("CodePayerSenderNavigation")]
-    public virtual ICollection<ArrivalUzDocument> ArrivalUzDocuments { get; } = new List<ArrivalUzDocument>();
+    public virtual ICollection<ArrivalUzDocument> ArrivalUzDocuments { get; set; } = new List<ArrivalUzDocument>();
 
     [InverseProperty("CodePayerNavigation")]
-    public virtual ICollection<OutgoingUzDocument> OutgoingUzDocuments { get; } = new List<OutgoingUzDocument>();
+    public virtual ICollection<OutgoingUzDocument> OutgoingUzDocuments { get; set; } = new List<OutgoingUzDocument>();
 }

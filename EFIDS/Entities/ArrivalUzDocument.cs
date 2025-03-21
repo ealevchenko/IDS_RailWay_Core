@@ -94,17 +94,31 @@ public partial class ArrivalUzDocument
     [Column("date_vid", TypeName = "datetime")]
     public DateTime? DateVid { get; set; }
 
-    [InverseProperty("IdDocumentNavigation")]
-    public virtual ICollection<ArrivalUzDocumentAct> ArrivalUzDocumentActs { get; } = new List<ArrivalUzDocumentAct>();
+    [Column("code_payer_local")]
+    [StringLength(20)]
+    public string? CodePayerLocal { get; set; }
+
+    [Column("tariff_contract", TypeName = "money")]
+    public decimal? TariffContract { get; set; }
+
+    [Column("calc_payer", TypeName = "datetime")]
+    public DateTime? CalcPayer { get; set; }
+
+    [Column("calc_payer_user")]
+    [StringLength(50)]
+    public string? CalcPayerUser { get; set; }
 
     [InverseProperty("IdDocumentNavigation")]
-    public virtual ICollection<ArrivalUzDocumentDoc> ArrivalUzDocumentDocs { get; } = new List<ArrivalUzDocumentDoc>();
+    public virtual ICollection<ArrivalUzDocumentAct> ArrivalUzDocumentActs { get; set; } = new List<ArrivalUzDocumentAct>();
 
     [InverseProperty("IdDocumentNavigation")]
-    public virtual ICollection<ArrivalUzDocumentPay> ArrivalUzDocumentPays { get; } = new List<ArrivalUzDocumentPay>();
+    public virtual ICollection<ArrivalUzDocumentDoc> ArrivalUzDocumentDocs { get; set; } = new List<ArrivalUzDocumentDoc>();
 
     [InverseProperty("IdDocumentNavigation")]
-    public virtual ICollection<ArrivalUzVagon> ArrivalUzVagons { get; } = new List<ArrivalUzVagon>();
+    public virtual ICollection<ArrivalUzDocumentPay> ArrivalUzDocumentPays { get; set; } = new List<ArrivalUzDocumentPay>();
+
+    [InverseProperty("IdDocumentNavigation")]
+    public virtual ICollection<ArrivalUzVagon> ArrivalUzVagons { get; set; } = new List<ArrivalUzVagon>();
 
     [ForeignKey("CodeBorderCheckpoint")]
     [InverseProperty("ArrivalUzDocuments")]
@@ -113,6 +127,14 @@ public partial class ArrivalUzDocument
     [ForeignKey("CodeConsignee")]
     [InverseProperty("ArrivalUzDocuments")]
     public virtual DirectoryConsignee? CodeConsigneeNavigation { get; set; }
+
+    [ForeignKey("CodePayerArrival")]
+    [InverseProperty("ArrivalUzDocumentCodePayerArrivalNavigations")]
+    public virtual DirectoryPayerArrival? CodePayerArrivalNavigation { get; set; }
+
+    [ForeignKey("CodePayerLocal")]
+    [InverseProperty("ArrivalUzDocumentCodePayerLocalNavigations")]
+    public virtual DirectoryPayerArrival? CodePayerLocalNavigation { get; set; }
 
     [ForeignKey("CodePayerSender")]
     [InverseProperty("ArrivalUzDocuments")]
@@ -135,7 +157,7 @@ public partial class ArrivalUzDocument
     public virtual UzDoc IdDocUzNavigation { get; set; } = null!;
 
     [InverseProperty("Parent")]
-    public virtual ICollection<ArrivalUzDocument> InverseParent { get; } = new List<ArrivalUzDocument>();
+    public virtual ICollection<ArrivalUzDocument> InverseParent { get; set; } = new List<ArrivalUzDocument>();
 
     [ForeignKey("ParentId")]
     [InverseProperty("InverseParent")]

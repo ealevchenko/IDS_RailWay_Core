@@ -161,16 +161,16 @@ public partial class ArrivalUzVagon
     public int? IdWagonsRentArrival { get; set; }
 
     [InverseProperty("IdArrivalUzVagonNavigation")]
-    public virtual ICollection<ArrivalCar> ArrivalCars { get; } = new List<ArrivalCar>();
+    public virtual ICollection<ArrivalCar> ArrivalCars { get; set; } = new List<ArrivalCar>();
 
     [InverseProperty("IdVagonNavigation")]
-    public virtual ICollection<ArrivalUzVagonAct> ArrivalUzVagonActs { get; } = new List<ArrivalUzVagonAct>();
+    public virtual ICollection<ArrivalUzVagonAct> ArrivalUzVagonActs { get; set; } = new List<ArrivalUzVagonAct>();
 
     [InverseProperty("IdVagonNavigation")]
-    public virtual ICollection<ArrivalUzVagonCont> ArrivalUzVagonConts { get; } = new List<ArrivalUzVagonCont>();
+    public virtual ICollection<ArrivalUzVagonCont> ArrivalUzVagonConts { get; set; } = new List<ArrivalUzVagonCont>();
 
     [InverseProperty("IdVagonNavigation")]
-    public virtual ICollection<ArrivalUzVagonPay> ArrivalUzVagonPays { get; } = new List<ArrivalUzVagonPay>();
+    public virtual ICollection<ArrivalUzVagonPay> ArrivalUzVagonPays { get; set; } = new List<ArrivalUzVagonPay>();
 
     [ForeignKey("Danger")]
     [InverseProperty("ArrivalUzVagons")]

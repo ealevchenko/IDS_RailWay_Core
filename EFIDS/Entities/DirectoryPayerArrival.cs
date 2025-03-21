@@ -35,4 +35,10 @@ public partial class DirectoryPayerArrival
     [Column("change_user")]
     [StringLength(50)]
     public string? ChangeUser { get; set; }
+
+    [InverseProperty("CodePayerArrivalNavigation")]
+    public virtual ICollection<ArrivalUzDocument> ArrivalUzDocumentCodePayerArrivalNavigations { get; set; } = new List<ArrivalUzDocument>();
+
+    [InverseProperty("CodePayerLocalNavigation")]
+    public virtual ICollection<ArrivalUzDocument> ArrivalUzDocumentCodePayerLocalNavigations { get; set; } = new List<ArrivalUzDocument>();
 }

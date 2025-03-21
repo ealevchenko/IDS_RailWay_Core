@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using EF_IDS.Entities;
 using EF_IDS.Functions;
 using EFIDS.Functions;
-using EFIDS.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -313,6 +312,10 @@ public partial class EFDbContext : DbContext
             entity.HasOne(d => d.CodeBorderCheckpointNavigation).WithMany(p => p.ArrivalUzDocuments).HasConstraintName("FK_Arrival_UZ_Document_Directory_BorderCheckpoint");
 
             entity.HasOne(d => d.CodeConsigneeNavigation).WithMany(p => p.ArrivalUzDocuments).HasConstraintName("FK_Arrival_UZ_Document_Directory_Consignee");
+
+            entity.HasOne(d => d.CodePayerArrivalNavigation).WithMany(p => p.ArrivalUzDocumentCodePayerArrivalNavigations).HasConstraintName("FK_Arrival_UZ_Document_Directory_PayerArrival");
+
+            entity.HasOne(d => d.CodePayerLocalNavigation).WithMany(p => p.ArrivalUzDocumentCodePayerLocalNavigations).HasConstraintName("FK_Arrival_UZ_Document_Directory_PayerArrival1");
 
             entity.HasOne(d => d.CodePayerSenderNavigation).WithMany(p => p.ArrivalUzDocuments).HasConstraintName("FK_Arrival_UZ_Document_Directory_PayerSender");
 
