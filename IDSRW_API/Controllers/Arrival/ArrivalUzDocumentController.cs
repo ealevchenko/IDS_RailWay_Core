@@ -11,9 +11,27 @@ using WebAPI.Repositories;
 using WebAPI.Repositories.Directory;
 using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel;
+using IDS_;
 
 namespace WebAPI.Controllers.Directory
 {
+    #region 
+    public class UpdateArrivalUzDocumentPay
+    {
+        public long id_document { get; set; }
+        public int summa { get; set; }
+        public string kod { get; set; }
+    }
+    public class UpdatePayerLocal
+    {
+        public long id_document { get; set; }
+        public string code_payer_local { get; set; }
+        public decimal? tariff_contract { get; set; }
+    }
+
+    #endregion
+
+
     [Route("[controller]")]
     [ApiController]
     public class ArrivalUzDocumentController : ControllerBase
@@ -101,14 +119,14 @@ namespace WebAPI.Controllers.Directory
                     .Include(act => act.ArrivalUzDocumentActs)
                     .Include(pays => pays.ArrivalUzDocumentPays)
                     .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                        .ThenInclude(arr_sost => arr_sost.IdArrivalNavigation)
+                    .Include(wag_doc => wag_doc.ArrivalUzVagons)
                         .ThenInclude(wag_cargo => wag_cargo.IdCargoNavigation)
                     .Include(wag_doc => wag_doc.ArrivalUzVagons)
                         .ThenInclude(wag_rent => wag_rent.IdWagonsRentArrivalNavigation)
                             .ThenInclude(wag_oper => wag_oper.IdOperatorNavigation)
                     .Include(wag_doc => wag_doc.ArrivalUzVagons)
                         .ThenInclude(wag_div => wag_div.IdDivisionOnAmkrNavigation)
-                    .Include(wag_doc => wag_doc.ArrivalUzVagons)
-                        .ThenInclude(arr_sost => arr_sost.IdArrivalNavigation)
                     .Include(wag_doc => wag_doc.ArrivalUzVagons)
                         .ThenInclude(wag_acts => wag_acts.ArrivalUzVagonActs)
                     .Include(wag_doc => wag_doc.ArrivalUzVagons)
@@ -137,9 +155,9 @@ namespace WebAPI.Controllers.Directory
                 var result = await db.ArrivalUzDocuments
                         .AsNoTracking()
                         .Where(x => id_docs.Contains(x.Id))
-                        .Select(d=> new { d.Id, d.NomMainDoc, d.CalcPayer})
+                        .Select(d => new { d.Id, d.NomMainDoc, d.CalcPayer })
                         .ToListAsync();
-                
+
                 //IEnumerable<ArrivalUzDocument> result = await db.ArrivalUzDocuments
                 //        .AsNoTracking()
                 //        .Where(x => id_docs.Contains(x.Id))
@@ -180,19 +198,112 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-        //// POST: ArrivalUzDocument
-        //// BODY: ArrivalUzDocument (JSON, XML)
-        //[HttpPost]
-        //public async Task<ActionResult<ArrivalUzDocument>> PostArrivalUzDocument([FromBody] ArrivalUzDocument obj)
-        //{
-        //    if (obj == null)
-        //    {
-        //        return BadRequest();
-        //    }
-        //    db.ArrivalUzDocuments.Add(obj);
-        //    await db.SaveChangesAsync();
-        //    return Ok(obj);
-        //}
+        // POST: ArrivalUzDocument/update/pay
+        // BODY: ArrivalUzDocument/update/pay (JSON, XML)
+        [HttpPost("update/pay")]
+        public async Task<int> PostArrivalUzDocumentPay([FromBody] UpdateArrivalUzDocumentPay value)
+        {
+            try
+            {
+                ArrivalUzDocument? result = await db.ArrivalUzDocuments
+                    .Include(doc => doc.ArrivalUzDocumentDocs)
+                    .Include(act => act.ArrivalUzDocumentActs)
+                    .Include(pays => pays.ArrivalUzDocumentPays)
+                    .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                    .FirstOrDefaultAsync(x => x.Id == value.id_document);
+                if (result != null)
+                {
+                    IEnumerable<ArrivalUzDocumentPay> pays = result.ArrivalUzDocumentPays
+                        .Where(d => d.Kod == value.kod)
+                        .ToList();
+
+                    ArrivalUzDocumentPay new_pay = new ArrivalUzDocumentPay()
+                    {
+                        Id = 0,
+                        IdDocument = value.id_document,
+                        CodePayer = result.CodePayerSender != null ? int.Parse(result.CodePayerSender) : 0,
+                        Kod = value.kod,
+                        Summa = value.summa,
+                        TypePayer = 0
+                    };
+
+                    if (pays == null || pays.Count() == 0)
+                    {
+                        result.ArrivalUzDocumentPays.Add(new_pay);
+                    }
+                    else
+                    {
+                        if (pays.Count() > 2)
+                        {
+                            // Удалить
+                            foreach (ArrivalUzDocumentPay pay in pays)
+                            {
+                                result.ArrivalUzDocumentPays.Remove(pay);
+                            }
+                            result.ArrivalUzDocumentPays.Add(new_pay);
+                        }
+                        else
+                        {
+                            pays.ToList()[0].Summa = value.summa;
+                        }
+                    }
+                    return await db.SaveChangesAsync();
+
+                }
+                else
+                {
+                    return (int)errors_base.not_inp_uz_vag_db;
+                }
+            }
+            catch (Exception e)
+            {
+                return (int)errors_base.global;
+            }
+        }
+
+        // POST: ArrivalUzDocument/update/payer_local
+        // BODY: ArrivalUzDocument/update/payer_local (JSON, XML)
+        [HttpPost("update/payer_local")]
+        public async Task<ActionResult<int>> PostArrivalUzDocumentPayerLocal([FromBody] UpdatePayerLocal value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    //return (int)errors_base.error_authenticated;
+                    return Unauthorized();
+                }
+
+                ArrivalUzDocument? result = await db.ArrivalUzDocuments
+                    .Include(doc => doc.ArrivalUzDocumentDocs)
+                    .Include(act => act.ArrivalUzDocumentActs)
+                    .Include(pays => pays.ArrivalUzDocumentPays)
+                    .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                    .FirstOrDefaultAsync(x => x.Id == value.id_document);
+                if (result != null)
+                {
+                    result.CodePayerLocal = value.code_payer_local;
+                    result.TariffContract = value.tariff_contract;
+                    result.CalcPayerUser = user;
+                    result.CalcPayer = DateTime.Now;
+
+                    return await db.SaveChangesAsync();
+
+                }
+                else
+                {
+                    return (int)errors_base.not_inp_uz_vag_db;
+                }
+            }
+            catch (Exception e)
+            {
+                return (int)errors_base.global;
+            }
+        }
+
 
         //// PUT ArrivalUzDocument/
         //// BODY: ArrivalUzDocument (JSON, XML)
