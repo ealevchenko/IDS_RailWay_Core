@@ -1801,7 +1801,7 @@ namespace IDS_
         }
         #endregion
 
-        #region  Операция с использованием подач (ВЫГРУЗКА, ПОГРУЗКА)
+        #region  Операция с использованием подач (ВЫГРУЗКА, ПОГРУЗКА, ОЧИСТКА)
 
         public interface IOperationWagons
         {
