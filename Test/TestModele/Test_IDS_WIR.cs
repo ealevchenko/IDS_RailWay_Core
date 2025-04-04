@@ -77,6 +77,63 @@ namespace Test.TestModele
 
             //ResultUpdateIDWagon result = ids_wir.AddFiling(0, 164, 78, new DateTime(2024, 10, 16, 0, 0, 0), wagons, "TЭM18-183", null, null);
         }
+        public void CorrectArrivalDocument()
+        {
+            int num_doc = 491;
+            int num_nakl = 40036675;
+            List<int> nums = new List<int> { 52227980 };
+            ArrivalCorrectDocument correct_document = new ArrivalCorrectDocument() { };
+            //ArrivalCorrectDocument correct_document = new ArrivalCorrectDocument()
+            //{
+            //    CodeShipper = 3700,
+            //    CodePayerSender = "8245745",
+            //    DistanceWay = 997
+            //};
+            List<ArrivalCorrectVagonDocument> correct_vagons = new List<ArrivalCorrectVagonDocument>();
+            //correct_vagons.Add(new ArrivalCorrectVagonDocument()
+            //{
+            //    Num = 63208300,
+            //    Vesg = 69850,
+            //    IdCargo = 68,
+            //    PaySumma = 2938500
+            //});
+            //correct_vagons.Add(new ArrivalCorrectVagonDocument()
+            //{
+            //    Num = 63208300,
+            //    Vesg = 69850,
+            //    IdCargo = 68,
+            //    PaySumma = 2938500
+            //});
+            //correct_vagons.Add(new ArrivalCorrectVagonDocument()
+            //{
+            //    Num = 63010276,
+            //    Vesg = 69900,
+            //    IdCargo = 68,
+            //    PaySumma = 2938500
+            //});
+            //correct_vagons.Add(new ArrivalCorrectVagonDocument()
+            //{
+            //    Num = 63006472,
+            //    Vesg = 69800,
+            //    IdCargo = 68,
+            //    PaySumma = 2938500
+            //});
+            //correct_vagons.Add(new ArrivalCorrectVagonDocument()
+            //{
+            //    Num = 63190615,
+            //    Vesg = 69900,
+            //    IdCargo = 68,
+            //    PaySumma = 2938500
+            //});
+            //correct_vagons.Add(new ArrivalCorrectVagonDocument()
+            //{
+            //    Num = 63190615,
+            //    Vesg = 69400,
+            //    IdCargo = 68,
+            //    PaySumma = 2938500
+            //});
+            ResultCorrect result = ids_wir.CorrectArrivalDocument(num_doc, num_nakl, nums, correct_document, correct_vagons);
+        }
 
     }
 }
