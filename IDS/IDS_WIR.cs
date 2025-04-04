@@ -4118,11 +4118,18 @@ namespace IDS_
         /// <param name="correct_document"></param>
         /// <param name="correct_vagons"></param>
         /// <returns></returns>
-        public ResultCorrect CorrectArrivalDocument(int num_doc, int num_nakl, List<int> nums, ArrivalCorrectDocument? correct_document, List<ArrivalCorrectVagonDocument>? correct_vagons)
+        public ResultCorrect CorrectArrivalDocument(int num_doc, int num_nakl, bool union, bool create_new, List<int> nums, ArrivalCorrectDocument? correct_document, List<ArrivalCorrectVagonDocument>? correct_vagons)
         {
             ResultCorrect res = new ResultCorrect() { result = 0, message = null };
             try
             {
+                if (union && create_new)
+                {
+                    res.result = 0;
+                    res.message = String.Format("Вы определитесь создаем или объеденяем? Проверьте поля union={0} и create_new={1}", union, create_new);
+                    return res;
+                }
+
                 //using (EFDbContext context = new(this.options));
                 EFDbContext context = new(this.options);
                 ArrivalSostav? sostav = context.ArrivalSostavs
@@ -4186,162 +4193,202 @@ namespace IDS_
                 // Вариант все вагоны введены без ЭПД
                 if (nums.Count() == uz_docs_ma.Count())
                 {
+
+
                     string num_doc_uz = "MN:" + num_nakl.ToString();
-                    UzDoc exist_doc = context.UzDocs.Find(num_doc_uz);
-                    if (exist_doc != null)
-                    {
-                        res.result = (int)errors_base.exist_not_manual_main_uz_doc_db;
-                        res.message = String.Format("Номер накладной {0} уже создан в БД", num_doc_uz);
-                        return res;
-                    }
-                    UzDoc new_uz_doc = new UzDoc()
-                    {
-                        NumDoc = num_doc_uz,
-                        Revision = 0,
-                        Status = 6,
-                        CodeFrom = uz_docs_ma[0].CodeFrom,
-                        CodeOn = uz_docs_ma[0].CodeOn,
-                        Dt = uz_docs_ma[0].Dt,
-                        XmlDoc = null,
-                        NumUz = num_nakl,
-                        Close = uz_docs_ma[0].Close,
-                        CloseMessage = "ЭПД - ручной ввод (коррекция), закрыт"
-                    };
+                    UzDoc? upd_uz_doc = context.UzDocs.Find(num_doc_uz);
 
-                    // Проверим документы совпадают
-                    //CodeStnFrom
-                    if (list_arr_uz_doc.Where(d => d.CodeStnFrom == list_arr_uz_doc[0].CodeStnFrom).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeStnFrom == null)
-                    {
-                        res.result = (int)errors_base.error_update_arr_doc_doc;
-                        res.message = String.Format("В документах отличаются поля {0}", "CodeStnFrom");
-                        return res;
-                    }
-                    //CodeStnTo
-                    if (list_arr_uz_doc.Where(d => d.CodeStnTo == list_arr_uz_doc[0].CodeStnTo).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeStnTo == null)
-                    {
-                        res.result = (int)errors_base.error_update_arr_doc_doc;
-                        res.message = String.Format("В документах отличаются поля {0}", "CodeStnTo");
-                        return res;
-                    }
-                    //CodeBorderCheckpoint
-                    if (list_arr_uz_doc.Where(d => d.CodeBorderCheckpoint == list_arr_uz_doc[0].CodeBorderCheckpoint).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeBorderCheckpoint == null)
-                    {
-                        res.result = (int)errors_base.error_update_arr_doc_doc;
-                        res.message = String.Format("В документах отличаются поля {0}", "CodeBorderCheckpoint");
-                        return res;
-                    }
-                    //CrossTime
-                    if (list_arr_uz_doc.Where(d => d.CrossTime == list_arr_uz_doc[0].CrossTime).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CrossTime == null)
-                    {
-                        res.result = (int)errors_base.error_update_arr_doc_doc;
-                        res.message = String.Format("В документах отличаются поля {0}", "CrossTime");
-                        return res;
-                    }
-                    //CodeShipper
-                    if (list_arr_uz_doc.Where(d => d.CodeShipper == list_arr_uz_doc[0].CodeShipper).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeShipper == null)
-                    {
-                        res.result = (int)errors_base.error_update_arr_doc_doc;
-                        res.message = String.Format("В документах отличаются поля {0}", "CodeShipper");
-                        return res;
-                    }
-                    //CodeConsignee
-                    if (list_arr_uz_doc.Where(d => d.CodeConsignee == list_arr_uz_doc[0].CodeConsignee).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeConsignee == null)
-                    {
-                        res.result = (int)errors_base.error_update_arr_doc_doc;
-                        res.message = String.Format("В документах отличаются поля {0}", "CodeConsignee");
-                        return res;
-                    }
-                    //Klient
-                    if (list_arr_uz_doc.Where(d => d.Klient == list_arr_uz_doc[0].Klient).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.Klient == null)
-                    {
-                        res.result = (int)errors_base.error_update_arr_doc_doc;
-                        res.message = String.Format("В документах отличаются поля {0}", "Klient");
-                        return res;
-                    }
-                    //CodePayerSender
-                    if (list_arr_uz_doc.Where(d => d.CodePayerSender == list_arr_uz_doc[0].CodePayerSender).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodePayerSender == null)
-                    {
-                        res.result = (int)errors_base.error_update_arr_doc_doc;
-                        res.message = String.Format("В документах отличаются поля {0}", "CodePayerSender");
-                        return res;
-                    }
-                    //CodePayerArrival
-                    if (list_arr_uz_doc.Where(d => d.CodePayerArrival == list_arr_uz_doc[0].CodePayerArrival).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodePayerArrival == null)
-                    {
-                        res.result = (int)errors_base.error_update_arr_doc_doc;
-                        res.message = String.Format("В документах отличаются поля {0}", "CodePayerArrival");
-                        return res;
-                    }
-                    // DistanceWay
-                    if (list_arr_uz_doc.Where(d => d.DistanceWay == list_arr_uz_doc[0].DistanceWay).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.DistanceWay == null)
-                    {
-                        res.result = (int)errors_base.error_update_arr_doc_doc;
-                        res.message = String.Format("В документах отличаются поля {0}", "DistanceWay");
-                        return res;
-                    }
+                    ArrivalUzDocument? upd_arr_uz_doc = context.ArrivalUzDocuments
+                             //.AsNoTracking()
+                             .Include(cars => cars.ArrivalUzVagons)
+                             .Where(d => d.IdDocUz == num_doc_uz)
+                             .OrderByDescending(c => c.Id)
+                             .FirstOrDefault();
 
-                    ArrivalUzDocument new_arr_uz_doc = new ArrivalUzDocument()
+                    if (upd_uz_doc != null && !union && !create_new)
                     {
-                        Id = 0,
-                        IdDocUz = num_doc_uz,
-                        NomDoc = null,
-                        NomMainDoc = num_nakl,
-                        CodeStnFrom = correct_document != null && correct_document.CodeStnFrom != null ? correct_document.CodeStnFrom : list_arr_uz_doc[0].CodeStnFrom,
-                        CodeStnTo = correct_document != null && correct_document.CodeStnTo != null ? correct_document.CodeStnTo : list_arr_uz_doc[0].CodeStnTo,
-                        CodeBorderCheckpoint = correct_document != null && correct_document.CodeBorderCheckpoint == null ? correct_document.CodeBorderCheckpoint : list_arr_uz_doc[0].CodeBorderCheckpoint,
-                        CrossTime = correct_document != null && correct_document.CrossTime != null ? correct_document.CrossTime : list_arr_uz_doc[0].CrossTime,
-                        CodeShipper = correct_document != null && correct_document.CodeShipper != null ? correct_document.CodeShipper : list_arr_uz_doc[0].CodeShipper,
-                        CodeConsignee = correct_document != null && correct_document.CodeConsignee != null ? correct_document.CodeConsignee : list_arr_uz_doc[0].CodeConsignee,
-                        Klient = correct_document != null && correct_document.Klient != null ? correct_document.Klient : list_arr_uz_doc[0].Klient,
-                        CodePayerSender = correct_document != null && correct_document.CodePayerSender != null ? correct_document.CodePayerSender : list_arr_uz_doc[0].CodePayerSender,
-                        CodePayerArrival = correct_document != null && correct_document.CodePayerArrival != null ? correct_document.CodePayerArrival : list_arr_uz_doc[0].CodePayerArrival,
-                        DistanceWay = correct_document != null && correct_document.DistanceWay != null ? correct_document.DistanceWay : list_arr_uz_doc[0].DistanceWay,
-                        Note = null,
-                        ParentId = null,
-                        Create = list_arr_uz_doc[0].Create,
-                        CreateUser = list_arr_uz_doc[0].CreateUser,
-                        Change = null,
-                        ChangeUser = null,
-                        Manual = true,
-                        DateOtpr = list_arr_uz_doc[0].DateOtpr,
-                        SrokEnd = list_arr_uz_doc[0].SrokEnd,
-                        DateGrpol = list_arr_uz_doc[0].DateGrpol,
-                        DatePr = list_arr_uz_doc[0].DatePr,
-                        DateVid = list_arr_uz_doc[0].DateVid,
-                        ArrivalUzDocumentDocs = list_arr_uz_doc[0].ArrivalUzDocumentDocs,
-                        //ArrivalUzVagons = list_arr_uz_vag
-                        //CodePayerLocal = ,
-                        //TariffContract = ,
-                        //CalcPayer = ,
-                        //CalcPayerUser = ,
-                    };
 
-                    // Перенесем документы
-                    if (list_arr_uz_doc[0].ArrivalUzDocumentDocs.Count() > 0)
-                    {
-                        foreach (ArrivalUzDocumentDoc ddoc in list_arr_uz_doc[0].ArrivalUzDocumentDocs)
+
+                        string list_nums = "";
+                        if (upd_arr_uz_doc != null && upd_arr_uz_doc.ArrivalUzVagons.Count() > 0)
                         {
-                            new_arr_uz_doc.ArrivalUzDocumentDocs.Add(new ArrivalUzDocumentDoc()
+                            foreach (ArrivalUzVagon vag in upd_arr_uz_doc.ArrivalUzVagons)
                             {
-                                Id = 0,
-                                IdDoc = ddoc.IdDoc,
-                                Description = ddoc.Description,
-                                DocDate = ddoc.DocDate,
-                                DocType = ddoc.DocType,
-                                DocTypeName = ddoc.DocTypeName,
-                                Doc = ddoc.Doc
-                            });
+                                list_nums += vag.Num + ",";
+                            }
+
+                        }
+                        res.result = (int)errors_base.exist_not_manual_main_uz_doc_db;
+                        res.message = String.Format("Накладная {0} уже создана в БД c примечанием [{1}]. Дата создания {2}, количество вагонов {3}, номера вагонов {4}", num_doc_uz, upd_uz_doc.CloseMessage, (upd_arr_uz_doc != null ? upd_arr_uz_doc.Create : null), (upd_arr_uz_doc != null ? upd_arr_uz_doc.ArrivalUzVagons.Count() : null), list_nums);
+                        return res;
+                    }
+                    else
+                    {
+                        if (create_new)
+                        {
+                            res.result = 0;
+                            res.message = String.Format("Опс!.. Этот режим не доработан, небыло примеров, скажите программисту он допилит");
+                            return res;
+                        }
+                        //// режим объединения
+                        //if (union)
+                        //{
+
+                        //}
+                    }
+
+                    if (!union)
+                    {
+                        upd_uz_doc = new UzDoc()
+                        {
+                            NumDoc = num_doc_uz,
+                            Revision = 0,
+                            Status = 6,
+                            CodeFrom = uz_docs_ma[0].CodeFrom,
+                            CodeOn = uz_docs_ma[0].CodeOn,
+                            Dt = uz_docs_ma[0].Dt,
+                            XmlDoc = null,
+                            NumUz = num_nakl,
+                            Close = uz_docs_ma[0].Close,
+                            CloseMessage = "ЭПД - ручной ввод (коррекция), закрыт"
+                        };
+
+                        // Проверим документы совпадают
+                        //CodeStnFrom
+                        if (list_arr_uz_doc.Where(d => d.CodeStnFrom == list_arr_uz_doc[0].CodeStnFrom).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeStnFrom == null)
+                        {
+                            res.result = (int)errors_base.error_update_arr_doc_doc;
+                            res.message = String.Format("В документах отличаются поля {0}", "CodeStnFrom");
+                            return res;
+                        }
+                        //CodeStnTo
+                        if (list_arr_uz_doc.Where(d => d.CodeStnTo == list_arr_uz_doc[0].CodeStnTo).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeStnTo == null)
+                        {
+                            res.result = (int)errors_base.error_update_arr_doc_doc;
+                            res.message = String.Format("В документах отличаются поля {0}", "CodeStnTo");
+                            return res;
+                        }
+                        //CodeBorderCheckpoint
+                        if (list_arr_uz_doc.Where(d => d.CodeBorderCheckpoint == list_arr_uz_doc[0].CodeBorderCheckpoint).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeBorderCheckpoint == null)
+                        {
+                            res.result = (int)errors_base.error_update_arr_doc_doc;
+                            res.message = String.Format("В документах отличаются поля {0}", "CodeBorderCheckpoint");
+                            return res;
+                        }
+                        //CrossTime
+                        if (list_arr_uz_doc.Where(d => d.CrossTime == list_arr_uz_doc[0].CrossTime).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CrossTime == null)
+                        {
+                            res.result = (int)errors_base.error_update_arr_doc_doc;
+                            res.message = String.Format("В документах отличаются поля {0}", "CrossTime");
+                            return res;
+                        }
+                        //CodeShipper
+                        if (list_arr_uz_doc.Where(d => d.CodeShipper == list_arr_uz_doc[0].CodeShipper).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeShipper == null)
+                        {
+                            res.result = (int)errors_base.error_update_arr_doc_doc;
+                            res.message = String.Format("В документах отличаются поля {0}", "CodeShipper");
+                            return res;
+                        }
+                        //CodeConsignee
+                        if (list_arr_uz_doc.Where(d => d.CodeConsignee == list_arr_uz_doc[0].CodeConsignee).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeConsignee == null)
+                        {
+                            res.result = (int)errors_base.error_update_arr_doc_doc;
+                            res.message = String.Format("В документах отличаются поля {0}", "CodeConsignee");
+                            return res;
+                        }
+                        //Klient
+                        if (list_arr_uz_doc.Where(d => d.Klient == list_arr_uz_doc[0].Klient).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.Klient == null)
+                        {
+                            res.result = (int)errors_base.error_update_arr_doc_doc;
+                            res.message = String.Format("В документах отличаются поля {0}", "Klient");
+                            return res;
+                        }
+                        //CodePayerSender
+                        if (list_arr_uz_doc.Where(d => d.CodePayerSender == list_arr_uz_doc[0].CodePayerSender).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodePayerSender == null)
+                        {
+                            res.result = (int)errors_base.error_update_arr_doc_doc;
+                            res.message = String.Format("В документах отличаются поля {0}", "CodePayerSender");
+                            return res;
+                        }
+                        //CodePayerArrival
+                        if (list_arr_uz_doc.Where(d => d.CodePayerArrival == list_arr_uz_doc[0].CodePayerArrival).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodePayerArrival == null)
+                        {
+                            res.result = (int)errors_base.error_update_arr_doc_doc;
+                            res.message = String.Format("В документах отличаются поля {0}", "CodePayerArrival");
+                            return res;
+                        }
+                        // DistanceWay
+                        if (list_arr_uz_doc.Where(d => d.DistanceWay == list_arr_uz_doc[0].DistanceWay).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.DistanceWay == null)
+                        {
+                            res.result = (int)errors_base.error_update_arr_doc_doc;
+                            res.message = String.Format("В документах отличаются поля {0}", "DistanceWay");
+                            return res;
                         }
 
+                        upd_arr_uz_doc = new ArrivalUzDocument()
+                        {
+                            Id = 0,
+                            IdDocUz = num_doc_uz,
+                            NomDoc = null,
+                            NomMainDoc = num_nakl,
+                            CodeStnFrom = correct_document != null && correct_document.CodeStnFrom != null ? correct_document.CodeStnFrom : list_arr_uz_doc[0].CodeStnFrom,
+                            CodeStnTo = correct_document != null && correct_document.CodeStnTo != null ? correct_document.CodeStnTo : list_arr_uz_doc[0].CodeStnTo,
+                            CodeBorderCheckpoint = correct_document != null && correct_document.CodeBorderCheckpoint == null ? correct_document.CodeBorderCheckpoint : list_arr_uz_doc[0].CodeBorderCheckpoint,
+                            CrossTime = correct_document != null && correct_document.CrossTime != null ? correct_document.CrossTime : list_arr_uz_doc[0].CrossTime,
+                            CodeShipper = correct_document != null && correct_document.CodeShipper != null ? correct_document.CodeShipper : list_arr_uz_doc[0].CodeShipper,
+                            CodeConsignee = correct_document != null && correct_document.CodeConsignee != null ? correct_document.CodeConsignee : list_arr_uz_doc[0].CodeConsignee,
+                            Klient = correct_document != null && correct_document.Klient != null ? correct_document.Klient : list_arr_uz_doc[0].Klient,
+                            CodePayerSender = correct_document != null && correct_document.CodePayerSender != null ? correct_document.CodePayerSender : list_arr_uz_doc[0].CodePayerSender,
+                            CodePayerArrival = correct_document != null && correct_document.CodePayerArrival != null ? correct_document.CodePayerArrival : list_arr_uz_doc[0].CodePayerArrival,
+                            DistanceWay = correct_document != null && correct_document.DistanceWay != null ? correct_document.DistanceWay : list_arr_uz_doc[0].DistanceWay,
+                            Note = null,
+                            ParentId = null,
+                            Create = list_arr_uz_doc[0].Create,
+                            CreateUser = list_arr_uz_doc[0].CreateUser,
+                            Change = null,
+                            ChangeUser = null,
+                            Manual = true,
+                            DateOtpr = list_arr_uz_doc[0].DateOtpr,
+                            SrokEnd = list_arr_uz_doc[0].SrokEnd,
+                            DateGrpol = list_arr_uz_doc[0].DateGrpol,
+                            DatePr = list_arr_uz_doc[0].DatePr,
+                            DateVid = list_arr_uz_doc[0].DateVid,
+                            // ArrivalUzDocumentDocs = list_arr_uz_doc[0].ArrivalUzDocumentDocs,
+                            //ArrivalUzVagons = list_arr_uz_vag
+                            //CodePayerLocal = ,
+                            //TariffContract = ,
+                            //CalcPayer = ,
+                            //CalcPayerUser = ,
+                        };
+
+                        // Перенесем документы
+                        if (list_arr_uz_doc[0].ArrivalUzDocumentDocs.Count() > 0)
+                        {
+                            foreach (ArrivalUzDocumentDoc ddoc in list_arr_uz_doc[0].ArrivalUzDocumentDocs)
+                            {
+                                upd_arr_uz_doc.ArrivalUzDocumentDocs.Add(new ArrivalUzDocumentDoc()
+                                {
+                                    Id = 0,
+                                    IdDoc = ddoc.IdDoc,
+                                    Description = ddoc.Description,
+                                    DocDate = ddoc.DocDate,
+                                    DocType = ddoc.DocType,
+                                    DocTypeName = ddoc.DocTypeName,
+                                    Doc = ddoc.Doc
+                                });
+                            }
+                        }
+
+                        // Добавим документ и ЭПД
+                        context.UzDocs.Add(upd_uz_doc);
+                        context.ArrivalUzDocuments.Add(upd_arr_uz_doc);
 
                     }
-                    // Собираем
-                    context.UzDocs.Add(new_uz_doc);
-                    context.ArrivalUzDocuments.Add(new_arr_uz_doc);
+
                     // Перепишим вагоны на новый документ
                     foreach (ArrivalUzVagon doc_vag in list_arr_uz_vag)
                     {
-                        doc_vag.IdDocumentNavigation = new_arr_uz_doc;
+                        doc_vag.IdDocumentNavigation = upd_arr_uz_doc;
                         if (correct_vagons != null)
                         {
                             ArrivalCorrectVagonDocument? acvd = correct_vagons.Where(c => c.Num == doc_vag.Num).FirstOrDefault();
@@ -4381,7 +4428,7 @@ namespace IDS_
                     foreach (ArrivalCar vag in cars)
                     {
                         vag.NumDoc = num_doc_uz;
-                        vag.NumDocNavigation = new_uz_doc;
+                        vag.NumDocNavigation = upd_uz_doc;
                     }
                     // удалим
 
@@ -4400,10 +4447,8 @@ namespace IDS_
                                 context.ArrivalUzDocumentDocs.Remove(ddoc);
                             }
                         }
-
                         context.ArrivalUzDocuments.Remove(doc);
                     }
-
                 }
                 else
                 {

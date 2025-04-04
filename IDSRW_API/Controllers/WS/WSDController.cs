@@ -232,6 +232,8 @@ namespace WebAPI.Controllers.Directory
         public int num_doc { get; set; }
         public int num_nakl { get; set; }
         public List<int> nums { get; set; }
+        public bool union { get; set; } = false;
+        public bool create_new { get; set; } = false;
         public ArrivalCorrectDocument? correct_document { get; set; } = null;
         public List<ArrivalCorrectVagonDocument>? correct_vagons { get; set; } = null;
     }
@@ -1209,7 +1211,7 @@ namespace WebAPI.Controllers.Directory
                 if (user == "EUROPE\\ealevchenko" || user == "EUROPE\\lvgubarenko")
                 {
                     IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                    ResultCorrect result = ids_wir.CorrectArrivalDocument(value.num_doc, value.num_nakl, value.nums, value.correct_document, value.correct_vagons);
+                    ResultCorrect result = ids_wir.CorrectArrivalDocument(value.num_doc, value.num_nakl, value.union, value.create_new, value.nums, value.correct_document, value.correct_vagons);
                     return Ok(result);
                 }
                 else
