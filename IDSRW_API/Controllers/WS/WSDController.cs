@@ -227,7 +227,14 @@ namespace WebAPI.Controllers.Directory
         public int num_vag { get; set; }
         public int vesg { get; set; }
     }
-
+    public class AdmCorrectArrivalDocument
+    {
+        public int num_doc { get; set; }
+        public int num_nakl { get; set; }
+        public List<int> nums { get; set; }
+        public ArrivalCorrectDocument? correct_document { get; set; } = null;
+        public List<ArrivalCorrectVagonDocument>? correct_vagons { get; set; } = null;
+    }
     #endregion
 
     [Route("[controller]")]
@@ -1080,7 +1087,8 @@ namespace WebAPI.Controllers.Directory
             try
             {
                 string s_nums = "";
-                foreach (int num in nums.ToList()) {
+                foreach (int num in nums.ToList())
+                {
                     s_nums += num.ToString() + ";";
                 }
                 s_nums = s_nums.TrimEnd(';');
@@ -1183,6 +1191,39 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // POST: WSD/admin/change/vesg/outgoing
+        // BODY: WSD (JSON, XML)
+        [HttpPost("admin/change/correct/arrival/document")]
+        public async Task<ActionResult<ResultTransfer>> PostAdmCorrectArrivalDocument([FromBody] AdmCorrectArrivalDocument value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                if (user == "EUROPE\\ealevchenko" || user == "EUROPE\\lvgubarenko")
+                {
+                    IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                    ResultCorrect result = ids_wir.CorrectArrivalDocument(value.num_doc, value.num_nakl, value.nums, value.correct_document, value.correct_vagons);
+                    return Ok(result);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         #endregion
 
 

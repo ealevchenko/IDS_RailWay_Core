@@ -26,9 +26,41 @@ using EFIDS.Functions;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace IDS_
 {
+    public class ArrivalCorrectDocument
+    {
+        public int? CodeStnFrom { get; set; }
+        public int? CodeStnTo { get; set; }
+        public int? CodeBorderCheckpoint { get; set; }
+        public DateTime? CrossTime { get; set; }
+        public int? CodeShipper { get; set; }
+        public int? CodeConsignee { get; set; }
+        public bool? Klient { get; set; }
+        public string? CodePayerSender { get; set; }
+        public string? CodePayerArrival { get; set; }
+        public int? DistanceWay { get; set; }
+    }
+
+    public class ArrivalCorrectVagonDocument
+    {
+        public int? Num { get; set; }
+        public double? Gruzp { get; set; }
+        public int? UTara { get; set; }
+        public int? VesTaryArc { get; set; }
+        public int? IdCargo { get; set; }
+        public int? Vesg { get; set; }
+        public long? PaySumma { get; set; }
+    }
+
+    public class ResultCorrect
+    {
+        public int result { get; set; }
+        public string message { get; set; }
+    }
+
     /// <summary>
     /// Класс данных задание на операции дислокация, отправка, прием
     /// </summary>
@@ -2791,7 +2823,8 @@ namespace IDS_
                 }
                 EFDbContext context = new EFDbContext(this.options);
                 {
-                    foreach (PositionWagons pw in positions) {
+                    foreach (PositionWagons pw in positions)
+                    {
                         WagonInternalMovement? wim = context.WagonInternalMovements.Where(w => w.Id == pw.id_wim).FirstOrDefault();
                         if (wim == null) return (int)errors_base.not_wim_db;
                         if (wim.IdWay != id_way) return (int)errors_base.wagon_not_way;
@@ -4074,6 +4107,320 @@ namespace IDS_
             {
                 _logger.LogError(_eventId, e, "ChangeVesgOutgoingWagons(num_doc={0}, num_vag={1}, vesg={2})", num_doc, num_vag, vesg);
                 return (int)errors_base.global;
+            }
+        }
+        /// <summary>
+        /// Правка документов по прибытию (вагоны принятые без ЭПД будут привязаны к накладно)
+        /// </summary>
+        /// <param name="num_doc"></param>
+        /// <param name="num_nakl"></param>
+        /// <param name="nums"></param>
+        /// <param name="correct_document"></param>
+        /// <param name="correct_vagons"></param>
+        /// <returns></returns>
+        public ResultCorrect CorrectArrivalDocument(int num_doc, int num_nakl, List<int> nums, ArrivalCorrectDocument? correct_document, List<ArrivalCorrectVagonDocument>? correct_vagons)
+        {
+            ResultCorrect res = new ResultCorrect() { result = 0, message = null };
+            try
+            {
+                //using (EFDbContext context = new(this.options));
+                EFDbContext context = new(this.options);
+                ArrivalSostav? sostav = context.ArrivalSostavs
+                   //.AsNoTracking()
+                   .Include(cars => cars.ArrivalCars) // OutgoingCar
+                        .ThenInclude(vag => vag.IdArrivalUzVagonNavigation) // OutgoingUzVagon
+                            .ThenInclude(vag_doc => vag_doc.IdDocumentNavigation) // OutgoingUzDocument
+                                .ThenInclude(vag_doc_doc => vag_doc_doc.ArrivalUzDocumentDocs)
+                   .Include(cars => cars.ArrivalCars) // OutgoingCar
+                        .ThenInclude(vag => vag.IdArrivalUzVagonNavigation) // OutgoingUzVagon
+                            .ThenInclude(vag_pay => vag_pay.ArrivalUzVagonPays)
+                   .Include(cars => cars.ArrivalCars) // OutgoingCar
+                        .ThenInclude(cars_doc => cars_doc.NumDocNavigation) // OutgoingUzVagon
+                   .Where(s => s.NumDoc == num_doc)
+                   .OrderByDescending(c => c.Id)
+                   .FirstOrDefault();
+                if (sostav == null) { res.result = (int)errors_base.not_arrival_sostav_db; return res; }
+
+                if (sostav.ArrivalCars == null || sostav.ArrivalCars.Count() == 0) { res.result = (int)errors_base.not_arrival_cars_db; return res; }
+                List<ArrivalCar> cars = sostav.ArrivalCars.Where(c => nums.Contains(c.Num)).ToList();
+                if (cars == null || cars.Count() == 0) { res.result = (int)errors_base.not_arrival_cars_db; return res; }
+
+                List<ArrivalUzVagon> list_arr_uz_vag = new List<ArrivalUzVagon>();
+                List<ArrivalUzDocument> list_arr_uz_doc = new List<ArrivalUzDocument>();
+                List<ArrivalUzDocumentDoc> list_arr_uz_doc_doc = new List<ArrivalUzDocumentDoc>();
+                List<UzDoc> list_uz_doc = new List<UzDoc>();
+                // Список вагонов
+                foreach (ArrivalCar vag in cars)
+                {
+                    if (vag.IdArrivalUzVagonNavigation != null)
+                    {
+                        list_arr_uz_vag.Add(vag.IdArrivalUzVagonNavigation);
+                    }
+                }
+                // Список документов
+                foreach (ArrivalUzVagon doc_vag in list_arr_uz_vag)
+                {
+                    if (doc_vag.IdDocumentNavigation != null && list_arr_uz_doc.IndexOf(doc_vag.IdDocumentNavigation) == -1)
+                    {
+                        list_arr_uz_doc.Add(doc_vag.IdDocumentNavigation);
+                    }
+                }
+
+                foreach (ArrivalUzDocument doc in list_arr_uz_doc)
+                {
+                    if (doc.IdDocUzNavigation != null && list_uz_doc.IndexOf(doc.IdDocUzNavigation) == -1)
+                    {
+                        list_uz_doc.Add(doc.IdDocUzNavigation);
+                    }
+                }
+                // Проверим есть документы введенные в ручную
+                List<UzDoc> uz_docs_ma = list_uz_doc.Where(d => d.NumUz < 0).OrderByDescending(c => c.NumUz).ToList();
+                List<UzDoc> uz_docs_mn = list_uz_doc.Where(d => d.NumUz > 0).ToList();
+
+
+                if (uz_docs_mn.Count() > 0)
+                {
+                    // Преобразовываем
+                }
+
+                // Вариант все вагоны введены без ЭПД
+                if (nums.Count() == uz_docs_ma.Count())
+                {
+                    string num_doc_uz = "MN:" + num_nakl.ToString();
+                    UzDoc exist_doc = context.UzDocs.Find(num_doc_uz);
+                    if (exist_doc != null)
+                    {
+                        res.result = (int)errors_base.exist_not_manual_main_uz_doc_db;
+                        res.message = String.Format("Номер накладной {0} уже создан в БД", num_doc_uz);
+                        return res;
+                    }
+                    UzDoc new_uz_doc = new UzDoc()
+                    {
+                        NumDoc = num_doc_uz,
+                        Revision = 0,
+                        Status = 6,
+                        CodeFrom = uz_docs_ma[0].CodeFrom,
+                        CodeOn = uz_docs_ma[0].CodeOn,
+                        Dt = uz_docs_ma[0].Dt,
+                        XmlDoc = null,
+                        NumUz = num_nakl,
+                        Close = uz_docs_ma[0].Close,
+                        CloseMessage = "ЭПД - ручной ввод (коррекция), закрыт"
+                    };
+
+                    // Проверим документы совпадают
+                    //CodeStnFrom
+                    if (list_arr_uz_doc.Where(d => d.CodeStnFrom == list_arr_uz_doc[0].CodeStnFrom).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeStnFrom == null)
+                    {
+                        res.result = (int)errors_base.error_update_arr_doc_doc;
+                        res.message = String.Format("В документах отличаются поля {0}", "CodeStnFrom");
+                        return res;
+                    }
+                    //CodeStnTo
+                    if (list_arr_uz_doc.Where(d => d.CodeStnTo == list_arr_uz_doc[0].CodeStnTo).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeStnTo == null)
+                    {
+                        res.result = (int)errors_base.error_update_arr_doc_doc;
+                        res.message = String.Format("В документах отличаются поля {0}", "CodeStnTo");
+                        return res;
+                    }
+                    //CodeBorderCheckpoint
+                    if (list_arr_uz_doc.Where(d => d.CodeBorderCheckpoint == list_arr_uz_doc[0].CodeBorderCheckpoint).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeBorderCheckpoint == null)
+                    {
+                        res.result = (int)errors_base.error_update_arr_doc_doc;
+                        res.message = String.Format("В документах отличаются поля {0}", "CodeBorderCheckpoint");
+                        return res;
+                    }
+                    //CrossTime
+                    if (list_arr_uz_doc.Where(d => d.CrossTime == list_arr_uz_doc[0].CrossTime).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CrossTime == null)
+                    {
+                        res.result = (int)errors_base.error_update_arr_doc_doc;
+                        res.message = String.Format("В документах отличаются поля {0}", "CrossTime");
+                        return res;
+                    }
+                    //CodeShipper
+                    if (list_arr_uz_doc.Where(d => d.CodeShipper == list_arr_uz_doc[0].CodeShipper).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeShipper == null)
+                    {
+                        res.result = (int)errors_base.error_update_arr_doc_doc;
+                        res.message = String.Format("В документах отличаются поля {0}", "CodeShipper");
+                        return res;
+                    }
+                    //CodeConsignee
+                    if (list_arr_uz_doc.Where(d => d.CodeConsignee == list_arr_uz_doc[0].CodeConsignee).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodeConsignee == null)
+                    {
+                        res.result = (int)errors_base.error_update_arr_doc_doc;
+                        res.message = String.Format("В документах отличаются поля {0}", "CodeConsignee");
+                        return res;
+                    }
+                    //Klient
+                    if (list_arr_uz_doc.Where(d => d.Klient == list_arr_uz_doc[0].Klient).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.Klient == null)
+                    {
+                        res.result = (int)errors_base.error_update_arr_doc_doc;
+                        res.message = String.Format("В документах отличаются поля {0}", "Klient");
+                        return res;
+                    }
+                    //CodePayerSender
+                    if (list_arr_uz_doc.Where(d => d.CodePayerSender == list_arr_uz_doc[0].CodePayerSender).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodePayerSender == null)
+                    {
+                        res.result = (int)errors_base.error_update_arr_doc_doc;
+                        res.message = String.Format("В документах отличаются поля {0}", "CodePayerSender");
+                        return res;
+                    }
+                    //CodePayerArrival
+                    if (list_arr_uz_doc.Where(d => d.CodePayerArrival == list_arr_uz_doc[0].CodePayerArrival).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.CodePayerArrival == null)
+                    {
+                        res.result = (int)errors_base.error_update_arr_doc_doc;
+                        res.message = String.Format("В документах отличаются поля {0}", "CodePayerArrival");
+                        return res;
+                    }
+                    // DistanceWay
+                    if (list_arr_uz_doc.Where(d => d.DistanceWay == list_arr_uz_doc[0].DistanceWay).Count() != list_arr_uz_doc.Count() && correct_document != null && correct_document.DistanceWay == null)
+                    {
+                        res.result = (int)errors_base.error_update_arr_doc_doc;
+                        res.message = String.Format("В документах отличаются поля {0}", "DistanceWay");
+                        return res;
+                    }
+
+                    ArrivalUzDocument new_arr_uz_doc = new ArrivalUzDocument()
+                    {
+                        Id = 0,
+                        IdDocUz = num_doc_uz,
+                        NomDoc = null,
+                        NomMainDoc = num_nakl,
+                        CodeStnFrom = correct_document != null && correct_document.CodeStnFrom != null ? correct_document.CodeStnFrom : list_arr_uz_doc[0].CodeStnFrom,
+                        CodeStnTo = correct_document != null && correct_document.CodeStnTo != null ? correct_document.CodeStnTo : list_arr_uz_doc[0].CodeStnTo,
+                        CodeBorderCheckpoint = correct_document != null && correct_document.CodeBorderCheckpoint == null ? correct_document.CodeBorderCheckpoint : list_arr_uz_doc[0].CodeBorderCheckpoint,
+                        CrossTime = correct_document != null && correct_document.CrossTime != null ? correct_document.CrossTime : list_arr_uz_doc[0].CrossTime,
+                        CodeShipper = correct_document != null && correct_document.CodeShipper != null ? correct_document.CodeShipper : list_arr_uz_doc[0].CodeShipper,
+                        CodeConsignee = correct_document != null && correct_document.CodeConsignee != null ? correct_document.CodeConsignee : list_arr_uz_doc[0].CodeConsignee,
+                        Klient = correct_document != null && correct_document.Klient != null ? correct_document.Klient : list_arr_uz_doc[0].Klient,
+                        CodePayerSender = correct_document != null && correct_document.CodePayerSender != null ? correct_document.CodePayerSender : list_arr_uz_doc[0].CodePayerSender,
+                        CodePayerArrival = correct_document != null && correct_document.CodePayerArrival != null ? correct_document.CodePayerArrival : list_arr_uz_doc[0].CodePayerArrival,
+                        DistanceWay = correct_document != null && correct_document.DistanceWay != null ? correct_document.DistanceWay : list_arr_uz_doc[0].DistanceWay,
+                        Note = null,
+                        ParentId = null,
+                        Create = list_arr_uz_doc[0].Create,
+                        CreateUser = list_arr_uz_doc[0].CreateUser,
+                        Change = null,
+                        ChangeUser = null,
+                        Manual = true,
+                        DateOtpr = list_arr_uz_doc[0].DateOtpr,
+                        SrokEnd = list_arr_uz_doc[0].SrokEnd,
+                        DateGrpol = list_arr_uz_doc[0].DateGrpol,
+                        DatePr = list_arr_uz_doc[0].DatePr,
+                        DateVid = list_arr_uz_doc[0].DateVid,
+                        ArrivalUzDocumentDocs = list_arr_uz_doc[0].ArrivalUzDocumentDocs,
+                        //ArrivalUzVagons = list_arr_uz_vag
+                        //CodePayerLocal = ,
+                        //TariffContract = ,
+                        //CalcPayer = ,
+                        //CalcPayerUser = ,
+                    };
+
+                    // Перенесем документы
+                    if (list_arr_uz_doc[0].ArrivalUzDocumentDocs.Count() > 0)
+                    {
+                        foreach (ArrivalUzDocumentDoc ddoc in list_arr_uz_doc[0].ArrivalUzDocumentDocs)
+                        {
+                            new_arr_uz_doc.ArrivalUzDocumentDocs.Add(new ArrivalUzDocumentDoc()
+                            {
+                                Id = 0,
+                                IdDoc = ddoc.IdDoc,
+                                Description = ddoc.Description,
+                                DocDate = ddoc.DocDate,
+                                DocType = ddoc.DocType,
+                                DocTypeName = ddoc.DocTypeName,
+                                Doc = ddoc.Doc
+                            });
+                        }
+
+
+                    }
+                    // Собираем
+                    context.UzDocs.Add(new_uz_doc);
+                    context.ArrivalUzDocuments.Add(new_arr_uz_doc);
+                    // Перепишим вагоны на новый документ
+                    foreach (ArrivalUzVagon doc_vag in list_arr_uz_vag)
+                    {
+                        doc_vag.IdDocumentNavigation = new_arr_uz_doc;
+                        if (correct_vagons != null)
+                        {
+                            ArrivalCorrectVagonDocument? acvd = correct_vagons.Where(c => c.Num == doc_vag.Num).FirstOrDefault();
+                            if (acvd != null)
+                            {
+                                doc_vag.Gruzp = acvd.Gruzp != null ? acvd.Gruzp : doc_vag.Gruzp;
+                                doc_vag.UTara = acvd.UTara != null ? acvd.UTara : doc_vag.UTara;
+                                doc_vag.VesTaryArc = acvd.VesTaryArc != null ? acvd.VesTaryArc : doc_vag.VesTaryArc;
+                                doc_vag.IdCargo = acvd.IdCargo != null ? acvd.IdCargo : doc_vag.IdCargo;
+                                doc_vag.Vesg = acvd.Vesg != null ? acvd.Vesg : doc_vag.Vesg;
+
+                                if (acvd.PaySumma != null)
+                                {
+                                    ArrivalUzVagonPay? pay = doc_vag.ArrivalUzVagonPays.Where(p => p.Kod == "001").FirstOrDefault();
+                                    if (doc_vag.ArrivalUzVagonPays == null || doc_vag.ArrivalUzVagonPays.Count() == 0 || pay == null)
+                                    {
+                                        doc_vag.ArrivalUzVagonPays.Add(new ArrivalUzVagonPay
+                                        {
+                                            Id = 0,
+                                            IdVagon = doc_vag.Id,
+                                            Kod = "001",
+                                            Summa = acvd.PaySumma != null ? (long)acvd.PaySumma : 0
+                                        });
+                                    }
+                                    else
+                                    {
+                                        pay.Summa = acvd.PaySumma != null ? (long)acvd.PaySumma : 0;
+                                    }
+
+                                }
+                            }
+                        }
+
+
+                    }
+                    // перепишем вагоны в прибытии на новый ЭПД 
+                    foreach (ArrivalCar vag in cars)
+                    {
+                        vag.NumDoc = num_doc_uz;
+                        vag.NumDocNavigation = new_uz_doc;
+                    }
+                    // удалим
+
+                    foreach (UzDoc doc in uz_docs_ma)
+                    {
+                        context.UzDocs.Remove(doc);
+                    }
+
+                    foreach (ArrivalUzDocument doc in list_arr_uz_doc)
+                    {
+                        // Проверим и удалим докумены на документы
+                        if (doc.ArrivalUzDocumentDocs.Count() > 0)
+                        {
+                            foreach (ArrivalUzDocumentDoc ddoc in doc.ArrivalUzDocumentDocs)
+                            {
+                                context.ArrivalUzDocumentDocs.Remove(ddoc);
+                            }
+                        }
+
+                        context.ArrivalUzDocuments.Remove(doc);
+                    }
+
+                }
+                else
+                {
+                    res.result = 0;
+                    res.message = "Обратитесь к разработчику, интересный случай надо доработать алгоритм!";
+                    return res;
+                }
+                res.result = context.SaveChanges();
+                res.message = res.result < 0 ? "Error" : "Ok";
+                return res;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "CorrectArrivalDocument(id_sostav={0}, num_nakl={1}, nums={2})", num_doc, num_nakl, nums);
+                res.result = (int)errors_base.global;
+                res.message = e.Message;
+                return res;
             }
         }
         #endregion
