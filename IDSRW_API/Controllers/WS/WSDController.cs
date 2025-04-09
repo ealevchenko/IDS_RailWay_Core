@@ -237,6 +237,12 @@ namespace WebAPI.Controllers.Directory
         public ArrivalCorrectDocument? correct_document { get; set; } = null;
         public List<ArrivalCorrectVagonDocument>? correct_vagons { get; set; } = null;
     }
+    public class AdmDeleteWagonOfAMKR
+    {
+        public int num_doc { get; set; }
+        public List<int> nums { get; set; }
+    }
+
     #endregion
 
     [Route("[controller]")]
@@ -1226,6 +1232,37 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        // POST: WSD/admin/change/delete/car/amkr
+        // BODY: WSD (JSON, XML)
+        [HttpPost("admin/change/delete/cars/amkr")]
+        public async Task<ActionResult<ResultTransfer>> PostAdmDeleteWagonOfAMKR([FromBody] AdmDeleteWagonOfAMKR value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                if (user == "EUROPE\\ealevchenko" || user == "EUROPE\\lvgubarenko")
+                {
+                    IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                    ResultCorrect result = ids_wir.DeleteWagonOfAMKR(value.num_doc, value.nums);
+                    return Ok(result);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         #endregion
 
 

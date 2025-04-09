@@ -4226,18 +4226,23 @@ namespace IDS_
                     {
                         if (create_new)
                         {
-                            res.result = 0;
-                            res.message = String.Format("Опс!.. Этот режим не доработан, небыло примеров, скажите программисту он допилит");
-                            return res;
+                            for (int i = 0; i < 9; i++)
+                            {
+                                string new_doc_uz = "MN:" + num_nakl.ToString() + ":" + i.ToString();
+                                UzDoc? new_uz_doc = context.UzDocs.Find(new_doc_uz);
+                                if (new_uz_doc == null)
+                                {
+                                    num_doc_uz = new_doc_uz;
+                                    break;
+                                }
+                            }
+                            //res.result = 0;
+                            //res.message = String.Format("Опс!.. Этот режим не доработан, небыло примеров, скажите программисту он допилит");
+                            //return res;
                         }
-                        //// режим объединения
-                        //if (union)
-                        //{
-
-                        //}
                     }
 
-                    if (!union)
+                    if (!union || create_new)
                     {
                         upd_uz_doc = new UzDoc()
                         {
@@ -4463,6 +4468,387 @@ namespace IDS_
             catch (Exception e)
             {
                 _logger.LogError(_eventId, e, "CorrectArrivalDocument(id_sostav={0}, num_nakl={1}, nums={2})", num_doc, num_nakl, nums);
+                res.result = (int)errors_base.global;
+                res.message = e.Message;
+                return res;
+            }
+        }
+
+        public void DeleteOutgoingUzVagon(ref EFDbContext context, OutgoingUzVagon out_uz_vag)
+        {
+            // Удалим документ на вагон
+            foreach (OutgoingUzVagonAct act in out_uz_vag.OutgoingUzVagonActs)
+            {
+                context.OutgoingUzVagonActs.Remove(act);
+            }
+            foreach (OutgoingUzVagonPay pay in out_uz_vag.OutgoingUzVagonPays)
+            {
+                context.OutgoingUzVagonPays.Remove(pay);
+            }
+            if (out_uz_vag.OutgoingUzVagonConts != null && out_uz_vag.OutgoingUzVagonConts.Count() > 0)
+            {
+                foreach (OutgoingUzVagonCont con in out_uz_vag.OutgoingUzVagonConts)
+                {
+                    foreach (OutgoingUzContPay cpay in con.OutgoingUzContPays)
+                    {
+                        context.OutgoingUzContPays.Remove(cpay);
+                    }
+                    context.OutgoingUzVagonConts.Remove(con);
+                }
+            }
+            context.OutgoingUzVagons.Remove(out_uz_vag);
+            return;
+        }
+        public void DeleteOutgoingCar(ref EFDbContext context, OutgoingCar out_car)
+        {
+            OutgoingSostav out_sost = out_car.IdOutgoingNavigation;
+            if (out_sost != null)
+            {
+                List<OutgoingCar> cars = context.OutgoingCars.Where(c => c.IdOutgoing == out_sost.Id).ToList();
+                if (cars != null && cars.Count() == 1)
+                {
+                    context.OutgoingCars.Remove(out_car);
+                    context.OutgoingSostavs.Remove(out_sost);
+                }
+                else
+                {
+                    context.OutgoingCars.Remove(out_car);
+                }
+            }
+            else
+            {
+                context.OutgoingCars.Remove(out_car);
+            }
+            return;
+        }
+
+        public void DeleteArrivalUzVagon(ref EFDbContext context, ArrivalUzVagon arr_uz_vag)
+        {
+            // Удалим документ на вагон
+            foreach (ArrivalUzVagonAct act in arr_uz_vag.ArrivalUzVagonActs)
+            {
+                context.ArrivalUzVagonActs.Remove(act);
+            }
+            foreach (ArrivalUzVagonPay pay in arr_uz_vag.ArrivalUzVagonPays)
+            {
+                context.ArrivalUzVagonPays.Remove(pay);
+            }
+            if (arr_uz_vag.ArrivalUzVagonConts != null && arr_uz_vag.ArrivalUzVagonConts.Count() > 0)
+            {
+                foreach (ArrivalUzVagonCont con in arr_uz_vag.ArrivalUzVagonConts)
+                {
+                    foreach (ArrivalUzContPay cpay in con.ArrivalUzContPays)
+                    {
+                        context.ArrivalUzContPays.Remove(cpay);
+                    }
+                    context.ArrivalUzVagonConts.Remove(con);
+                }
+            }
+            context.ArrivalUzVagons.Remove(arr_uz_vag);
+            return;
+        }
+        public void DeleteArrivalUzDocument(ref EFDbContext context, ArrivalUzDocument arr_uz_doc)
+        {
+            // Удалим документ на вагон
+            foreach (ArrivalUzDocumentAct act in arr_uz_doc.ArrivalUzDocumentActs)
+            {
+                context.ArrivalUzDocumentActs.Remove(act);
+            }
+            foreach (ArrivalUzDocumentDoc doc in arr_uz_doc.ArrivalUzDocumentDocs)
+            {
+                context.ArrivalUzDocumentDocs.Remove(doc);
+            }
+
+            foreach (ArrivalUzDocumentPay pay in arr_uz_doc.ArrivalUzDocumentPays)
+            {
+                context.ArrivalUzDocumentPays.Remove(pay);
+            }
+            context.ArrivalUzDocuments.Remove(arr_uz_doc);
+            return;
+        }
+
+        public ResultCorrect DeleteWagonOfAMKR(int num_doc, List<int> nums)
+        {
+            ResultCorrect res = new ResultCorrect() { result = 0, message = null };
+            try
+            {
+                EFDbContext context = new(this.options);
+                ArrivalSostav? sostav = context.ArrivalSostavs
+                   //.AsNoTracking()
+                   .Include(cars => cars.ArrivalCars) // OutgoingCar
+                        .ThenInclude(vag => vag.IdArrivalUzVagonNavigation) // OutgoingUzVagon
+                            .ThenInclude(vag_doc => vag_doc.IdDocumentNavigation) // OutgoingUzDocument
+                                .ThenInclude(vag_doc_doc => vag_doc_doc.ArrivalUzDocumentDocs)
+                   .Include(cars => cars.ArrivalCars) // OutgoingCar
+                        .ThenInclude(vag => vag.IdArrivalUzVagonNavigation) // OutgoingUzVagon
+                            .ThenInclude(vag_pay => vag_pay.ArrivalUzVagonPays)
+                   .Include(cars => cars.ArrivalCars) // OutgoingCar
+                        .ThenInclude(cars_doc => cars_doc.NumDocNavigation) // OutgoingUzVagon
+                   .Include(cars => cars.ArrivalCars) // OutgoingCar
+                        .ThenInclude(car_sap => car_sap.SapincomingSupplies) // SapincomingSupplies
+                   .Include(cars => cars.ArrivalCars) // OutgoingCar
+                        .ThenInclude(wir => wir.WagonInternalRoutes) // WagonInternalRoutes
+                            .ThenInclude(car_out => car_out.IdOutgoingCarNavigation) // OutgoingCar
+                                .ThenInclude(sost_out => sost_out.IdOutgoingNavigation) // OutgoingSostav
+
+                   .Where(s => s.NumDoc == num_doc)
+                   .OrderByDescending(c => c.Id)
+                   .FirstOrDefault();
+                if (sostav == null) { res.result = (int)errors_base.not_arrival_sostav_db; return res; }
+                if (sostav.ArrivalCars == null || sostav.ArrivalCars.Count() == 0) { res.result = (int)errors_base.not_arrival_cars_db; return res; }
+                List<ArrivalCar> cars = sostav.ArrivalCars.Where(c => nums.Contains(c.Num)).ToList();
+                if (cars == null || cars.Count() == 0) { res.result = (int)errors_base.not_arrival_cars_db; return res; }
+
+                // Документы на вагоны
+                List<ArrivalUzVagon> list_arr_uz_vag = new List<ArrivalUzVagon>();
+                List<ArrivalUzDocument> list_arr_uz_doc = new List<ArrivalUzDocument>();
+                //List<ArrivalUzDocumentDoc> list_arr_uz_doc_doc = new List<ArrivalUzDocumentDoc>();
+                List<WagonInternalRoute> list_wir = new List<WagonInternalRoute>();
+
+                List<OutgoingCar> list_out_car = new List<OutgoingCar>();
+                List<OutgoingUzVagon> list_out_uz_vag = new List<OutgoingUzVagon>();
+                List<OutgoingUzDocument> list_out_uz_doc = new List<OutgoingUzDocument>();
+
+                // Список вагонов
+                foreach (ArrivalCar vag in cars)
+                {
+                    //
+                    //ArrivalUzVagon? arr_uz_vag = context.ArrivalUzVagons
+                    //.Include(doc => doc.IdDocumentNavigation)
+                    //    .ThenInclude(doc_doc => doc_doc.ArrivalUzDocumentDocs)
+                    //.Include(doc => doc.IdDocumentNavigation)
+                    //    .ThenInclude(doc_act => doc_act.ArrivalUzDocumentActs)
+                    //.Include(doc => doc.IdDocumentNavigation)
+                    //    .ThenInclude(doc_pay => doc_pay.ArrivalUzDocumentPays)
+                    //.Include(arr_sost => arr_sost.IdArrivalNavigation)
+                    //.Include(vag_act => vag_act.ArrivalUzVagonActs)
+                    //.Include(vag_pay => vag_pay.ArrivalUzVagonPays)
+                    //.Include(wag_cont => wag_cont.ArrivalUzVagonConts)
+                    //    .ThenInclude(cont_pay => cont_pay.ArrivalUzContPays)
+                    //.Where(x => x.Id == vag.IdArrivalUzVagon)
+                    //.FirstOrDefault();
+                    // 
+                    WagonInternalRoute? wir = context.WagonInternalRoutes
+                        .Include(arr_sap => arr_sap.IdSapIncomingSupplyNavigation)  // SapincomingSupply
+                        .Include(out_car => out_car.IdOutgoingCarNavigation)        // OutgoingCar
+                        .Include(out_sap => out_sap.IdSapOutboundSupplyNavigation)  // SapoutgoingSupply
+                        .Include(wim => wim.WagonInternalMovements)                 // WagonInternalMovement
+                        .Include(wio => wio.WagonInternalOperations)                // WagonInternalOperation
+                        .Include(wimc => wimc.WagonInternalMoveCargos)              // WagonInternalMoveCargo
+                        .Where(x => x.IdArrivalCar == vag.Id)
+                        .FirstOrDefault();
+                    //
+                    //OutgoingCar? out_car = null;
+                    // Прибытие
+                    //if (arr_uz_vag != null)
+                    //{
+                    //    list_arr_uz_vag.Add(arr_uz_vag);
+                    //    if (arr_uz_vag.IdDocumentNavigation != null && list_arr_uz_doc.IndexOf(arr_uz_vag.IdDocumentNavigation) == -1)
+                    //    {
+                    //        list_arr_uz_doc.Add(arr_uz_vag.IdDocumentNavigation);
+                    //    }
+                    //}
+                    // Внутринее перемещение
+                    if (wir != null)
+                    {
+                        list_wir.Add(wir);
+
+                        //if (wir.IdOutgoingCarNavigation != null)
+                        //{
+                        //    out_car = context.OutgoingCars
+                        //        .Include(out_sost => out_sost.IdOutgoingNavigation)
+                        //        .Include(out_vag => out_vag.IdOutgoingUzVagonNavigation)    // OutgoingUzVagon
+                        //            .ThenInclude(doc => doc.IdDocumentNavigation)               // OutgoingUzDocument
+                        //                .ThenInclude(doc_pay => doc_pay.OutgoingUzDocumentPays)
+                        //        .Include(out_vag => out_vag.IdOutgoingUzVagonNavigation)    // OutgoingUzVagon
+                        //            .ThenInclude(vag_act => vag_act.OutgoingUzVagonActs)
+                        //        .Include(out_vag => out_vag.IdOutgoingUzVagonNavigation)    // OutgoingUzVagon
+                        //            .ThenInclude(vag_pay => vag_pay.OutgoingUzVagonPays)
+                        //        .Include(out_vag => out_vag.IdOutgoingUzVagonNavigation)    // OutgoingUzVagon
+                        //            .ThenInclude(wag_cont => wag_cont.OutgoingUzVagonConts)
+                        //                .ThenInclude(cont_pay => cont_pay.OutgoingUzContPays)
+                        //        .Where(c => c.Id == wir.IdOutgoingCar)
+                        //        .FirstOrDefault();
+                        //    if (out_car != null)
+                        //    {
+                        //        list_out_car.Add(out_car);
+
+                        //        if (out_car.IdOutgoingUzVagonNavigation != null)
+                        //        {
+                        //            list_out_uz_vag.Add(out_car.IdOutgoingUzVagonNavigation);
+                        //            if (out_car.IdOutgoingUzVagonNavigation.IdDocumentNavigation != null && list_out_uz_doc.IndexOf(out_car.IdOutgoingUzVagonNavigation.IdDocumentNavigation) == -1)
+                        //            {
+                        //                list_out_uz_doc.Add(out_car.IdOutgoingUzVagonNavigation.IdDocumentNavigation);
+                        //            }
+                        //        }
+                        //    }
+                        //}
+                    }
+                }
+
+                //Удалим вагоны
+                foreach (WagonInternalRoute wir in list_wir)
+                {
+                    // удалить отправку
+                    if (wir.IdOutgoingCarNavigation != null)
+                    {
+                        OutgoingCar? out_car = context.OutgoingCars
+                             .Include(out_sost => out_sost.IdOutgoingNavigation)
+                             .Include(out_vag => out_vag.IdOutgoingUzVagonNavigation)    // OutgoingUzVagon
+                                 .ThenInclude(doc => doc.IdDocumentNavigation)               // OutgoingUzDocument
+                                    .ThenInclude(doc_pay => doc_pay.OutgoingUzDocumentPays)
+                              .Include(out_vag => out_vag.IdOutgoingUzVagonNavigation)    // OutgoingUzVagon                                
+                                 .ThenInclude(doc => doc.IdDocumentNavigation)               // OutgoingUzDocument
+                                     .ThenInclude(doc_wagons => doc_wagons.OutgoingUzVagons) // Список вагонов пренадлежащих этому документу
+                             .Include(out_vag => out_vag.IdOutgoingUzVagonNavigation)    // OutgoingUzVagon
+                                 .ThenInclude(vag_act => vag_act.OutgoingUzVagonActs)
+                             .Include(out_vag => out_vag.IdOutgoingUzVagonNavigation)    // OutgoingUzVagon
+                                 .ThenInclude(vag_pay => vag_pay.OutgoingUzVagonPays)
+                             .Include(out_vag => out_vag.IdOutgoingUzVagonNavigation)    // OutgoingUzVagon
+                                 .ThenInclude(wag_cont => wag_cont.OutgoingUzVagonConts)
+                                     .ThenInclude(cont_pay => cont_pay.OutgoingUzContPays)
+                             .Where(c => c.Id == wir.IdOutgoingCar)
+                             .FirstOrDefault();
+                        if (out_car != null)
+                        {
+                            // Есть документ на вагон
+                            if (out_car.IdOutgoingUzVagonNavigation != null)
+                            {
+                                OutgoingUzVagon out_uz_vag = out_car.IdOutgoingUzVagonNavigation;
+                                out_car.IdOutgoingUzVagon = null; // Удалим ссылку на документ по вагону (для удаления out_car)
+                                wir.IdOutgoingCar = null;         // Удалим ссылку на вагон вотправках (out_car)
+                                // Есть общий документ документ на вагон
+                                if (out_car.IdOutgoingUzVagonNavigation.IdDocumentNavigation != null)
+                                {
+                                    OutgoingUzDocument doc_uz_out = out_car.IdOutgoingUzVagonNavigation.IdDocumentNavigation;
+                                    // к этому документу пренадлежат другие вагоны
+                                    if (doc_uz_out.OutgoingUzVagons.Count() == 1)
+                                    {
+                                        // Удаляем OutgoingUzDocumentPay
+                                        foreach (OutgoingUzDocumentPay pay in doc_uz_out.OutgoingUzDocumentPays)
+                                        {
+                                            context.OutgoingUzDocumentPays.Remove(pay);
+                                        }
+                                        DeleteOutgoingUzVagon(ref context, out_uz_vag);
+                                        context.OutgoingUzDocuments.Remove(doc_uz_out);
+                                        DeleteOutgoingCar(ref context, out_car);
+                                    }
+                                    ;
+                                }
+                                else
+                                {
+                                    DeleteOutgoingUzVagon(ref context, out_uz_vag);
+                                    DeleteOutgoingCar(ref context, out_car);
+                                }
+                            }
+                        }
+                    }
+                    // удалить прибытие
+
+                    // удалим внутренее перемещение
+                    // Удаляем WagonInternalOperation
+                    //if (wir.WagonInternalOperations.Count() > 0) {
+                    //    List<WagonInternalOperation> wios = wir.WagonInternalOperations.ToList();
+                    //    foreach (WagonInternalOperation wio in wios) { 
+                    //    wio.remo
+                    //    }
+                    //}
+
+                    //if (wir.WagonInternalOperations.Count() > 0) {
+                    //    wir.WagonInternalOperations.Clear();
+                    //}
+                    //if (wir.WagonInternalMoveCargos.Count() > 0) {
+                    //    wir.WagonInternalMoveCargos.Clear();
+                    //}
+                    //if (wir.WagonInternalMovements.Count() > 0) {
+                    //    wir.WagonInternalMovements.Clear();
+                    //}
+
+                    foreach (WagonInternalOperation oper in wir.WagonInternalOperations.ToList())
+                    {
+                        context.WagonInternalOperations.Remove(oper);
+                    }
+                    foreach (WagonInternalMoveCargo mcargo in wir.WagonInternalMoveCargos.ToList())
+                    {
+                        context.WagonInternalMoveCargos.Remove(mcargo);
+                    }
+                    foreach (WagonInternalMovement wim in wir.WagonInternalMovements.ToList())
+                    {
+                        context.WagonInternalMovements.Remove(wim);
+                    }
+
+                    if (wir.IdSapIncomingSupplyNavigation != null)
+                    {
+                        SapincomingSupply sap_inp = wir.IdSapIncomingSupplyNavigation;
+                        context.SapincomingSupplies.Remove(sap_inp);
+                    }
+                    wir.IdArrivalCar = null;
+                    context.WagonInternalRoutes.Remove(wir);
+                }
+                // Удалим прибытие
+                foreach (ArrivalCar vag in cars)
+                {
+                    ArrivalUzVagon? arr_uz_vag = context.ArrivalUzVagons
+                    .Include(doc => doc.IdDocumentNavigation)
+                        .ThenInclude(doc_doc => doc_doc.ArrivalUzDocumentDocs)
+                    .Include(doc => doc.IdDocumentNavigation)
+                        .ThenInclude(doc_act => doc_act.ArrivalUzDocumentActs)
+                    .Include(doc => doc.IdDocumentNavigation)
+                        .ThenInclude(doc_pay => doc_pay.ArrivalUzDocumentPays)
+                    .Include(arr_sost => arr_sost.IdArrivalNavigation)
+                    .Include(vag_act => vag_act.ArrivalUzVagonActs)
+                    .Include(vag_pay => vag_pay.ArrivalUzVagonPays)
+                    .Include(wag_cont => wag_cont.ArrivalUzVagonConts)
+                        .ThenInclude(cont_pay => cont_pay.ArrivalUzContPays)
+                    .Where(x => x.Id == vag.IdArrivalUzVagon)
+                    .FirstOrDefault();
+
+                    // Удалим документ (прибытия)
+                    if (arr_uz_vag != null)
+                    {
+                        vag.IdArrivalUzVagon = null;
+                        vag.NumDoc = null;
+                        if (arr_uz_vag.IdDocumentNavigation != null)
+                        {
+                            ArrivalUzDocument uz_doc = arr_uz_vag.IdDocumentNavigation;
+                            List<ArrivalUzVagon> list_uz_vag = context.ArrivalUzVagons.Where(v => v.IdDocument == uz_doc.Id).ToList();
+                            if (list_uz_vag.Count() == 1)
+                            {
+                                // удалить документ
+                                DeleteArrivalUzVagon(ref context, arr_uz_vag);
+                                DeleteArrivalUzDocument(ref context, uz_doc);
+                                UzDoc? doc = context.UzDocs.Where(d => d.NumDoc == uz_doc.IdDocUz).FirstOrDefault();
+                                if (doc != null)
+                                {
+                                    context.UzDocs.Remove(doc);
+                                }
+                            }
+                            else
+                            {
+                                DeleteArrivalUzVagon(ref context, arr_uz_vag);
+                            }
+                        }
+                        else
+                        {
+                            DeleteArrivalUzVagon(ref context, arr_uz_vag);
+                        }
+                    }
+                    //
+                    //context.ArrivalCars.Remove(vag);
+                    sostav.ArrivalCars.Remove(vag);
+                    if (sostav.ArrivalCars.Count() == 0)
+                    {
+                        context.ArrivalSostavs.Remove(sostav);
+                    }
+                }
+
+                res.result = context.SaveChanges();
+                res.message = res.result < 0 ? "Error" : "Ok";
+                return res;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "DeleteWagonOfAMKR(num_doc={0}, nums={1})", num_doc, nums);
                 res.result = (int)errors_base.global;
                 res.message = e.Message;
                 return res;
