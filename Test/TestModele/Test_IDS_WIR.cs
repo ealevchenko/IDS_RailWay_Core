@@ -79,17 +79,20 @@ namespace Test.TestModele
         }
         public void CorrectArrivalDocument()
         {
-            int num_doc = 491;
-            int num_nakl = 40036675;
-            List<int> nums = new List<int> { 52227980 };
-            ArrivalCorrectDocument correct_document = new ArrivalCorrectDocument() { };
+            int num_doc = 489;
+            int num_nakl = 47598222;
+            bool union = false;
+            bool create_new = true;
+            List<int> nums = new List<int> { 53187753, 58940578, 60972551, 61013249, 62110614 };
+
+            ArrivalCorrectDocument? correct_document = null;
             //ArrivalCorrectDocument correct_document = new ArrivalCorrectDocument()
             //{
             //    CodeShipper = 3700,
             //    CodePayerSender = "8245745",
             //    DistanceWay = 997
             //};
-            List<ArrivalCorrectVagonDocument> correct_vagons = new List<ArrivalCorrectVagonDocument>();
+            List<ArrivalCorrectVagonDocument>? correct_vagons = null;
             //correct_vagons.Add(new ArrivalCorrectVagonDocument()
             //{
             //    Num = 63208300,
@@ -132,8 +135,15 @@ namespace Test.TestModele
             //    IdCargo = 68,
             //    PaySumma = 2938500
             //});
-            ResultCorrect result = ids_wir.CorrectArrivalDocument(num_doc, num_nakl, nums, correct_document, correct_vagons);
+            ResultCorrect result = ids_wir.CorrectArrivalDocument(num_doc, num_nakl, union, create_new,  nums, correct_document, correct_vagons);
+            Console.WriteLine($" result : {result.result} \n message :{result.message}");
         }
-
+        public void DeleteWagonOfAMKR()
+        {
+            int num_doc = 520;
+            List<int> nums = new List<int> { 60726544, 60724341, 60455508, 54779467, 63470777, 63813711 };
+            ResultCorrect result = ids_wir.DeleteWagonOfAMKR(num_doc, nums);
+            Console.WriteLine($" result : {result.result} \n message :{result.message}");
+        }
     }
 }
