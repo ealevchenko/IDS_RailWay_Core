@@ -42,8 +42,8 @@ namespace WebAPI.Controllers.Directory
 
         }
 
-        // GET: ArrivalUzVagon/list/main_doc/start/2025-03-01T00:00:00/stop/2025-03-30T00:00:00
-        [HttpGet("list/main_doc/start/{start:DateTime}/stop/{stop:DateTime}")]
+        //// GET: ArrivalUzVagon/list/main_doc/start/2025-03-01T00:00:00/stop/2025-03-30T00:00:00
+        //[HttpGet("list/main_doc/start/{start:DateTime}/stop/{stop:DateTime}")]
 
         // GET: ArrivalUzVagon/list
         //[HttpGet("list")]
@@ -63,6 +63,7 @@ namespace WebAPI.Controllers.Directory
         //        return BadRequest(e.Message);
         //    }
         //}
+
         // GET: ArrivalUzVagon/document/851564
         [HttpGet("document/{id}")]
         public async Task<ActionResult<ArrivalUzVagon>> GetArrivalUzVagonOfIdDocument(int id)
