@@ -70,7 +70,7 @@ namespace WebAPI.Controllers.Directory
                 var result = await db.ArrivalUzDocuments
                         .AsNoTracking()
                         .Where(x => id_docs.Contains(x.Id))
-                        .Select(d => new { d.Id, d.NomMainDoc, d.CalcPayer })
+                        .Select(d => new { d.Id, d.NomMainDoc, d.NomDoc, d.CalcPayer })
                         .ToListAsync();
                 if (result == null)
                     return NotFound();
@@ -81,6 +81,7 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
         // GET: ArrivalUzDocument/list
         //[HttpGet("list")]
         //public async Task<ActionResult<IEnumerable<ArrivalUzDocument>>> GetListArrivalUzDocument()
@@ -144,7 +145,8 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        // GET: ArrivalUzDocument/accepted/start/2025-03-01T00:00:00/stop/2025-03-30T00:00:00
+
+        // GET: ArrivalUzDocument/accepted/start/2025-04-01T00:00:00/stop/2025-04-30T00:00:00
         [HttpGet("accepted/start/{start:DateTime}/stop/{stop:DateTime}")]
         public async Task<ActionResult<ArrivalUzDocument>> GetArrivalUzDocument(DateTime start, DateTime stop)
         {
@@ -155,38 +157,27 @@ namespace WebAPI.Controllers.Directory
                 var result = await db.ArrivalUzDocuments
                         .AsNoTracking()
                         .Where(x => id_docs.Contains(x.Id))
-                        .Select(d => new { d.Id, d.NomMainDoc, d.CalcPayer })
+                        .Include(code_bc => code_bc.CodeBorderCheckpointNavigation)
+                        .Include(code_st_from => code_st_from.CodeStnFromNavigation)
+                        .Include(code_st_on => code_st_on.CodeStnToNavigation)
+                        .Include(code_cns => code_cns.CodeConsigneeNavigation)
+                        .Include(code_chp => code_chp.CodeShipperNavigation)
+                        .Include(code_ps => code_ps.CodePayerSenderNavigation)
+                        .Include(code_pa => code_pa.CodePayerArrivalNavigation)
+                        .Include(code_pl => code_pl.CodePayerLocalNavigation)
+                        .Include(doc => doc.ArrivalUzDocumentDocs)
+                        .Include(act => act.ArrivalUzDocumentActs)
+                        .Include(pays => pays.ArrivalUzDocumentPays)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(arr_sost => arr_sost.IdArrivalNavigation)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(wag_acts => wag_acts.ArrivalUzVagonActs)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(wag_cont => wag_cont.ArrivalUzVagonConts)
+                                .ThenInclude(wag_cont_pays => wag_cont_pays.ArrivalUzContPays)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(wag_pays => wag_pays.ArrivalUzVagonPays)
                         .ToListAsync();
-
-                //IEnumerable<ArrivalUzDocument> result = await db.ArrivalUzDocuments
-                //        .AsNoTracking()
-                //        .Where(x => id_docs.Contains(x.Id))
-                //        .ToListAsync();
-
-                //IEnumerable<ArrivalUzDocument> result = await db.ArrivalUzDocuments
-                //        .AsNoTracking()
-                //        .Include(code_bc => code_bc.CodeBorderCheckpointNavigation)
-                //        .Include(code_st_from => code_st_from.CodeStnFromNavigation)
-                //        .Include(code_st_on => code_st_on.CodeStnToNavigation)
-                //        .Include(code_cns => code_cns.CodeConsigneeNavigation)
-                //        .Include(code_chp => code_chp.CodeShipperNavigation)
-                //        .Include(code_ps => code_ps.CodePayerSenderNavigation)
-                //        .Include(code_pa => code_pa.CodePayerArrivalNavigation)
-                //        .Include(code_pl => code_pl.CodePayerLocalNavigation)
-                //        .Include(doc => doc.ArrivalUzDocumentDocs)
-                //        .Include(act => act.ArrivalUzDocumentActs)
-                //        .Include(pays => pays.ArrivalUzDocumentPays)
-                //        .Include(wag_doc => wag_doc.ArrivalUzVagons)
-                //            .ThenInclude(arr_sost => arr_sost.IdArrivalNavigation)
-                //        .Include(wag_doc => wag_doc.ArrivalUzVagons)
-                //            .ThenInclude(wag_acts => wag_acts.ArrivalUzVagonActs)
-                //        .Include(wag_doc => wag_doc.ArrivalUzVagons)
-                //            .ThenInclude(wag_cont => wag_cont.ArrivalUzVagonConts)
-                //                .ThenInclude(wag_cont_pays => wag_cont_pays.ArrivalUzContPays)
-                //        .Include(wag_doc => wag_doc.ArrivalUzVagons)
-                //            .ThenInclude(wag_pays => wag_pays.ArrivalUzVagonPays)
-                //        .Where(x => id_docs.Contains(x.Id))
-                //        .ToListAsync();
 
                 if (result == null)
                     return NotFound();
