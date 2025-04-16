@@ -100,9 +100,9 @@ namespace WebAPI.Controllers.Directory
                     .Include(wag_cont => wag_cont.ArrivalUzVagonConts)
                         .ThenInclude(cont_pay => cont_pay.ArrivalUzContPays)
                     .Include(wag_cargo => wag_cargo.IdCargoNavigation)
-                    .Include(wag_rent => wag_rent.IdWagonsRentArrivalNavigation)  
+                    .Include(wag_rent => wag_rent.IdWagonsRentArrivalNavigation)
                         .ThenInclude(wag_oper => wag_oper.IdOperatorNavigation)
-                    .Include(wag_div=> wag_div.IdDivisionOnAmkrNavigation)
+                    .Include(wag_div => wag_div.IdDivisionOnAmkrNavigation)
                     .Where(x => x.IdDocument == id)
                     .ToListAsync();
                 if (result == null)
@@ -114,6 +114,78 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+        /// <summary>
+        /// Сверка по актам накладных на прибывшие вагоны
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <returns></returns>
+        // GET: ArrivalUzVagon/verification/start/2025-03-01T00:00:00/stop/2025-03-30T00:00:00
+        [HttpGet("verification/start/{start:DateTime}/stop/{stop:DateTime}")]
+        public async Task<ActionResult> GetVerificationArrivalUzVagon(DateTime start, DateTime stop)
+        {
+            try
+            {
+                IEnumerable<long> id_sts = db.ArrivalSostavs.AsNoTracking().Where(s => s.DateAdoption >= start && s.DateAdoption <= stop).Select(c => c.Id).ToList();
+                IEnumerable<long> id_vags = db.ArrivalUzVagons.Where(v => id_sts.Contains(v.IdArrivalNavigation.Id) && v.IdDocumentNavigation.NomDoc == null && v.IdDocumentNavigation.NomMainDoc>0).Select(c => c.Id).Distinct().ToList();
+
+                var result = await db.ArrivalUzVagons
+                        .AsNoTracking()
+                        .Where(x => id_vags.Contains(x.Id))
+                        .Select(d => new
+                        {
+                            Id = d.Id,
+                            NomMainDoc = d.IdDocumentNavigation.NomMainDoc,
+                            NomDoc = d.IdDocumentNavigation.NomDoc,
+                            Num = d.Num,
+                            TariffContract = d.IdDocumentNavigation.TariffContract,
+                            CodePayerLocal = d.IdDocumentNavigation.CodePayerLocalNavigation.Code,
+                            PayerLocalRu = d.IdDocumentNavigation.CodePayerLocalNavigation.PayerNameRu,
+                            PayerLocalEn = d.IdDocumentNavigation.CodePayerLocalNavigation.PayerNameEn,
+                            ArrivalUzDocumentPays = d.IdDocumentNavigation.ArrivalUzDocumentPays.Where(w => w.Kod == "001").Sum(p => p.Summa),
+                            Vesg = d.Vesg,
+                            CodeStnFromCode = d.IdDocumentNavigation.CodeStnFromNavigation.Code,
+                            StationNameRu = d.IdDocumentNavigation.CodeStnFromNavigation.StationNameRu,
+                            StationNameEn = d.IdDocumentNavigation.CodeStnFromNavigation.StationNameEn,
+                            IdCargo = d.IdCargoNavigation.Id, 
+                            CargoNameRu = d.IdCargoNavigation.CargoNameRu,
+                            CargoNameEn = d.IdCargoNavigation.CargoNameEn,
+                            IdOperator = d.IdWagonsRentArrivalNavigation.IdOperatorNavigation.Id,
+                            OperatorsRu = d.IdWagonsRentArrivalNavigation.IdOperatorNavigation.OperatorsRu,
+                            OperatorsEn = d.IdWagonsRentArrivalNavigation.IdOperatorNavigation.OperatorsEn,
+                            IdDivision = d.IdDivisionOnAmkrNavigation.Id,
+                            NameDivisionRu = d.IdDivisionOnAmkrNavigation.NameDivisionRu,
+                            NameDivisionEn = d.IdDivisionOnAmkrNavigation.NameDivisionEn,
+                            CodePayerSender = d.IdDocumentNavigation.CodePayerSenderNavigation.Code,
+                            PayerSenderRu = d.IdDocumentNavigation.CodePayerSenderNavigation.PayerNameRu,
+                            PayerSenderEn = d.IdDocumentNavigation.CodePayerSenderNavigation.PayerNameEn,
+                            CodePayerArrival = d.IdDocumentNavigation.CodePayerArrivalNavigation.Code,
+                            PayerArrivalRu = d.IdDocumentNavigation.CodePayerArrivalNavigation.PayerNameRu,
+                            PayerArrivalEn = d.IdDocumentNavigation.CodePayerArrivalNavigation.PayerNameEn,
+                            DateVid = d.IdDocumentNavigation.DateVid,
+                            DateAdoption = d.IdArrivalNavigation.DateAdoption,
+                            CalcPayer = d.IdDocumentNavigation.CalcPayer,
+                            CalcPayerUser = d.IdDocumentNavigation.CalcPayerUser,
+                            IdActServices1 = d.IdActServices1,
+                            NumActServices1 = d.NumActServices1,
+                            IdActServices2 = d.IdActServices2,
+                            NumActServices2 = d.NumActServices2,
+                            IdActServices3 = d.IdActServices3,
+                            NumActServices3 = d.NumActServices3,
+                        })
+                        .ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+
+
         //// POST: ArrivalUzVagon
         //// BODY: ArrivalUzVagon (JSON, XML)
         //[HttpPost]
