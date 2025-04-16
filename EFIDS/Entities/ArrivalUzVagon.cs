@@ -160,6 +160,27 @@ public partial class ArrivalUzVagon
     [Column("id_wagons_rent_arrival")]
     public int? IdWagonsRentArrival { get; set; }
 
+    [Column("id_act_services1")]
+    public int? IdActServices1 { get; set; }
+
+    [Column("id_act_services2")]
+    public int? IdActServices2 { get; set; }
+
+    [Column("id_act_services3")]
+    public int? IdActServices3 { get; set; }
+
+    [Column("num_act_services1")]
+    [StringLength(20)]
+    public string? NumActServices1 { get; set; }
+
+    [Column("num_act_services2")]
+    [StringLength(20)]
+    public string? NumActServices2 { get; set; }
+
+    [Column("num_act_services3")]
+    [StringLength(20)]
+    public string? NumActServices3 { get; set; }
+
     [InverseProperty("IdArrivalUzVagonNavigation")]
     public virtual ICollection<ArrivalCar> ArrivalCars { get; set; } = new List<ArrivalCar>();
 
