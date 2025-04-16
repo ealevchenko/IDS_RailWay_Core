@@ -1136,6 +1136,27 @@ namespace WebAPI.Controllers.Directory
         }
         #endregion
 
+        #region СЕРВИСЫ
+        // GET: WSD/view/arrival/documents/vagons/period/start/2025-04-01T00:00:00/stop/2025-04-30T00:00:00
+        [HttpGet("view/arrival/documents/vagons/period/start/{start:DateTime}/stop/{stop:DateTime}")]
+        public async Task<ActionResult<IEnumerable<ViewArrivalDocumentsVagons>>> GetViewArrivalDocumentsVagonsOfPeriod(DateTime start, DateTime stop)
+        {
+            try
+            {
+                db.Database.SetCommandTimeout(300);
+                List<ViewArrivalDocumentsVagons> result = await db.getViewArrivalDocumentsVagonsOfPeriod(start, stop).ToListAsync();
+                if (result == null)
+                    return NotFound();
+                db.Database.SetCommandTimeout(0);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        #endregion
+
         #region АДМИНИСТРИРОВАНИЕ
         // POST: WSD/admin/change/division/outgoing
         // BODY: WSD (JSON, XML)
