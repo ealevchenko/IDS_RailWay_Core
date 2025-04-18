@@ -53,6 +53,8 @@ namespace IDS_
         public int? IdCargo { get; set; }
         public int? Vesg { get; set; }
         public long? PaySumma { get; set; }
+        public int? IdStationOnAmkr { get; set; }
+        public int? IdDivisionOnAmkr { get; set; }
     }
 
     public class ResultCorrect
@@ -4854,6 +4856,189 @@ namespace IDS_
                 return res;
             }
         }
+
+        public ResultCorrect CorrectArrivalNotEPD_Document(int num_doc, int? num_nakl, List<int> nums, ArrivalCorrectDocument correct_document, ArrivalCorrectVagonDocument? correct_all_vagons, List<ArrivalCorrectVagonDocument>? correct_vagons)
+        {
+            ResultCorrect res = new ResultCorrect() { result = 0, message = null };
+            try
+            {
+                string user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                EFDbContext context = new(this.options);
+                ArrivalSostav? sostav = context.ArrivalSostavs
+                   //.AsNoTracking()
+                   .Include(cars => cars.ArrivalCars) // OutgoingCar
+                        .ThenInclude(vag => vag.IdArrivalUzVagonNavigation) // OutgoingUzVagon
+                            .ThenInclude(vag_doc => vag_doc.IdDocumentNavigation) // OutgoingUzDocument
+                                .ThenInclude(vag_doc_doc => vag_doc_doc.ArrivalUzDocumentDocs)
+                   .Include(cars => cars.ArrivalCars) // OutgoingCar
+                        .ThenInclude(vag => vag.IdArrivalUzVagonNavigation) // OutgoingUzVagon
+                            .ThenInclude(vag_pay => vag_pay.ArrivalUzVagonPays)
+                   .Include(cars => cars.ArrivalCars) // OutgoingCar
+                        .ThenInclude(cars_doc => cars_doc.NumDocNavigation) // OutgoingUzVagon
+                   .Where(s => s.NumDoc == num_doc)
+                   .OrderByDescending(c => c.Id)
+                   .FirstOrDefault();
+                if (sostav == null) { res.result = (int)errors_base.not_arrival_sostav_db; return res; }
+
+                if (sostav.ArrivalCars == null || sostav.ArrivalCars.Count() == 0) { res.result = (int)errors_base.not_arrival_cars_db; return res; }
+                List<ArrivalCar> cars = sostav.ArrivalCars.Where(c => nums.Contains(c.Num)).ToList();
+                if (cars == null || cars.Count() == 0) { res.result = (int)errors_base.not_arrival_cars_db; return res; }
+
+                if (cars.Count() == nums.Count())
+                {
+                    //
+                    UzDoc new_uz_doc = null;
+                    ArrivalUzDocument upd_arr_uz_doc = null;
+                    string num_doc_uz = null;
+
+                    if (num_nakl == null)
+                    {
+                        // содание новой без ЭПД
+                        UzDoc? upd_uz_doc = context.UzDocs.Where(d => d.NumUz < 0).OrderBy(c => c.NumUz).FirstOrDefault();
+                        if (upd_uz_doc == null)
+                        {
+                            res.result = -1;
+                            res.message = "Error";
+                            return res;
+
+                        }
+
+                        int num_uz = Math.Abs((int)upd_uz_doc.NumUz);
+
+
+                        num_doc_uz = "MA:" + (num_uz + 1).ToString();
+                        // Создадим новую ЭПД
+                        new_uz_doc = new UzDoc()
+                        {
+                            NumDoc = num_doc_uz,
+                            Revision = 0,
+                            Status = 6,
+                            CodeFrom = correct_document != null && correct_document.CodeShipper != null ? correct_document.CodeShipper.ToString() : "note",
+                            CodeOn = correct_document != null && correct_document.CodeConsignee != null ? correct_document.CodeConsignee.ToString() : "note",
+                            Dt = DateTime.Now,
+                            XmlDoc = null,
+                            NumUz = -(num_uz + 1),
+                            Close = DateTime.Now,
+                            CloseMessage = "ЭПД - ручной ввод (коррекция), закрыт"
+                        };
+                        context.UzDocs.Add(new_uz_doc);
+                        // Создадим документ
+                        upd_arr_uz_doc = new ArrivalUzDocument()
+                        {
+                            Id = 0,
+                            IdDocUz = num_doc_uz,
+                            NomDoc = null,
+                            NomMainDoc = -(num_uz + 1),
+                            CodeStnFrom = correct_document.CodeStnFrom,
+                            CodeStnTo = correct_document.CodeStnTo,
+                            CodeBorderCheckpoint = correct_document.CodeBorderCheckpoint,
+                            CrossTime = correct_document.CrossTime,
+                            CodeShipper = correct_document.CodeShipper,
+                            CodeConsignee = correct_document.CodeConsignee,
+                            Klient = correct_document.Klient,
+                            CodePayerSender = correct_document.CodePayerSender,
+                            CodePayerArrival = correct_document.CodePayerArrival,
+                            DistanceWay = correct_document.DistanceWay,
+                            Note = null,
+                            ParentId = null,
+                            Create = DateTime.Now,
+                            CreateUser = user,
+                            Change = null,
+                            ChangeUser = null,
+                            Manual = true,
+                            DateOtpr = null,
+                            SrokEnd = null,
+                            DateGrpol = null,
+                            DatePr = null,
+                            DateVid = null,
+                        };
+
+
+                    }
+                    else
+                    {
+                        // добвить к существующей
+                    }
+                    // Список вагонов
+                    foreach (ArrivalCar vag in cars)
+                    {
+                        vag.NumDoc = num_doc_uz;
+
+                        ArrivalUzVagon? arr_uz_vag = vag.IdArrivalUzVagonNavigation;
+                        if (arr_uz_vag == null)
+                        {
+                            res.result = (int)errors_base.not_inp_uz_vag_db; ;
+                            res.message = "Error";
+                            return res;
+                        }
+                        ArrivalUzVagon new_vag = new ArrivalUzVagon()
+                        {
+                            Id = 0,
+                            IdDocument = 0,
+                            Num = arr_uz_vag.Num,
+                            IdArrival = (long)vag.IdArrival,
+                            IdCar = (int)vag.Id,
+                            IdCondition = arr_uz_vag.IdCondition,
+                            IdType = arr_uz_vag.IdType,
+                            Gruzp = correct_all_vagons!= null ? correct_all_vagons.Gruzp : null,
+                            UTara = correct_all_vagons!= null ? correct_all_vagons.UTara : null,
+                            VesTaryArc = correct_all_vagons != null ? correct_all_vagons.VesTaryArc : null,
+                            Route = null,
+                            NoteVagon = null,
+                            IdCargo = correct_all_vagons != null ? correct_all_vagons.IdCargo : null,
+                            IdCargoGng = null,
+                            IdCertificationData = null,
+                            IdCommercialCondition = null,
+                            KolPac = null,
+                            Pac = null,
+                            Vesg = correct_all_vagons != null ? correct_all_vagons.Vesg : null,
+                            VesgReweighing = null,
+                            NomZpu = null,
+                            Danger = null,
+                            DangerKod = null,
+                            CargoReturns = null,
+                            IdStationOnAmkr = correct_all_vagons != null ? correct_all_vagons.IdStationOnAmkr : null,
+                            IdDivisionOnAmkr = correct_all_vagons != null ? correct_all_vagons.IdDivisionOnAmkr : null,
+                            EmptyCar = null,
+                            KolConductor = null,
+                            Create = DateTime.Now,
+                            CreateUser = user,
+                            Change = null,
+                            ChangeUser = null,
+                            IdOwner = arr_uz_vag.IdOwner,
+                            IdCountrys = arr_uz_vag.IdCountrys,
+                            IdGenus = arr_uz_vag.IdGenus,
+                            KolOs = arr_uz_vag.KolOs,
+                            UslTip = arr_uz_vag.UslTip,
+                            DateRemUz = arr_uz_vag.DateRemUz,
+                            DateRemVag = arr_uz_vag.DateRemVag,
+                            IdTypeOwnership = arr_uz_vag.IdTypeOwnership,
+                            GruzpUz = arr_uz_vag.GruzpUz,
+                            TaraUz = arr_uz_vag.TaraUz,
+                            Zayava = null,
+                            Manual = true,
+                            PaySumma = correct_all_vagons != null && correct_all_vagons.PaySumma!=null ? (int?)correct_all_vagons.PaySumma : null,
+                            IdWagonsRentArrival = arr_uz_vag.IdWagonsRentArrival,
+                        };
+                        vag.IdArrivalUzVagonNavigation = new_vag;
+                        upd_arr_uz_doc.ArrivalUzVagons.Add(new_vag);
+                    }
+                    context.ArrivalUzDocuments.Add(upd_arr_uz_doc);
+                }
+                //
+                res.result = context.SaveChanges();
+                res.message = res.result < 0 ? "Error" : "Ok";
+                return res;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "CorrectArrivalDocument(id_sostav={0}, num_nakl={1}, nums={2})", num_doc, num_nakl, nums);
+                res.result = (int)errors_base.global;
+                res.message = e.Message;
+                return res;
+            }
+        }
+
         #endregion
 
     }

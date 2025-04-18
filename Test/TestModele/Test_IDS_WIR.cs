@@ -135,7 +135,7 @@ namespace Test.TestModele
             //    IdCargo = 68,
             //    PaySumma = 2938500
             //});
-            ResultCorrect result = ids_wir.CorrectArrivalDocument(num_doc, num_nakl, union, create_new,  nums, correct_document, correct_vagons);
+            ResultCorrect result = ids_wir.CorrectArrivalDocument(num_doc, num_nakl, union, create_new, nums, correct_document, correct_vagons);
             Console.WriteLine($" result : {result.result} \n message :{result.message}");
         }
         public void DeleteWagonOfAMKR()
@@ -143,6 +143,55 @@ namespace Test.TestModele
             int num_doc = 520;
             List<int> nums = new List<int> { 60726544, 60724341, 60455508, 54779467, 63470777, 63813711 };
             ResultCorrect result = ids_wir.DeleteWagonOfAMKR(num_doc, nums);
+            Console.WriteLine($" result : {result.result} \n message :{result.message}");
+        }
+        public void CorrectArrivalNotEPD_Document()
+        {
+            int num_doc = 569;
+            int? num_nakl = null;
+            List<int> nums = new List<int> { 64054109, 57601114, 57599714, 62389135, 52291978, 52373057, 56299241, 52365681, 56355571, 60971470, 61640785, 52179603, 57656886, 61593000, 63856769, 56963150, 53575080, 64954654, 64954142, 56193782, 52366002, 57640252, 55428106, 65001216, 63403489, 64615354, 55082077, 63016166, 63868137, 60985280, 61100574, 63536072, 64051568, 64052079, 64954126, 63374912, 64939051, 52876323, 63938229, 63659551, 53133807, 56067044, 64050669, 56365455, 61583167, 52737756, 56655335, 56682321, 56223258, 55168363, 64908239, 64050156 };
+            // новый документ
+            ArrivalCorrectDocument correct_document = new ArrivalCorrectDocument()
+            {
+                CodeStnFrom = 467108,
+                CodeStnTo = 467004,
+                CodeBorderCheckpoint = null,
+                CrossTime = null,
+                CodeShipper = 9200,
+                CodeConsignee = 9200,
+                Klient = true,
+                CodePayerSender = null,
+                CodePayerArrival = null,
+                DistanceWay = 10,
+            };
+            // корекция по всем вагонам
+            ArrivalCorrectVagonDocument correct_all_vagons = new ArrivalCorrectVagonDocument()
+            {
+                Gruzp = null,
+                UTara = null,
+                VesTaryArc = null,
+                IdCargo = 1,
+                Vesg = null,
+                PaySumma = null,
+                IdStationOnAmkr = null,
+                IdDivisionOnAmkr = 99,
+            };
+            // корекция по вагоно
+            List<ArrivalCorrectVagonDocument>? correct_vagons = new List<ArrivalCorrectVagonDocument>();
+            correct_vagons.Add(new ArrivalCorrectVagonDocument()
+            {
+                Num = null,
+                Gruzp = null,
+                UTara = null,
+                VesTaryArc = null,
+                IdCargo = 1,
+                Vesg = null,
+                PaySumma = null,
+                IdStationOnAmkr = null,
+                IdDivisionOnAmkr = 99,
+            });
+
+            ResultCorrect result = ids_wir.CorrectArrivalNotEPD_Document(num_doc, num_nakl, nums, correct_document, correct_all_vagons, correct_vagons);
             Console.WriteLine($" result : {result.result} \n message :{result.message}");
         }
     }

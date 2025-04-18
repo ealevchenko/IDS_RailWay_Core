@@ -99,7 +99,8 @@ namespace HelloApp
                 //twir.ChangeVesgOutgoingWagons(); // 
                 //twir.UpdateFiling();
                 //twir.CorrectArrivalDocument();
-                twir.DeleteWagonOfAMKR();
+                //twir.DeleteWagonOfAMKR();
+                twir.CorrectArrivalNotEPD_Document();
                 #endregion
                 //+++++++++++++++++++++++++++++++ req1892 ++++++++++++++++++++++++++++++
                 //WebClientGIVC client_givc = new WebClientGIVC(logger, config);
