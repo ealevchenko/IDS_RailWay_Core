@@ -181,6 +181,13 @@ public partial class ArrivalUzVagon
     [StringLength(20)]
     public string? NumActServices3 { get; set; }
 
+    [Column("verification", TypeName = "datetime")]
+    public DateTime? Verification { get; set; }
+
+    [Column("verification_user")]
+    [StringLength(50)]
+    public string? VerificationUser { get; set; }
+
     [InverseProperty("IdArrivalUzVagonNavigation")]
     public virtual ICollection<ArrivalCar> ArrivalCars { get; set; } = new List<ArrivalCar>();
 
