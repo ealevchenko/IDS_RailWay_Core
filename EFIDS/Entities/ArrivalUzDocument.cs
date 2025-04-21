@@ -108,6 +108,27 @@ public partial class ArrivalUzDocument
     [StringLength(50)]
     public string? CalcPayerUser { get; set; }
 
+    public int? IdActServices1 { get; set; }
+
+    [StringLength(50)]
+    public string? NumActServices1 { get; set; }
+
+    public int? IdActServices2 { get; set; }
+
+    [StringLength(50)]
+    public string? NumActServices2 { get; set; }
+
+    public int? IdActServices3 { get; set; }
+
+    [StringLength(50)]
+    public string? NumActServices3 { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? Verification { get; set; }
+
+    [StringLength(50)]
+    public string? VerificationUser { get; set; }
+
     [InverseProperty("IdDocumentNavigation")]
     public virtual ICollection<ArrivalUzDocumentAct> ArrivalUzDocumentActs { get; set; } = new List<ArrivalUzDocumentAct>();
 

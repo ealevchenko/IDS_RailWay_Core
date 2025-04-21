@@ -173,14 +173,14 @@ namespace WebAPI.Controllers.Directory
                             DateAdoption = d.IdArrivalNavigation.DateAdoption,
                             CalcPayer = d.IdDocumentNavigation.CalcPayer,
                             CalcPayerUser = d.IdDocumentNavigation.CalcPayerUser,
-                            IdActServices1 = d.IdActServices1,
-                            NumActServices1 = d.NumActServices1,
-                            IdActServices2 = d.IdActServices2,
-                            NumActServices2 = d.NumActServices2,
-                            IdActServices3 = d.IdActServices3,
-                            NumActServices3 = d.NumActServices3,
-                            Verification = d.Verification,
-                            VerificationUser = d.VerificationUser,
+                            //IdActServices1 = d.IdActServices1,
+                            //NumActServices1 = d.NumActServices1,
+                            //IdActServices2 = d.IdActServices2,
+                            //NumActServices2 = d.NumActServices2,
+                            //IdActServices3 = d.IdActServices3,
+                            //NumActServices3 = d.NumActServices3,
+                            //Verification = d.Verification,
+                            //VerificationUser = d.VerificationUser,
                         })
                         .ToListAsync();
                 if (result == null)

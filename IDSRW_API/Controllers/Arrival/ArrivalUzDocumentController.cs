@@ -146,9 +146,9 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-        // GET: ArrivalUzDocument/accepted/start/2025-04-01T00:00:00/stop/2025-04-30T00:00:00
-        [HttpGet("accepted/start/{start:DateTime}/stop/{stop:DateTime}")]
-        public async Task<ActionResult<ArrivalUzDocument>> GetArrivalUzDocument(DateTime start, DateTime stop)
+        // GET: ArrivalUzDocument/verification/start/2025-03-01T00:00:00/stop/2025-03-30T00:00:00
+        [HttpGet("verification/start/{start:DateTime}/stop/{stop:DateTime}")]
+        public async Task<ActionResult<ArrivalUzDocument>> GetVerificationArrivalUzDocument(DateTime start, DateTime stop)
         {
             try
             {
@@ -156,7 +156,7 @@ namespace WebAPI.Controllers.Directory
                 IEnumerable<long> id_docs = db.ArrivalUzVagons.Where(v => id_sts.Contains(v.IdArrivalNavigation.Id)).Select(c => c.IdDocument).Distinct().ToList();
                 var result = await db.ArrivalUzDocuments
                         .AsNoTracking()
-                        .Where(x => id_docs.Contains(x.Id))
+                        .Where(x => id_docs.Contains(x.Id) && x.CalcPayer!=null)
                         .Include(code_bc => code_bc.CodeBorderCheckpointNavigation)
                         .Include(code_st_from => code_st_from.CodeStnFromNavigation)
                         .Include(code_st_on => code_st_on.CodeStnToNavigation)
