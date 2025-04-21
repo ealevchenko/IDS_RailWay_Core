@@ -177,6 +177,13 @@ namespace WebAPI.Controllers.Directory
                                 .ThenInclude(wag_cont_pays => wag_cont_pays.ArrivalUzContPays)
                         .Include(wag_doc => wag_doc.ArrivalUzVagons)
                             .ThenInclude(wag_pays => wag_pays.ArrivalUzVagonPays)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(wag_cargo => wag_cargo.IdCargoNavigation)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(wag_rent => wag_rent.IdWagonsRentArrivalNavigation)
+                                .ThenInclude(wag_oper => wag_oper.IdOperatorNavigation)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(wag_div => wag_div.IdDivisionOnAmkrNavigation)
                         .ToListAsync();
 
                 if (result == null)
