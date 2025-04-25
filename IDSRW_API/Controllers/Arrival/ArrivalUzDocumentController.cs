@@ -29,6 +29,13 @@ namespace WebAPI.Controllers.Directory
         public decimal? tariff_contract { get; set; }
     }
 
+    public class UpdateVerification
+    {
+        public List<long> id_docs { get; set; }
+        public int presented { get; set; }
+        public string? num_act { get; set; }
+    }
+
     #endregion
 
 
@@ -146,6 +153,12 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        #region СВЕРКА ДОКУМЕНТОВ ПО ПРИБЫТИЮ
+        /// <summary>
+        /// Сверака документов по прибытию получение документа по id 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         // GET: ArrivalUzDocument/verification/id/932003
         [HttpGet("verification/id/{id}")]
         public async Task<ActionResult<ArrivalUzDocument>> GetVerificationArrivalUzDocument(long id)
@@ -193,6 +206,12 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+        /// <summary>
+        /// Сверака документов по прибытию получение документа за период 
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <returns></returns>
         // GET: ArrivalUzDocument/verification/start/2025-03-01T00:00:00/stop/2025-03-30T00:00:00
         [HttpGet("verification/start/{start:DateTime}/stop/{stop:DateTime}")]
         public async Task<ActionResult<ArrivalUzDocument>> GetVerificationArrivalUzDocument(DateTime start, DateTime stop)
@@ -243,6 +262,50 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        // POST: ArrivalUzDocument/update/verification
+        // BODY: ArrivalUzDocument/update/verification (JSON, XML)
+        [HttpPost("update/verification")]
+        public async Task<int> PostVerificationArrivalUzDocument([FromBody] UpdateVerification value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+                // Пользователь непрошел интендификацию!
+                if (value == null || !IsAuthenticated) { return -1; }
+                if (value.presented < 1 || value.presented > 3) return (int)errors_base.error_input_value;
+                List<ArrivalUzDocument>? list = await db.ArrivalUzDocuments
+                    .Where(d => value.id_docs.Contains(d.Id))
+                    .ToListAsync();
+                if (list != null)
+                {
+                    foreach (ArrivalUzDocument doc in list) {
+
+                        if (value.presented == 1) {
+                            doc.NumActServices1 = value.num_act;
+                        }
+                        if (value.presented == 2) {
+                            doc.NumActServices2 = value.num_act;
+                        }
+                        if (value.presented == 3) {
+                            doc.NumActServices3 = value.num_act;
+                        }
+                        doc.Verification = DateTime.Now;
+                        doc.VerificationUser = user;
+                    }
+                    return await db.SaveChangesAsync();
+                }
+                else
+                {
+                    return (int)errors_base.not_inp_uz_doc_db;
+                }
+            }
+            catch (Exception e)
+            {
+                return (int)errors_base.global;
+            }
+        }
+        #endregion
 
         // POST: ArrivalUzDocument/update/pay
         // BODY: ArrivalUzDocument/update/pay (JSON, XML)
