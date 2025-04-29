@@ -194,5 +194,43 @@ namespace Test.TestModele
             ResultCorrect result = ids_wir.CorrectArrivalNotEPD_Document(num_doc, num_nakl, nums, correct_document, correct_all_vagons, correct_vagons);
             Console.WriteLine($" result : {result.result} \n message :{result.message}");
         }
+
+        public void CorrectOutgoingDocument()
+        {
+
+            int id_sostav = 366011;
+            List<int> nums = new List<int> { 51221224 };
+            OutgoingCorrectDocument doc = new OutgoingCorrectDocument()
+            {
+                NumDoc = 46721362,
+                CodeShipper = 7932,
+                CodeConsignee = null,
+                CodeStnTo = 711648
+
+            };
+            List<OutgoingCorrectVagonDocument> vagons = new List<OutgoingCorrectVagonDocument>();
+            
+            vagons.Add(new OutgoingCorrectVagonDocument() { Num = 51221224, IdCargo = 74, Vesg = 65200 });
+
+
+
+            ResultCorrect result = ids_wir.CorrectOutgoingDocument(id_sostav, nums, doc, vagons);
+            Console.WriteLine($" result : {result.result} \n message :{result.message}");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        }
     }
 }

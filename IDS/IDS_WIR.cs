@@ -43,7 +43,14 @@ namespace IDS_
         public string? CodePayerArrival { get; set; }
         public int? DistanceWay { get; set; }
     }
-
+    public class OutgoingCorrectDocument
+    {
+        public int NumDoc { get; set; }
+        public int? CodeStnFrom { get; set; }
+        public int? CodeStnTo { get; set; }
+        public int? CodeShipper { get; set; }
+        public int? CodeConsignee { get; set; }
+    }
     public class ArrivalCorrectVagonDocument
     {
         public int? Num { get; set; }
@@ -55,6 +62,12 @@ namespace IDS_
         public long? PaySumma { get; set; }
         public int? IdStationOnAmkr { get; set; }
         public int? IdDivisionOnAmkr { get; set; }
+    }
+    public class OutgoingCorrectVagonDocument
+    {
+        public int? Num { get; set; }
+        public int? IdCargo { get; set; }
+        public int? Vesg { get; set; }
     }
 
     public class ResultCorrect
@@ -4980,8 +4993,8 @@ namespace IDS_
                             IdCar = (int)vag.Id,
                             IdCondition = arr_uz_vag.IdCondition,
                             IdType = arr_uz_vag.IdType,
-                            Gruzp = correct_all_vagons!= null ? correct_all_vagons.Gruzp : null,
-                            UTara = correct_all_vagons!= null ? correct_all_vagons.UTara : null,
+                            Gruzp = correct_all_vagons != null ? correct_all_vagons.Gruzp : null,
+                            UTara = correct_all_vagons != null ? correct_all_vagons.UTara : null,
                             VesTaryArc = correct_all_vagons != null ? correct_all_vagons.VesTaryArc : null,
                             Route = null,
                             NoteVagon = null,
@@ -5017,7 +5030,7 @@ namespace IDS_
                             TaraUz = arr_uz_vag.TaraUz,
                             Zayava = null,
                             Manual = true,
-                            PaySumma = correct_all_vagons != null && correct_all_vagons.PaySumma!=null ? (int?)correct_all_vagons.PaySumma : null,
+                            PaySumma = correct_all_vagons != null && correct_all_vagons.PaySumma != null ? (int?)correct_all_vagons.PaySumma : null,
                             IdWagonsRentArrival = arr_uz_vag.IdWagonsRentArrival,
                         };
                         vag.IdArrivalUzVagonNavigation = new_vag;
@@ -5038,6 +5051,108 @@ namespace IDS_
                 return res;
             }
         }
+
+        public ResultCorrect CorrectOutgoingDocument(int id_sostav, List<int> nums, OutgoingCorrectDocument doc, List<OutgoingCorrectVagonDocument> vagons)
+        {
+            ResultCorrect res = new ResultCorrect() { result = 0, message = null };
+            try
+            {
+                string user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                EFDbContext context = new(this.options);
+                OutgoingSostav? sostav = context.OutgoingSostavs
+                   .Include(cars => cars.OutgoingCars) // OutgoingCar
+                        .ThenInclude(vag => vag.IdOutgoingUzVagonNavigation) // OutgoingUzVagon
+                            .ThenInclude(vag_doc => vag_doc.IdDocumentNavigation) // OutgoingUzDocument
+                   .Include(cars => cars.OutgoingCars) // OutgoingCar
+                        .ThenInclude(doc => doc.NumDocNavigation) // NumDoc
+                    .Where(s => s.Id == id_sostav).FirstOrDefault();
+                if (sostav == null) { res.result = (int)errors_base.not_outgoing_sostav_db; return res; }
+                if (sostav.OutgoingCars == null || sostav.OutgoingCars.Count() == 0) { res.result = (int)errors_base.not_outgoing_cars_db; return res; }
+                List<OutgoingCar> cars = sostav.OutgoingCars.Where(c => nums.Contains(c.Num)).ToList();
+                if (cars == null || cars.Count() == 0) { res.result = (int)errors_base.not_outgoing_cars_db; return res; }
+
+
+                List<OutgoingUzVagon> list_out_uz_vag = new List<OutgoingUzVagon>();
+                //List<UzDocOut> list_uz_doc = new List<UzDocOut>();
+
+                // Список вагонов
+
+                //
+                string NumDoc = "MN:" + doc.NumDoc;
+                UzDocOut uz_doc = new UzDocOut()
+                {
+                    NumDoc = NumDoc,
+                    Revision = 0,
+                    Status = 6,
+                    CodeFrom = doc.CodeShipper != null ? doc.CodeShipper.ToString() : "none",
+                    CodeOn = doc.CodeConsignee != null ? doc.CodeConsignee.ToString() : "none",
+                    Dt = DateTime.Now,
+                    XmlDoc = null,
+                    NumUz = doc.NumDoc
+                };
+                context.UzDocOuts.Add(uz_doc);
+
+                foreach (OutgoingCar vag in cars)
+                {
+                    if (vag.IdOutgoingUzVagonNavigation != null)
+                    {
+                        list_out_uz_vag.Add(vag.IdOutgoingUzVagonNavigation);
+                    }
+                    vag.NumDoc = NumDoc;
+                }
+
+                OutgoingUzDocument doc_uz = new OutgoingUzDocument()
+                {
+                    Id = 0,
+                    IdDocUz = NumDoc,
+                    NomDoc = doc.NumDoc,
+                    CodeStnFrom = doc.CodeStnFrom,
+                    CodeStnTo = doc.CodeStnTo,
+                    CountryNazn = null,
+                    CodeBorderCheckpoint = null,
+                    CrossDate = null,
+                    CodeShipper = doc.CodeShipper,
+                    CodeConsignee = doc.CodeConsignee,
+                    Vid = null,
+                    CodePayer = null,
+                    DistanceWay = null,
+                    Osum = null,
+                    DateSozdan = null,
+                    DateOtpr = null,
+                    DatePr = null,
+                    DateGrpol = null,
+                    DateVid = null,
+                    InfoSht = null,
+                    NameGr = null,
+                    Note = "Ручной ввод (коррекция), закрыт",
+                    Create = DateTime.Now,
+                    CreateUser =user,
+                };
+                //
+                foreach (OutgoingUzVagon out_vag in list_out_uz_vag) {
+                    OutgoingCorrectVagonDocument? set_vag = vagons.Where(v => v.Num == out_vag.Num).FirstOrDefault();
+                    if (set_vag != null) {
+                        out_vag.IdCargo = set_vag.IdCargo;
+                        out_vag.Vesg = set_vag.Vesg;
+                    }
+                    doc_uz.OutgoingUzVagons.Add(out_vag);
+                }
+
+                context.OutgoingUzDocuments.Add(doc_uz);
+
+                res.result = context.SaveChanges();
+                res.message = res.result < 0 ? "Error" : "Ok";
+                return res;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "CorrectOutgoingDocument(id_sostav={0})", id_sostav);
+                res.result = (int)errors_base.global;
+                res.message = e.Message;
+                return res;
+            }
+        }
+
 
         #endregion
 
