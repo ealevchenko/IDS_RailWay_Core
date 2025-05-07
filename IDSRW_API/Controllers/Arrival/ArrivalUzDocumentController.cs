@@ -38,7 +38,6 @@ namespace WebAPI.Controllers.Directory
 
     #endregion
 
-
     [Route("[controller]")]
     [ApiController]
     public class ArrivalUzDocumentController : ControllerBase
