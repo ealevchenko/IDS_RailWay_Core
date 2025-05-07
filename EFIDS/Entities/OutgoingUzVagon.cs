@@ -83,6 +83,9 @@ public partial class OutgoingUzVagon
     [Column("code_stn_to")]
     public int? CodeStnTo { get; set; }
 
+    [Column("kol_conductor")]
+    public int? KolConductor { get; set; }
+
     [Column("create", TypeName = "datetime")]
     public DateTime Create { get; set; }
 

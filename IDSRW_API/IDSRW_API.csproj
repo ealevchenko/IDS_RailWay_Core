@@ -22,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\Outgoing\" />
     <Folder Include="Repositories\Outgoing\" />
   </ItemGroup>
 

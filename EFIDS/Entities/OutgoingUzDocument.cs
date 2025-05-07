@@ -96,6 +96,28 @@ public partial class OutgoingUzDocument
     [StringLength(50)]
     public string? ChangeUser { get; set; }
 
+    [Column("tariff_contract")]
+    public int? TariffContract { get; set; }
+
+    [Column("calc_payer", TypeName = "datetime")]
+    public DateTime? CalcPayer { get; set; }
+
+    [Column("calc_payer_user")]
+    [StringLength(50)]
+    public string? CalcPayerUser { get; set; }
+
+    [Column("num_list")]
+    public int? NumList { get; set; }
+
+    [Column("date_list", TypeName = "datetime")]
+    public DateTime? DateList { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? Verification { get; set; }
+
+    [StringLength(50)]
+    public string? VerificationUser { get; set; }
+
     [ForeignKey("CodeBorderCheckpoint")]
     [InverseProperty("OutgoingUzDocuments")]
     public virtual DirectoryBorderCheckpoint? CodeBorderCheckpointNavigation { get; set; }
