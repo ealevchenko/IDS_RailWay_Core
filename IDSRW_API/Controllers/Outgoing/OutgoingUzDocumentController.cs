@@ -22,19 +22,13 @@ namespace WebAPI.Controllers.Directory
         public int summa { get; set; }
         public string kod { get; set; }
     }
-    //public class UpdatePayerLocal
-    //{
-    //    public long id_document { get; set; }
-    //    public string code_payer_local { get; set; }
-    //    public decimal? tariff_contract { get; set; }
-    //}
 
-    //public class UpdateVerification
-    //{
-    //    public List<long> id_docs { get; set; }
-    //    public int presented { get; set; }
-    //    public string? num_act { get; set; }
-    //}
+    public class UpdatePay
+    {
+        public long id_document { get; set; }
+        public int? type { get; set; }
+        public long? value { get; set; }
+    }
 
     #endregion
 
@@ -243,24 +237,7 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        // GET: OutgoingUzDocument/list
-        //[HttpGet("list")]
-        //public async Task<ActionResult<IEnumerable<OutgoingUzDocument>>> GetListOutgoingUzDocument()
-        //{
-        //    try
-        //    {
-        //        //db.Database.CommandTimeout = 100;
-        //        List<OutgoingUzDocument> result = await db.OutgoingUzDocuments.FromSql($"select * from [IDS].[Directory_Cargo]").ToListAsync();
-        //        if (result == null)
-        //            return NotFound();
-        //        //db.Database.CommandTimeout = null;               
-        //        return Ok(result);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return BadRequest(e.Message);
-        //    }
-        //}
+
         // GET: OutgoingUzDocument/536848
         [HttpGet("{id}")]
         public async Task<ActionResult<OutgoingUzDocument>> GetOutgoingUzDocument(int id)
@@ -301,6 +278,97 @@ namespace WebAPI.Controllers.Directory
             catch (Exception e)
             {
                 return BadRequest(e.Message);
+            }
+        }
+
+        // POST: OutgoingUzDocument/update/pay
+        // BODY: OutgoingUzDocument/update/pay (JSON, XML)
+        [HttpPost("update/pay")]
+        public async Task<ActionResult<int>> PostUpdatePayOutgoingUzDocument([FromBody] UpdatePay value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return Unauthorized();
+                }
+
+                //OutgoingUzDocument? result = await db.OutgoingUzDocuments
+                //    .Include(pays => pays.OutgoingUzDocumentPays)
+                //    //.Include(wag_doc => wag_doc.OutgoingUzVagons)
+                //    .FirstOrDefaultAsync(x => x.Id == value.id_document);
+                OutgoingUzDocument? result = db.OutgoingUzDocuments
+                    .Include(pays => pays.OutgoingUzDocumentPays)
+                    //.Include(wag_doc => wag_doc.OutgoingUzVagons)
+                    .FirstOrDefault(x => x.Id == value.id_document);
+
+                if (result != null)
+                {
+                    // обновить OutgoingUzDocumentPays
+                    if (value.type == 0)
+                    {
+                        if (String.IsNullOrWhiteSpace(result.CodePayer)) return (int)errors_base.error_out_uz_doc_not_code_payer;
+
+                        //IEnumerable<OutgoingUzDocumentPay> pays = result.OutgoingUzDocumentPays
+                        //    .Where(d => d.Kod == "001")
+                        //    .ToList();
+                        
+                        IEnumerable<OutgoingUzDocumentPay> pays = db.OutgoingUzDocumentPays
+                            .Where(d => d.Kod == "001")
+                            .ToList();
+
+                        OutgoingUzDocumentPay pay_new = new OutgoingUzDocumentPay()
+                        {
+                            Id = 0,
+                            IdDocument = value.id_document,
+                            CodePayer = int.Parse(result.CodePayer),
+                            Kod = "001",
+                            Summa = value.value != null ? (long)value.value : 0,
+                            TypePayer = 0
+                        };
+                        // Удалим старую запись
+                        if (pays != null && pays.Count() > 0)
+                        {
+                            // Удалить
+                            foreach (OutgoingUzDocumentPay pay in pays)
+                            {
+                                pay.IdDocumentNavigation = null;
+                                //result.OutgoingUzDocumentPays.Remove(pay);
+                                db.OutgoingUzDocumentPays.Remove(pay);
+                            }
+
+                        }
+                        if (value.value != null) { 
+                            //result.OutgoingUzDocumentPays.Add(pay_new);
+                            db.OutgoingUzDocumentPays.Add(pay_new);
+                        }
+                        result.Change = DateTime.Now;
+                        result.ChangeUser = user;
+                        db.OutgoingUzDocuments.Update(result);
+                        return await db.SaveChangesAsync();
+                    }
+                    // обновить тариф
+                    if (value.type == 1 || value.type == 2)
+                    {
+                        result.TariffContract = (int?)value.value;
+                        result.CalcPayerUser = user;
+                        result.CalcPayer = DateTime.Now;
+                        return await db.SaveChangesAsync();
+                    }
+                    return 0;
+
+                }
+                else
+                {
+                    return (int)errors_base.not_out_uz_doc_db;
+                }
+            }
+            catch (Exception e)
+            {
+                return (int)errors_base.global;
             }
         }
 
