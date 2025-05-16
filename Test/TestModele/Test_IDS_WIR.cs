@@ -68,7 +68,6 @@ namespace Test.TestModele
         {
             int result = ids_wir.ChangeVesgOutgoingWagons(1155, 64226459, 66750);
         }
-
         public void UpdateFiling()
         {
             List<UnloadingWagons> wagons = new List<UnloadingWagons>();
@@ -194,23 +193,22 @@ namespace Test.TestModele
             ResultCorrect result = ids_wir.CorrectArrivalNotEPD_Document(num_doc, num_nakl, nums, correct_document, correct_all_vagons, correct_vagons);
             Console.WriteLine($" result : {result.result} \n message :{result.message}");
         }
-
         public void CorrectOutgoingDocument()
         {
 
-            int id_sostav = 366011;
-            List<int> nums = new List<int> { 51221224 };
+            int id_sostav = 366014;
+            List<int> nums = new List<int> { 65000929 };
             OutgoingCorrectDocument doc = new OutgoingCorrectDocument()
             {
-                NumDoc = 46721362,
+                NumDoc = 46700497,
                 CodeShipper = 7932,
                 CodeConsignee = null,
-                CodeStnTo = 711648
+                CodeStnTo = 13538
 
             };
             List<OutgoingCorrectVagonDocument> vagons = new List<OutgoingCorrectVagonDocument>();
             
-            vagons.Add(new OutgoingCorrectVagonDocument() { Num = 51221224, IdCargo = 74, Vesg = 65200 });
+            vagons.Add(new OutgoingCorrectVagonDocument() { Num = 65000929, IdCargo = 114, Vesg = 68000 });
 
 
 
@@ -232,5 +230,17 @@ namespace Test.TestModele
 
 
         }
+
+        /// <summary>
+        /// Административная функция. Удалить подачу (или вагоны в подаче)
+        /// </summary>
+        public void DeleteFilingOfID()
+        {
+            int id_filing = 122272;
+            List<int> nums = new List<int> {  };
+            ResultCorrect result = ids_wir.DeleteFilingOfID(id_filing, nums);
+            Console.WriteLine($" result : {result.result} \n message :{result.message}");
+        }
+
     }
 }
