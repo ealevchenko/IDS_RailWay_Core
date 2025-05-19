@@ -254,7 +254,7 @@ namespace WebAPI.Controllers.Directory
                         .Include(code_cns => code_cns.CodeConsigneeNavigation)
                         .Include(code_chp => code_chp.CodeShipperNavigation)
                         .Include(code_pa => code_pa.CodePayerNavigation)
-                           .Include(pays => pays.OutgoingUzDocumentPays)
+                        .Include(pays => pays.OutgoingUzDocumentPays)
                         .Include(wag_doc => wag_doc.OutgoingUzVagons)
                             .ThenInclude(out_sost => out_sost.IdOutgoingNavigation)
                         .Include(wag_doc => wag_doc.OutgoingUzVagons)
@@ -274,7 +274,7 @@ namespace WebAPI.Controllers.Directory
                             .ThenInclude(wag_rent_out => wag_rent_out.IdWagonsRentOutgoingNavigation)
                                 .ThenInclude(wag_oper_out => wag_oper_out.IdOperatorNavigation)
                         .AsNoTracking()
-                        .Where(x => id_docs.Contains(x.Id) && x.NomDoc > 0)
+                        .Where(x => id_docs.Contains(x.Id) && x.NomDoc > 0 && x.CalcPayer != null)
                         .ToListAsync();
                 db.Database.SetCommandTimeout(0);
                 if (result == null)
@@ -313,13 +313,14 @@ namespace WebAPI.Controllers.Directory
                             .ThenInclude(wag_pays => wag_pays.OutgoingUzVagonPays)
                         .Include(wag_doc => wag_doc.OutgoingUzVagons)
                             .ThenInclude(wag_cargo => wag_cargo.IdCargoNavigation)
-                        .Include(wag_doc => wag_doc.OutgoingUzVagons)
-                            .ThenInclude(wag_rent_arr => wag_rent_arr.IdWagonsRentArrivalNavigation)
-                                .ThenInclude(wag_oper_arr => wag_oper_arr.IdOperatorNavigation)
+                                .ThenInclude(wag_cargo_etsng => wag_cargo_etsng.IdCargoEtsngNavigation)
+                        //.Include(wag_doc => wag_doc.OutgoingUzVagons)
+                        //    .ThenInclude(wag_rent_arr => wag_rent_arr.IdWagonsRentArrivalNavigation)
+                        //        .ThenInclude(wag_oper_arr => wag_oper_arr.IdOperatorNavigation)
                         .Include(wag_doc => wag_doc.OutgoingUzVagons)
                             .ThenInclude(wag_rent_out => wag_rent_out.IdWagonsRentOutgoingNavigation)
                                 .ThenInclude(wag_oper_out => wag_oper_out.IdOperatorNavigation)
-                         .AsNoTracking()
+                        .AsNoTracking()
                          .Where(x => x.Id == id)
                          .FirstOrDefaultAsync();
                 db.Database.SetCommandTimeout(0);
