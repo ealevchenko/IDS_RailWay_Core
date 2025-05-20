@@ -29,7 +29,7 @@ namespace WebAPI.Controllers.Directory
         public decimal? tariff_contract { get; set; }
     }
 
-    public class UpdateVerification
+    public class UpdateVerificationArrival
     {
         public List<long> id_docs { get; set; }
         public int presented { get; set; }
@@ -221,7 +221,7 @@ namespace WebAPI.Controllers.Directory
                 IEnumerable<long> id_docs = db.ArrivalUzVagons.Where(v => id_sts.Contains(v.IdArrivalNavigation.Id)).Select(c => c.IdDocument).Distinct().ToList();
                 var result = await db.ArrivalUzDocuments
                         .AsNoTracking()
-                        .Where(x => id_docs.Contains(x.Id) && x.CalcPayer!=null)
+                        .Where(x => id_docs.Contains(x.Id) && x.CalcPayer != null)
                         .Include(code_bc => code_bc.CodeBorderCheckpointNavigation)
                         .Include(code_st_from => code_st_from.CodeStnFromNavigation)
                         .Include(code_st_on => code_st_on.CodeStnToNavigation)
@@ -264,7 +264,7 @@ namespace WebAPI.Controllers.Directory
         // POST: ArrivalUzDocument/update/verification
         // BODY: ArrivalUzDocument/update/verification (JSON, XML)
         [HttpPost("update/verification")]
-        public async Task<int> PostVerificationArrivalUzDocument([FromBody] UpdateVerification value)
+        public async Task<int> PostVerificationArrivalUzDocument([FromBody] UpdateVerificationArrival value)
         {
             try
             {
@@ -278,19 +278,28 @@ namespace WebAPI.Controllers.Directory
                     .ToListAsync();
                 if (list != null)
                 {
-                    foreach (ArrivalUzDocument doc in list) {
+                    foreach (ArrivalUzDocument doc in list)
+                    {
 
-                        if (value.presented == 1) {
+                        if (value.presented == 1)
+                        {
                             doc.NumActServices1 = value.num_act;
                         }
-                        if (value.presented == 2) {
+                        if (value.presented == 2)
+                        {
                             doc.NumActServices2 = value.num_act;
                         }
-                        if (value.presented == 3) {
+                        if (value.presented == 3)
+                        {
                             doc.NumActServices3 = value.num_act;
                         }
-                        doc.Verification = DateTime.Now;
-                        doc.VerificationUser = user;
+
+                        if ((value.num_act == null && (doc.NumActServices1 != null || doc.NumActServices2 != null || doc.NumActServices3 != null)) || value.num_act != null)
+                        {
+                            doc.Verification = DateTime.Now;
+                            doc.VerificationUser = user;
+                        }
+
                     }
                     return await db.SaveChangesAsync();
                 }
