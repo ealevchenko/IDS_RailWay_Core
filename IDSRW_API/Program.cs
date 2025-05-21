@@ -44,8 +44,8 @@ try
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
-    builder.Services.AddScoped<ILongRepository<ArrivalCar>, ArrivalCarRepository>();
-    builder.Services.AddScoped<ILongRepository<ArrivalSostav>, ArrivalSostavRepository>();
+    //builder.Services.AddScoped<ILongRepository<ArrivalCar>, ArrivalCarRepository>();
+    //builder.Services.AddScoped<ILongRepository<ArrivalSostav>, ArrivalSostavRepository>();
     //builder.Services.AddScoped<IRepository<DirectoryCargoEtsng>, DirectoryCargoEtsngRepository>();
     //builder.Services.AddScoped<IRepository<DirectoryCargo>, DirectoryCargoRepository>();
     //builder.Services.AddScoped<IRepository<DirectoryCargoGroup>, DirectoryCargoGroupRepository>();
