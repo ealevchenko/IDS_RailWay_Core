@@ -38,7 +38,6 @@ namespace WS_IDS
             _logger = logger;
             _configuration = configuration;
             _eventId = int.Parse(_configuration["EventID:UpdateBankRate"]);
-
             interval = int.Parse(_configuration["Interval:UpdateBankRate"]);
             list_r030 = _configuration.GetSection("Control:list_r030").Value.Split(',').Select(s => int.Parse(s)).ToList();
             cl_bank = new ClientBank(logger, configuration);
