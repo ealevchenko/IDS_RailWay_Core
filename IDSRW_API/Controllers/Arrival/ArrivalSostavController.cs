@@ -47,7 +47,7 @@ namespace WebAPI.Controllers.Arrival
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        // GET: ArrivalSostav/document/draft/id/398431
+        // GET: ArrivalSostav/document/draft/id/398442
         [HttpGet("document/draft/id/{id}")]
         public async Task<ActionResult<ArrivalSostav>> GetDocumentDraftArrivalSostavOfId(int id)
         {
@@ -63,12 +63,12 @@ namespace WebAPI.Controllers.Arrival
                         IdStationFrom = d.IdStationFromNavigation.Id,
                         StationFromNameRu = d.IdStationFromNavigation.StationNameRu,
                         StationFromNameEn = d.IdStationFromNavigation.StationNameEn,
-                        IdStationOn = d.IdStationOnNavigation.Id,
-                        StationOnNameRu = d.IdStationOnNavigation.StationNameRu,
-                        StationOnNameEn = d.IdStationOnNavigation.StationNameEn,
-                        IdWayOn = d.IdWayNavigation.Id,
-                        WayOnNameRu = d.IdWayNavigation.WayNumRu + "-"+ d.IdWayNavigation.WayAbbrRu,
-                        WayOnNameEn = d.IdWayNavigation.WayNumEn + "-"+ d.IdWayNavigation.WayAbbrEn,
+                        IdStationOn = d.IdStationOnNavigation != null ? (int?)d.IdStationOnNavigation.Id : null,
+                        StationOnNameRu = d.IdStationOnNavigation != null ? d.IdStationOnNavigation.StationNameRu : null,
+                        StationOnNameEn = d.IdStationOnNavigation != null ? d.IdStationOnNavigation.StationNameEn : null,
+                        IdWayOn = d.IdWayNavigation != null ? (int?)d.IdWayNavigation.Id : null,
+                        WayOnNameRu = d.IdWayNavigation != null ?  d.IdWayNavigation.WayNumRu + "-" + d.IdWayNavigation.WayAbbrRu : null,
+                        WayOnNameEn = d.IdWayNavigation != null ?  d.IdWayNavigation.WayNumEn + "-" + d.IdWayNavigation.WayAbbrEn : null,
                         Numeration = d.Numeration,
                         Train = d.Train,
                         DateArrival = d.DateArrival,
