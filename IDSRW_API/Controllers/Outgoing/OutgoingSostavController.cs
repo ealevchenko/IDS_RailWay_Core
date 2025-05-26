@@ -53,6 +53,7 @@ namespace WebAPI.Controllers.Arrival
                     {
                         Id = d.Id,
                         CompositionIndex = d.CompositionIndex,
+                        NumDoc = d.NumDoc,
                         IdStationFrom = d.IdStationFromNavigation.Id,
                         StationFromNameRu = d.IdStationFromNavigation.StationNameRu,
                         StationFromNameEn = d.IdStationFromNavigation.StationNameEn,
@@ -62,6 +63,7 @@ namespace WebAPI.Controllers.Arrival
                         //IdWayOn = d.IdWayNavigation != null ? (int?)d.IdWayNavigation.Id : null,
                         //WayOnNameRu = d.IdWayNavigation != null ?  d.IdWayNavigation.WayNumRu + "-" + d.IdWayNavigation.WayAbbrRu : null,
                         //WayOnNameEn = d.IdWayNavigation != null ?  d.IdWayNavigation.WayNumEn + "-" + d.IdWayNavigation.WayAbbrEn : null,
+
                         DateReadinessUz = d.DateReadinessUz,
                         DateReadinessAmkr = d.DateReadinessAmkr,
                         DateOutgoing = d.DateOutgoing,
