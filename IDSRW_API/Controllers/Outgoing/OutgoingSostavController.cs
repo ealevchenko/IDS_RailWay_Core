@@ -63,7 +63,6 @@ namespace WebAPI.Controllers.Arrival
                         //IdWayOn = d.IdWayNavigation != null ? (int?)d.IdWayNavigation.Id : null,
                         //WayOnNameRu = d.IdWayNavigation != null ?  d.IdWayNavigation.WayNumRu + "-" + d.IdWayNavigation.WayAbbrRu : null,
                         //WayOnNameEn = d.IdWayNavigation != null ?  d.IdWayNavigation.WayNumEn + "-" + d.IdWayNavigation.WayAbbrEn : null,
-
                         DateReadinessUz = d.DateReadinessUz,
                         DateReadinessAmkr = d.DateReadinessAmkr,
                         DateOutgoing = d.DateOutgoing,
@@ -79,6 +78,15 @@ namespace WebAPI.Controllers.Arrival
                             Position = w.Position,
                             PositionOutgoing = w.PositionOutgoing,
                             NumDoc = w.NumDocNavigation != null ? w.NumDocNavigation.NumUz : null,
+                            CargoNameId = w.IdOutgoingUzVagonNavigation != null && w.IdOutgoingUzVagonNavigation.IdCargoNavigation!=null ? (int?)w.IdOutgoingUzVagonNavigation.IdCargoNavigation.Id : null,                           
+                            CargoNameRu = w.IdOutgoingUzVagonNavigation != null && w.IdOutgoingUzVagonNavigation.IdCargoNavigation!=null ? w.IdOutgoingUzVagonNavigation.IdCargoNavigation.CargoNameRu : null,
+                            CargoNameEn = w.IdOutgoingUzVagonNavigation != null && w.IdOutgoingUzVagonNavigation.IdCargoNavigation!=null ? w.IdOutgoingUzVagonNavigation.IdCargoNavigation.CargoNameEn : null,
+                            CodePayer = w.IdOutgoingUzVagonNavigation != null && w.IdOutgoingUzVagonNavigation.IdDocumentNavigation!=null && w.IdOutgoingUzVagonNavigation.IdDocumentNavigation.CodePayerNavigation!=null ? w.IdOutgoingUzVagonNavigation.IdDocumentNavigation.CodePayerNavigation.Code : null,
+                            PayerNameRu = w.IdOutgoingUzVagonNavigation != null && w.IdOutgoingUzVagonNavigation.IdDocumentNavigation != null && w.IdOutgoingUzVagonNavigation.IdDocumentNavigation.CodePayerNavigation != null ? w.IdOutgoingUzVagonNavigation.IdDocumentNavigation.CodePayerNavigation.PayerNameRu : null,
+                            PayerNameEn = w.IdOutgoingUzVagonNavigation != null && w.IdOutgoingUzVagonNavigation.IdDocumentNavigation != null && w.IdOutgoingUzVagonNavigation.IdDocumentNavigation.CodePayerNavigation != null ? w.IdOutgoingUzVagonNavigation.IdDocumentNavigation.CodePayerNavigation.PayerNameEn : null,
+                            OutgoingUzVagonPays001 = w.IdOutgoingUzVagonNavigation != null && w.IdOutgoingUzVagonNavigation.OutgoingUzVagonPays!=null ? (int?)w.IdOutgoingUzVagonNavigation.OutgoingUzVagonPays.ToList().Where(p=>p.Kod == "001").Sum(s=>s.Summa) : null,
+                            OutgoingUzVagonPaysAdd = w.IdOutgoingUzVagonNavigation != null && w.IdOutgoingUzVagonNavigation.OutgoingUzVagonPays!=null ? (int?)w.IdOutgoingUzVagonNavigation.OutgoingUzVagonPays.ToList().Where(p=>p.Kod != "001").Sum(s=>s.Summa) : null,
+                            OutgoingUzVagonPaysAll = w.IdOutgoingUzVagonNavigation != null && w.IdOutgoingUzVagonNavigation.OutgoingUzVagonPays!=null ? (int?)w.IdOutgoingUzVagonNavigation.OutgoingUzVagonPays.ToList().Sum(s=>s.Summa) : null,
                             WagonsRent = db.DirectoryWagonsRents
                                 .AsNoTracking()
                                 .Where(r => r.Num == w.Num && r.RentEnd == null)
