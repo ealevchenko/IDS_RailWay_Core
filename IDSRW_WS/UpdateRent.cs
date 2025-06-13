@@ -21,7 +21,7 @@ namespace WS_IDS
         EventId _eventId = new EventId(0);
         private int interval = 3600;                               // Интервал выполнения таймера
         private int control_period_arr = 10;                       // Период контроля принятых составов (дней)
-        private int control_period_out = 10;                       // Период контроля отправленных составов (дней)
+        private int control_period_out = 30;                       // Период контроля отправленных составов (дней)
         Stopwatch stopWatch = new Stopwatch();
 
         private Timer? _timer = null;
