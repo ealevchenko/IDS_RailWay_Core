@@ -401,6 +401,172 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // GET: WSD/view/vagons/balance
+        [HttpGet("view/vagons/balance")]
+        public async Task<ActionResult> GetViewWagonsOfBalance()
+        {
+            try
+            {
+                var result = await db.WagonInternalMovements
+                         //.Include(wag_doc => wag_doc.OutgoingUzVagons)
+                         .AsNoTracking()
+                         .Where(x => x.IdStation != 10 && (x.IdOuterWay == null && x.WayEnd == null) || (x.IdOuterWay != null && x.OuterWayStart != null && x.OuterWayEnd == null))
+                         .Select(d => new
+                         {
+                             Id = d.Id,
+                             IdWir = d.IdWagonInternalRoutes,
+                             Num = d.IdWagonInternalRoutesNavigation.Num,
+                             CurrentIdStation = d.IdStation,
+                             CurrentStationNameRu = d.IdStationNavigation.StationNameRu,
+                             CurrentStationNameEn = d.IdStationNavigation.StationNameEn,
+                             CurrentTypeWay = d.IdOuterWay != null ? "Перегон" : "Путь станции",
+                             CurrentWayNameRu = d.IdOuterWay != null ? d.IdOuterWayNavigation.NameOuterWayRu : d.IdWayNavigation.WayNumRu + "-" + d.IdWayNavigation.WayAbbrRu,
+                             CurrentWayNameEn = d.IdOuterWay != null ? d.IdOuterWayNavigation.NameOuterWayEn : d.IdWayNavigation.WayNumEn + "-" + d.IdWayNavigation.WayAbbrEn,
+                             Wagon = db.DirectoryWagonsRents
+                                .AsNoTracking()
+                                .Where(r => r.Num == d.IdWagonInternalRoutesNavigation.Num && r.RentEnd == null)
+                                .Select(o => new
+                                {
+
+                                    IdRent = o.Id,
+
+                                    IdOperator = o.IdOperator,
+                                    OperatorAbbrRu = o.IdOperatorNavigation != null ? o.IdOperatorNavigation.AbbrRu : null,
+                                    OperatorAbbrEn = o.IdOperatorNavigation != null ? o.IdOperatorNavigation.AbbrEn : null,
+                                    Group = db.DirectoryOperatorsWagonsGroups.AsNoTracking().Where(g => g.IdOperator == o.IdOperator).FirstOrDefault() != null ? db.DirectoryOperatorsWagonsGroups.AsNoTracking().Where(g => g.IdOperator == o.IdOperator).FirstOrDefault().Group : null,
+
+                                    IdLimiting = o.IdLimiting,
+                                    LimitingAbbrRu = o.IdLimitingNavigation != null ? o.IdLimitingNavigation.LimitingAbbrRu : null,
+                                    LimitingAbbrEn = o.IdLimitingNavigation != null ? o.IdLimitingNavigation.LimitingAbbrEn : null,
+                                    Paid = (bool?)(o.IdOperatorNavigation != null ? o.IdOperatorNavigation.Paid : null),
+
+                                    IdGenus = (int?)(o.NumNavigation != null ? o.NumNavigation.IdGenus : null),
+                                    GenusAbbrRu = (o.NumNavigation != null && o.NumNavigation.IdGenusNavigation != null ? o.NumNavigation.IdGenusNavigation.AbbrRu : null),
+                                    GenusAbbrEn = (o.NumNavigation != null && o.NumNavigation.IdGenusNavigation != null ? o.NumNavigation.IdGenusNavigation.AbbrEn : null),
+
+                                    IdTypeOwnership = (int?)(o.NumNavigation != null ? o.NumNavigation.IdTypeOwnership : null),
+                                    TypeOwnershipRu = (o.NumNavigation != null && o.NumNavigation.IdTypeOwnershipNavigation != null ? o.NumNavigation.IdTypeOwnershipNavigation.TypeOwnershipRu : null),
+                                    TypeOwnershipEn = (o.NumNavigation != null && o.NumNavigation.IdTypeOwnershipNavigation != null ? o.NumNavigation.IdTypeOwnershipNavigation.TypeOwnershipEn : null),
+
+                                    IdCountrys = (int?)(o.NumNavigation != null ? o.NumNavigation.IdCountrys : null),
+                                    CountrysCodeSng = o.NumNavigation != null && o.NumNavigation.IdCountrysNavigation != null ? o.NumNavigation.IdCountrysNavigation.CodeSng : null,
+                                    CountryAbbrRu = o.NumNavigation != null && o.NumNavigation.IdCountrysNavigation != null ? o.NumNavigation.IdCountrysNavigation.CountryAbbrRu : null,
+                                    CountryAbbrEn = o.NumNavigation != null && o.NumNavigation.IdCountrysNavigation != null ? o.NumNavigation.IdCountrysNavigation.CountryAbbrEn : null,
+                                })
+                                .FirstOrDefault(),
+                             Arrival = db.ArrivalCars
+                             .Where(a => a.Id == d.IdWagonInternalRoutesNavigation.IdArrivalCar)
+                             .Select(ac => new
+                             {
+                                 IdArrivalCar = ac.Id,
+                                 IdArrivalSostav = ac.IdArrivalNavigation.Id,
+                                 DateAdoption = ac.IdArrivalNavigation.DateAdoption,
+                                 DateAdoptionAct = ac.IdArrivalNavigation.DateAdoptionAct,
+
+                                 //IdArrivalUzVagon = ac.IdArrivalUzVagonNavigation.Id,
+                                 ConditionAbbrRu = ac.IdArrivalUzVagonNavigation != null && ac.IdArrivalUzVagonNavigation.IdConditionNavigation != null ? ac.IdArrivalUzVagonNavigation.IdConditionNavigation.ConditionAbbrRu : null,
+                                 ConditionAbbrEn = ac.IdArrivalUzVagonNavigation != null && ac.IdArrivalUzVagonNavigation.IdConditionNavigation != null ? ac.IdArrivalUzVagonNavigation.IdConditionNavigation.ConditionAbbrEn : null,
+
+                                 CargoNameRu = ac.IdArrivalUzVagonNavigation.IdCargoNavigation != null ? ac.IdArrivalUzVagonNavigation.IdCargoNavigation.CargoNameRu : null,
+                                 CargoNameEn = ac.IdArrivalUzVagonNavigation.IdCargoNavigation != null ? ac.IdArrivalUzVagonNavigation.IdCargoNavigation.CargoNameEn : null,
+
+                                 //IdArrivalUZDocument = ac.IdArrivalUzVagonNavigation.IdDocumentNavigation.Id,
+                                 NomMainDoc = ac.IdArrivalUzVagonNavigation.IdDocumentNavigation.NomMainDoc,
+                                 NomDoc = ac.IdArrivalUzVagonNavigation.IdDocumentNavigation.NomDoc,
+
+                             })
+                             .FirstOrDefault(),
+                         })
+                         .ToListAsync();
+
+                //var result = await db.OutgoingUzDocuments
+                //         //.Include(wag_doc => wag_doc.OutgoingUzVagons)
+                //         .AsNoTracking()
+                //         .Where(x => x.Id == id)
+                //         .Select(d => new
+                //         {
+                //             Id = d.Id,
+                //             NomDoc = d.NomDoc,
+                //             OutgoingUzVagons = d.OutgoingUzVagons.Select(w => new
+                //             {
+                //                 Id = w.Id,
+                //                 Num = w.Num,
+                //                 OutgoingIdCargo = (int?)w.IdCargoNavigation.Id,
+                //                 OutgoingCargoNameRu = w.IdCargoNavigation.CargoNameRu,
+                //                 OutgoingCargoNameEn = w.IdCargoNavigation.CargoNameEn,
+                //                 Vesg = w.Vesg,
+                //                 ArrivalIdOperator = (int?)w.IdWagonsRentArrivalNavigation.IdOperatorNavigation.Id,
+                //                 ArrivalOperatorAbbrRu = w.IdWagonsRentArrivalNavigation.IdOperatorNavigation.AbbrRu,
+                //                 ArrivalOperatorAbbrEn = w.IdWagonsRentArrivalNavigation.IdOperatorNavigation.AbbrEn,
+                //                 OutgoingIdOperator = (int?)w.IdWagonsRentOutgoingNavigation.IdOperatorNavigation.Id,
+                //                 OutgoingOperatorAbbrRu = w.IdWagonsRentOutgoingNavigation.IdOperatorNavigation.AbbrRu,
+                //                 OutgoingOperatorAbbrEn = w.IdWagonsRentOutgoingNavigation.IdOperatorNavigation.AbbrEn,
+                //                 RodUz = w.IdGenusNavigation.RodUz,
+                //                 RodAbbrRu = w.IdGenusNavigation.AbbrRu,
+                //                 RodAbbrEn = w.IdGenusNavigation.AbbrEn,
+                //                 OutgoingUzVagonPays = w.OutgoingUzVagonPays.Where(w => w.Kod == "001").Sum(p => p.Summa),
+                //                 OutgoingUzVagonPaysAdd = w.OutgoingUzVagonPays.Where(w => w.Kod != "001").Sum(p => p.Summa),
+                //                 DateReadinessUz = w.IdOutgoingNavigation.DateReadinessUz,
+                //                 DateReadinessAmkr = w.IdOutgoingNavigation.DateReadinessAmkr,
+                //                 DateOutgoing = w.IdOutgoingNavigation.DateOutgoing,
+                //                 DateOutgoingAct = w.IdOutgoingNavigation.DateOutgoingAct,
+                //                 DateDepartureAmkr = w.IdOutgoingNavigation.DateDepartureAmkr,
+                //                 KolConductor = w.KolConductor,
+                //             }),
+                //             Vesg = d.OutgoingUzVagons.Where(w => w.Vesg != null).Sum(p => p.Vesg),
+                //             PayerSenderCode = d.CodePayerNavigation.Code,
+                //             PayerSenderNameRu = d.CodePayerNavigation.PayerNameRu,
+                //             PayerSenderNameEn = d.CodePayerNavigation.PayerNameEn,
+                //             OutgoingUZDocumentPay = d.OutgoingUzDocumentPays.Where(w => w.Kod == "001").Sum(p => p.Summa),
+                //             OutgoingUZDocumentPayAdd = d.OutgoingUzDocumentPays.Where(w => w.Kod != "001").Sum(p => p.Summa),
+                //             //OutgoingUzVagonPays = d.OutgoingUzVagons.Where(w => w.OutgoingUzVagonPays != null).Sum(p => p.OutgoingUzVagonPays),
+                //             //OutgoingUzVagonPaysAdd = d.OutgoingUzVagons.Where(w => w.OutgoingUzVagonPaysAdd != null).Sum(p => p.OutgoingUzVagonPaysAdd),
+                //             OutgoingCodeStnFrom = (int?)(d.CodeStnFromNavigation != null ? d.CodeStnFromNavigation.Code : null),
+                //             OutgoingNameStnFromRu = d.CodeStnFromNavigation != null ? d.CodeStnFromNavigation.StationNameRu : null,
+                //             OutgoingNameStnFromEn = d.CodeStnFromNavigation != null ? d.CodeStnFromNavigation.StationNameEn : null,
+                //             OutgoingCodeStnTo = (int?)(d.CodeStnToNavigation != null ? d.CodeStnToNavigation.Code : null),
+                //             OutgoingNameStnToRu = d.CodeStnToNavigation != null ? d.CodeStnToNavigation.StationNameRu : null,
+                //             OutgoingNameStnToEn = d.CodeStnToNavigation != null ? d.CodeStnToNavigation.StationNameEn : null,
+                //             InlandrailwayCode = d.CodeStnToNavigation.CodeInlandrailwayNavigation.Code,
+                //             InlandrailwayAbbrRu = d.CodeStnToNavigation.CodeInlandrailwayNavigation.InlandrailwayAbbrRu,
+                //             InlandrailwayAbbrEn = d.CodeStnToNavigation.CodeInlandrailwayNavigation.InlandrailwayAbbrEn,
+                //             DistanceWay = d.DistanceWay,
+                //             TariffContract = d.TariffContract,
+                //             CalcPayer = d.CalcPayer,
+                //             CalcPayerUser = d.CalcPayerUser,
+                //             NumList = d.NumList,
+                //             DateList = d.DateList,
+                //             Verification = d.Verification,
+                //             VerificationUser = d.VerificationUser,
+                //         })
+                //         .FirstOrDefaultAsync();
+                if (result == null)
+                    return NotFound();
+                return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        // GET: WSD/view/vagons/remainder
+        [HttpGet("view/vagons/remainder")]
+        public async Task<ActionResult> GetViewRemainderWagons()
+        {
+            try
+            {
+                List<ViewOperatingBalanceRwCar> result = await db.getViewRemainderWagons().ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         // GET: WSD/view/operators/station/8
         [HttpGet("view/operators/station/{id_station}")]
         public async Task<ActionResult<IEnumerable<ViewOperatorsStation>>> GetViewOperatorsOfStation(int id_station)

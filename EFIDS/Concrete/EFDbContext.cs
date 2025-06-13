@@ -256,6 +256,9 @@ public partial class EFDbContext : DbContext
     public IQueryable<ViewCarsGroup> getViewWagonsOfListNums(string nums) => FromExpression(() => getViewWagonsOfListNums(nums));
     public IQueryable<ViewArrivalDocumentsVagons> getViewArrivalDocumentsVagonsOfPeriod(DateTime start, DateTime stop) => FromExpression(() => getViewArrivalDocumentsVagonsOfPeriod(start, stop));
 
+    // Оперативный остаток
+    public IQueryable<ViewOperatingBalanceRwCar> getViewRemainderWagons() => FromExpression(() => getViewRemainderWagons());
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDbFunction(() => getViewStatusAllStation()).HasSchema("IDS").HasName("get_view_status_all_station");
@@ -281,6 +284,7 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewIncomingCarsOfIdSostav), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_incoming_cars_of_id_sostav");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOfListNums), new[] { typeof(string) })).HasSchema("IDS").HasName("get_view_wagons_of_list_nums");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewArrivalDocumentsVagonsOfPeriod), new[] { typeof(DateTime), typeof(DateTime) })).HasSchema("IDS").HasName("get_view_arrival_documents_vagons_of_period");
+        modelBuilder.HasDbFunction(() => getViewRemainderWagons()).HasSchema("IDS").HasName("get_view_remainder_wagons");
 
         modelBuilder.Entity<ArrivalCar>(entity =>
         {
