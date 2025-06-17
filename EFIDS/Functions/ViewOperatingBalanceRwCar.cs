@@ -21,6 +21,9 @@ public class ViewOperatingBalanceRwCar
     [Column("num")]
     public int? Num { get; set; }
 
+    [Column("current_datatime", TypeName = "datetime")]
+    public DateTime CurrentDatatime { get; set; }
+
     [Column("arrival_nom_main_doc")]
     public int? ArrivalNomMainDoc { get; set; }
 
@@ -81,6 +84,9 @@ public class ViewOperatingBalanceRwCar
     [Column("arrival_commercial_condition_en")]
     [StringLength(50)]
     public string? ArrivalCommercialConditionEn { get; set; }
+
+    [Column("arrival_vesg")]
+    public int? ArrivalVesg { get; set; }
 
     [Column("arrival_station_from_code")]
     public int? ArrivalStationFromCode { get; set; }
@@ -293,11 +299,11 @@ public class ViewOperatingBalanceRwCar
     public int? WagonAdm { get; set; }
 
     [Column("wagon_adm_abbr_ru")]
-    [StringLength(10)]
+    [StringLength(100)]
     public string? WagonAdmAbbrRu { get; set; }
 
     [Column("wagon_adm_abbr_en")]
-    [StringLength(10)]
+    [StringLength(100)]
     public string? WagonAdmAbbrEn { get; set; }
 
     [Column("wagon_rod")]
@@ -553,6 +559,14 @@ public class ViewOperatingBalanceRwCar
 
     [Column("outgoing_sostav_status")]
     public int? OutgoingSostavStatus { get; set; }
+
+    [Column("outgoing_return_cause_ru")]
+    [StringLength(150)]
+    public string? OutgoingReturnCauseRu { get; set; }
+
+    [Column("outgoing_return_cause_en")]
+    [StringLength(150)]
+    public string? OutgoingReturnCauseEn { get; set; }
 
     [Column("sap_outgoing_supply_num")]
     [StringLength(10)]
