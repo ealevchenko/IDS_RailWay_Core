@@ -480,67 +480,6 @@ namespace WebAPI.Controllers.Directory
                          })
                          .ToListAsync();
 
-                //var result = await db.OutgoingUzDocuments
-                //         //.Include(wag_doc => wag_doc.OutgoingUzVagons)
-                //         .AsNoTracking()
-                //         .Where(x => x.Id == id)
-                //         .Select(d => new
-                //         {
-                //             Id = d.Id,
-                //             NomDoc = d.NomDoc,
-                //             OutgoingUzVagons = d.OutgoingUzVagons.Select(w => new
-                //             {
-                //                 Id = w.Id,
-                //                 Num = w.Num,
-                //                 OutgoingIdCargo = (int?)w.IdCargoNavigation.Id,
-                //                 OutgoingCargoNameRu = w.IdCargoNavigation.CargoNameRu,
-                //                 OutgoingCargoNameEn = w.IdCargoNavigation.CargoNameEn,
-                //                 Vesg = w.Vesg,
-                //                 ArrivalIdOperator = (int?)w.IdWagonsRentArrivalNavigation.IdOperatorNavigation.Id,
-                //                 ArrivalOperatorAbbrRu = w.IdWagonsRentArrivalNavigation.IdOperatorNavigation.AbbrRu,
-                //                 ArrivalOperatorAbbrEn = w.IdWagonsRentArrivalNavigation.IdOperatorNavigation.AbbrEn,
-                //                 OutgoingIdOperator = (int?)w.IdWagonsRentOutgoingNavigation.IdOperatorNavigation.Id,
-                //                 OutgoingOperatorAbbrRu = w.IdWagonsRentOutgoingNavigation.IdOperatorNavigation.AbbrRu,
-                //                 OutgoingOperatorAbbrEn = w.IdWagonsRentOutgoingNavigation.IdOperatorNavigation.AbbrEn,
-                //                 RodUz = w.IdGenusNavigation.RodUz,
-                //                 RodAbbrRu = w.IdGenusNavigation.AbbrRu,
-                //                 RodAbbrEn = w.IdGenusNavigation.AbbrEn,
-                //                 OutgoingUzVagonPays = w.OutgoingUzVagonPays.Where(w => w.Kod == "001").Sum(p => p.Summa),
-                //                 OutgoingUzVagonPaysAdd = w.OutgoingUzVagonPays.Where(w => w.Kod != "001").Sum(p => p.Summa),
-                //                 DateReadinessUz = w.IdOutgoingNavigation.DateReadinessUz,
-                //                 DateReadinessAmkr = w.IdOutgoingNavigation.DateReadinessAmkr,
-                //                 DateOutgoing = w.IdOutgoingNavigation.DateOutgoing,
-                //                 DateOutgoingAct = w.IdOutgoingNavigation.DateOutgoingAct,
-                //                 DateDepartureAmkr = w.IdOutgoingNavigation.DateDepartureAmkr,
-                //                 KolConductor = w.KolConductor,
-                //             }),
-                //             Vesg = d.OutgoingUzVagons.Where(w => w.Vesg != null).Sum(p => p.Vesg),
-                //             PayerSenderCode = d.CodePayerNavigation.Code,
-                //             PayerSenderNameRu = d.CodePayerNavigation.PayerNameRu,
-                //             PayerSenderNameEn = d.CodePayerNavigation.PayerNameEn,
-                //             OutgoingUZDocumentPay = d.OutgoingUzDocumentPays.Where(w => w.Kod == "001").Sum(p => p.Summa),
-                //             OutgoingUZDocumentPayAdd = d.OutgoingUzDocumentPays.Where(w => w.Kod != "001").Sum(p => p.Summa),
-                //             //OutgoingUzVagonPays = d.OutgoingUzVagons.Where(w => w.OutgoingUzVagonPays != null).Sum(p => p.OutgoingUzVagonPays),
-                //             //OutgoingUzVagonPaysAdd = d.OutgoingUzVagons.Where(w => w.OutgoingUzVagonPaysAdd != null).Sum(p => p.OutgoingUzVagonPaysAdd),
-                //             OutgoingCodeStnFrom = (int?)(d.CodeStnFromNavigation != null ? d.CodeStnFromNavigation.Code : null),
-                //             OutgoingNameStnFromRu = d.CodeStnFromNavigation != null ? d.CodeStnFromNavigation.StationNameRu : null,
-                //             OutgoingNameStnFromEn = d.CodeStnFromNavigation != null ? d.CodeStnFromNavigation.StationNameEn : null,
-                //             OutgoingCodeStnTo = (int?)(d.CodeStnToNavigation != null ? d.CodeStnToNavigation.Code : null),
-                //             OutgoingNameStnToRu = d.CodeStnToNavigation != null ? d.CodeStnToNavigation.StationNameRu : null,
-                //             OutgoingNameStnToEn = d.CodeStnToNavigation != null ? d.CodeStnToNavigation.StationNameEn : null,
-                //             InlandrailwayCode = d.CodeStnToNavigation.CodeInlandrailwayNavigation.Code,
-                //             InlandrailwayAbbrRu = d.CodeStnToNavigation.CodeInlandrailwayNavigation.InlandrailwayAbbrRu,
-                //             InlandrailwayAbbrEn = d.CodeStnToNavigation.CodeInlandrailwayNavigation.InlandrailwayAbbrEn,
-                //             DistanceWay = d.DistanceWay,
-                //             TariffContract = d.TariffContract,
-                //             CalcPayer = d.CalcPayer,
-                //             CalcPayerUser = d.CalcPayerUser,
-                //             NumList = d.NumList,
-                //             DateList = d.DateList,
-                //             Verification = d.Verification,
-                //             VerificationUser = d.VerificationUser,
-                //         })
-                //         .FirstOrDefaultAsync();
                 if (result == null)
                     return NotFound();
                 return new ObjectResult(result);
@@ -710,6 +649,38 @@ namespace WebAPI.Controllers.Directory
                 if (result == null)
                     return NotFound();
                 return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
+        // Расчет платы за пользование по оперативномку остатку
+        // GET: WSD/view/calc_wagon/balance
+        [HttpGet("view/calc_wagon/balance")]
+        public async Task<ActionResult> getCalcUsageFeeOfBalance()
+        {
+            try
+            {
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                List<CalcWagonUsageFee> results = new List<CalcWagonUsageFee>();
+                var result = await db.WagonInternalMovements
+                         .AsNoTracking()
+                         .Where(x => x.IdStation != 10 && (x.IdOuterWay == null && x.WayEnd == null) || (x.IdOuterWay != null && x.OuterWayStart != null && x.OuterWayEnd == null))
+                         .Select(d => new
+                         {
+                             Id = d.IdWagonInternalRoutes,
+                             Num = d.IdWagonInternalRoutesNavigation.Num,
+                             Paid = db.DirectoryWagonsRents.AsNoTracking().Where(r => r.Num == d.IdWagonInternalRoutesNavigation.Num && r.RentEnd == null).First().IdOperatorNavigation.Paid
+                         })
+                         .ToListAsync();
+                foreach (var wir in result.Where(w => w.Paid==true)) {
+                    results.Add(ids_wir.CalcUsageFeeOfWIR(wir.Id));
+                }
+
+                if (results == null) return NotFound();
+                return new ObjectResult(results);
             }
             catch (Exception e)
             {
