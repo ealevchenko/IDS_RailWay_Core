@@ -36,6 +36,9 @@ public class ViewOperatingBalanceRwCar
     [Column("arrival_klient")]
     public bool? ArrivalKlient { get; set; }
 
+    [Column("arrival_id_condition")]
+    public int? ArrivalIdCondition { get; set; }
+
     [Column("arrival_condition_abbr_ru")]
     [StringLength(20)]
     public string? ArrivalConditionAbbrRu { get; set; }
@@ -47,6 +50,9 @@ public class ViewOperatingBalanceRwCar
     [Column("arrival_condition_red")]
     public bool? ArrivalConditionRed { get; set; }
 
+    [Column("arrival_id_cargo_group")]
+    public int? ArrivalIdCargoGroup { get; set; }
+
     [Column("arrival_cargo_group_name_ru")]
     [StringLength(50)]
     public string? ArrivalCargoGroupNameRu { get; set; }
@@ -54,6 +60,9 @@ public class ViewOperatingBalanceRwCar
     [Column("arrival_cargo_group_name_en")]
     [StringLength(50)]
     public string? ArrivalCargoGroupNameEn { get; set; }
+
+    [Column("arrival_id_cargo")]
+    public int? ArrivalIdCargo { get; set; }
 
     [Column("arrival_cargo_name_ru")]
     [StringLength(50)]
@@ -117,6 +126,29 @@ public class ViewOperatingBalanceRwCar
     [Column("arrival_station_amkr_abbr_en")]
     [StringLength(50)]
     public string? ArrivalStationAmkrAbbrEn { get; set; }
+
+    [Column("arrival_id_division_amkr")]
+    public int? ArrivalIdDivisionAmkr { get; set; }
+
+    [Column("arrival_division_amkr_code")]
+    [StringLength(5)]
+    public string? ArrivalDivisionAmkrCode { get; set; }
+
+    [Column("arrival_division_amkr_name_ru")]
+    [StringLength(250)]
+    public string? ArrivalDivisionAmkrNameRu { get; set; }
+
+    [Column("arrival_division_amkr_name_en")]
+    [StringLength(250)]
+    public string? ArrivalDivisionAmkrNameEn { get; set; }
+
+    [Column("arrival_division_amkr_abbr_ru")]
+    [StringLength(50)]
+    public string? ArrivalDivisionAmkrAbbrRu { get; set; }
+
+    [Column("arrival_division_amkr_abbr_en")]
+    [StringLength(50)]
+    public string? ArrivalDivisionAmkrAbbrEn { get; set; }
 
     [Column("sap_incoming_supply_num")]
     [StringLength(10)]
