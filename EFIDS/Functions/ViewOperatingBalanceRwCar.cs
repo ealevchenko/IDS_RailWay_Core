@@ -357,6 +357,9 @@ public class ViewOperatingBalanceRwCar
     [StringLength(50)]
     public string? WagonTypeEn { get; set; }
 
+    [Column("current_id_condition")]
+    public int? CurrentIdCondition { get; set; }
+
     [Column("current_condition_abbr_ru")]
     [StringLength(20)]
     public string? CurrentConditionAbbrRu { get; set; }
