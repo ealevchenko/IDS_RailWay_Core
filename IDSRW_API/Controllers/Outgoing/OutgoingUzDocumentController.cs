@@ -72,6 +72,7 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
+                db.Database.SetCommandTimeout(300);
                 IEnumerable<long> id_sts = db.OutgoingSostavs.AsNoTracking().Where(s => s.DateOutgoing >= start && s.DateOutgoing <= stop).Select(c => c.Id).ToList();
                 IEnumerable<long?> id_docs = db.OutgoingUzVagons.Where(v => id_sts.Contains(v.IdOutgoingNavigation.Id)).Select(c => c.IdDocument).Distinct().ToList();
                 var result = await db.OutgoingUzDocuments
@@ -79,6 +80,7 @@ namespace WebAPI.Controllers.Directory
                         .Where(x => id_docs.Contains(x.Id))
                         .Select(d => new { d.Id, d.NomDoc, d.CodePayer })
                         .ToListAsync();
+                db.Database.SetCommandTimeout(0);
                 if (result == null)
                     return NotFound();
                 return new ObjectResult(result);
@@ -95,6 +97,7 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
+                db.Database.SetCommandTimeout(300);
                 IEnumerable<long> id_sts = db.OutgoingSostavs.AsNoTracking().Where(s => s.DateOutgoing >= start && s.DateOutgoing <= stop).Select(c => c.Id).ToList();
                 IEnumerable<long?> id_docs = db.OutgoingUzVagons.AsNoTracking().Where(v => id_sts.Contains(v.IdOutgoingNavigation.Id)).Select(c => c.IdDocument).Distinct().ToList();
                 var result = await db.OutgoingUzDocuments
@@ -158,6 +161,7 @@ namespace WebAPI.Controllers.Directory
                             VerificationUser = d.VerificationUser,
                         })
                         .ToListAsync();
+                db.Database.SetCommandTimeout(0);
                 if (result == null)
                     return NotFound();
                 return new ObjectResult(result);

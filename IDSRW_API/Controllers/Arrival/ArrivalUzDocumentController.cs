@@ -71,6 +71,7 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
+                db.Database.SetCommandTimeout(300);
                 IEnumerable<long> id_sts = db.ArrivalSostavs.AsNoTracking().Where(s => s.DateAdoption >= start && s.DateAdoption <= stop).Select(c => c.Id).ToList();
                 IEnumerable<long> id_docs = db.ArrivalUzVagons.Where(v => id_sts.Contains(v.IdArrivalNavigation.Id)).Select(c => c.IdDocument).Distinct().ToList();
                 var result = await db.ArrivalUzDocuments
@@ -78,6 +79,7 @@ namespace WebAPI.Controllers.Directory
                         .Where(x => id_docs.Contains(x.Id))
                         .Select(d => new { d.Id, d.NomMainDoc, d.NomDoc, d.CalcPayer })
                         .ToListAsync();
+                db.Database.SetCommandTimeout(0);
                 if (result == null)
                     return NotFound();
                 return new ObjectResult(result);
@@ -217,6 +219,7 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
+                db.Database.SetCommandTimeout(300);
                 IEnumerable<long> id_sts = db.ArrivalSostavs.AsNoTracking().Where(s => s.DateAdoption >= start && s.DateAdoption <= stop).Select(c => c.Id).ToList();
                 IEnumerable<long> id_docs = db.ArrivalUzVagons.Where(v => id_sts.Contains(v.IdArrivalNavigation.Id)).Select(c => c.IdDocument).Distinct().ToList();
                 var result = await db.ArrivalUzDocuments
@@ -250,7 +253,7 @@ namespace WebAPI.Controllers.Directory
                         .Include(wag_doc => wag_doc.ArrivalUzVagons)
                             .ThenInclude(wag_div => wag_div.IdDivisionOnAmkrNavigation)
                         .ToListAsync();
-
+                db.Database.SetCommandTimeout(0);
                 if (result == null)
                     return NotFound();
                 return new ObjectResult(result);
