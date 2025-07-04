@@ -495,7 +495,9 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
+                db.Database.SetCommandTimeout(300);
                 List<ViewOperatingBalanceRwCar> result = await db.getViewRemainderWagons().ToListAsync();
+                db.Database.SetCommandTimeout(0);
                 if (result == null)
                     return NotFound();
                 return Ok(result);
@@ -655,7 +657,7 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        
+
         // Расчет платы за пользование по оперативномку остатку
         // GET: WSD/view/calc_wagon/balance
         [HttpGet("view/calc_wagon/balance")]
@@ -672,10 +674,13 @@ namespace WebAPI.Controllers.Directory
                          {
                              Id = d.IdWagonInternalRoutes,
                              Num = d.IdWagonInternalRoutesNavigation.Num,
-                             Paid = db.DirectoryWagonsRents.AsNoTracking().Where(r => r.Num == d.IdWagonInternalRoutesNavigation.Num && r.RentEnd == null).First().IdOperatorNavigation.Paid
+                             //Paid = db.DirectoryWagonsRents.AsNoTracking().Where(r => r.Num == d.IdWagonInternalRoutesNavigation.Num && r.RentEnd == null).First().IdOperatorNavigation.Paid
+                             //Paid = db.DirectoryWagonsRents.AsNoTracking().Where(r => r.Num == d.IdWagonInternalRoutesNavigation.Num && r.RentEnd == null).FirstOrDefault() != null ? db.DirectoryWagonsRents.AsNoTracking().Where(r => r.Num == d.IdWagonInternalRoutesNavigation.Num && r.RentEnd == null).FirstOrDefault().IdOperatorNavigation.Paid : false
+                             DirectoryWagonsRent = (DirectoryWagonsRent?)db.DirectoryWagonsRents.AsNoTracking().Where(r => r.Num == d.IdWagonInternalRoutesNavigation.Num && r.RentEnd == null).FirstOrDefault()
                          })
                          .ToListAsync();
-                foreach (var wir in result.Where(w => w.Paid==true)) {
+                foreach (var wir in result.Where(w => w.DirectoryWagonsRent!=null && w.DirectoryWagonsRent.IdOperatorNavigation != null && w.DirectoryWagonsRent.IdOperatorNavigation.Paid == true))
+                {
                     results.Add(ids_wir.CalcUsageFeeOfWIR(wir.Id));
                 }
 
