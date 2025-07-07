@@ -207,6 +207,55 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+        // GET: ArrivalUzDocument/verification/num/41941402
+        [HttpGet("verification/num/{num}")]
+        public async Task<ActionResult<ArrivalUzDocument>> GetVerificationArrivalUzDocumentOfNum(int num)
+        {
+            try
+            {
+                db.Database.SetCommandTimeout(300);
+                var result = await db.ArrivalUzDocuments
+                        .AsNoTracking()
+                        .Where(x => x.NomMainDoc == num)
+                        .Include(code_bc => code_bc.CodeBorderCheckpointNavigation)
+                        .Include(code_st_from => code_st_from.CodeStnFromNavigation)
+                        .Include(code_st_on => code_st_on.CodeStnToNavigation)
+                        .Include(code_cns => code_cns.CodeConsigneeNavigation)
+                        .Include(code_chp => code_chp.CodeShipperNavigation)
+                        .Include(code_ps => code_ps.CodePayerSenderNavigation)
+                        .Include(code_pa => code_pa.CodePayerArrivalNavigation)
+                        .Include(code_pl => code_pl.CodePayerLocalNavigation)
+                        .Include(doc => doc.ArrivalUzDocumentDocs)
+                        .Include(act => act.ArrivalUzDocumentActs)
+                        .Include(pays => pays.ArrivalUzDocumentPays)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(arr_sost => arr_sost.IdArrivalNavigation)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(wag_acts => wag_acts.ArrivalUzVagonActs)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(wag_cont => wag_cont.ArrivalUzVagonConts)
+                                .ThenInclude(wag_cont_pays => wag_cont_pays.ArrivalUzContPays)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(wag_pays => wag_pays.ArrivalUzVagonPays)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(wag_cargo => wag_cargo.IdCargoNavigation)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(wag_rent => wag_rent.IdWagonsRentArrivalNavigation)
+                                .ThenInclude(wag_oper => wag_oper.IdOperatorNavigation)
+                        .Include(wag_doc => wag_doc.ArrivalUzVagons)
+                            .ThenInclude(wag_div => wag_div.IdDivisionOnAmkrNavigation)
+                        .ToListAsync();
+                db.Database.SetCommandTimeout(0);
+                if (result == null)
+                    return NotFound();
+                return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         /// <summary>
         /// Сверака документов по прибытию получение документа за период 
         /// </summary>
