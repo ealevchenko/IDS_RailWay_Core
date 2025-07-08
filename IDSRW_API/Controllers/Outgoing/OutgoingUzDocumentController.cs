@@ -344,6 +344,52 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+        // GET: OutgoingUzDocument/verification/num/46228342
+        [HttpGet("verification/num/{num}")]
+        public async Task<ActionResult> GetVerificationOutgoingUzDocumentOfNum(int num)
+        {
+            try
+            {
+                db.Database.SetCommandTimeout(300);
+                var result = await db.OutgoingUzDocuments
+                        .Include(code_bc => code_bc.CodeBorderCheckpointNavigation)
+                        .Include(code_st_from => code_st_from.CodeStnFromNavigation)
+                        .Include(code_st_on => code_st_on.CodeStnToNavigation)
+                        .Include(code_cns => code_cns.CodeConsigneeNavigation)
+                        .Include(code_chp => code_chp.CodeShipperNavigation)
+                        .Include(code_pa => code_pa.CodePayerNavigation)
+                           .Include(pays => pays.OutgoingUzDocumentPays)
+                        .Include(wag_doc => wag_doc.OutgoingUzVagons)
+                            .ThenInclude(out_sost => out_sost.IdOutgoingNavigation)
+                        .Include(wag_doc => wag_doc.OutgoingUzVagons)
+                            .ThenInclude(wag_acts => wag_acts.OutgoingUzVagonActs)
+                        .Include(wag_doc => wag_doc.OutgoingUzVagons)
+                            .ThenInclude(wag_cont => wag_cont.OutgoingUzVagonConts)
+                                .ThenInclude(wag_cont_pays => wag_cont_pays.OutgoingUzContPays)
+                        .Include(wag_doc => wag_doc.OutgoingUzVagons)
+                            .ThenInclude(wag_pays => wag_pays.OutgoingUzVagonPays)
+                        .Include(wag_doc => wag_doc.OutgoingUzVagons)
+                            .ThenInclude(wag_cargo => wag_cargo.IdCargoNavigation)
+                                .ThenInclude(wag_cargo_etsng => wag_cargo_etsng.IdCargoEtsngNavigation)
+                        //.Include(wag_doc => wag_doc.OutgoingUzVagons)
+                        //    .ThenInclude(wag_rent_arr => wag_rent_arr.IdWagonsRentArrivalNavigation)
+                        //        .ThenInclude(wag_oper_arr => wag_oper_arr.IdOperatorNavigation)
+                        .Include(wag_doc => wag_doc.OutgoingUzVagons)
+                            .ThenInclude(wag_rent_out => wag_rent_out.IdWagonsRentOutgoingNavigation)
+                                .ThenInclude(wag_oper_out => wag_oper_out.IdOperatorNavigation)
+                        .AsNoTracking()
+                         .Where(x => x.NomDoc == num)
+                         .ToListAsync();
+                db.Database.SetCommandTimeout(0);
+                if (result == null)
+                    return NotFound();
+                return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
 
         // GET: OutgoingUzDocument/536848
         [HttpGet("{id}")]
