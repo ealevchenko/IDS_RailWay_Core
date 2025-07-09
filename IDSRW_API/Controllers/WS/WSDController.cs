@@ -676,7 +676,11 @@ namespace WebAPI.Controllers.Directory
                              Num = d.IdWagonInternalRoutesNavigation.Num,
                              //Paid = db.DirectoryWagonsRents.AsNoTracking().Where(r => r.Num == d.IdWagonInternalRoutesNavigation.Num && r.RentEnd == null).First().IdOperatorNavigation.Paid
                              //Paid = db.DirectoryWagonsRents.AsNoTracking().Where(r => r.Num == d.IdWagonInternalRoutesNavigation.Num && r.RentEnd == null).FirstOrDefault() != null ? db.DirectoryWagonsRents.AsNoTracking().Where(r => r.Num == d.IdWagonInternalRoutesNavigation.Num && r.RentEnd == null).FirstOrDefault().IdOperatorNavigation.Paid : false
-                             DirectoryWagonsRent = (DirectoryWagonsRent?)db.DirectoryWagonsRents.AsNoTracking().Where(r => r.Num == d.IdWagonInternalRoutesNavigation.Num && r.RentEnd == null).FirstOrDefault()
+                             DirectoryWagonsRent = (DirectoryWagonsRent?)db.DirectoryWagonsRents
+                             .AsNoTracking()
+                             .Include(op => op.IdOperatorNavigation)
+                             .Where(r => r.Num == d.IdWagonInternalRoutesNavigation.Num && r.RentEnd == null)
+                             .FirstOrDefault()
                          })
                          .ToListAsync();
                 foreach (var wir in result.Where(w => w.DirectoryWagonsRent!=null && w.DirectoryWagonsRent.IdOperatorNavigation != null && w.DirectoryWagonsRent.IdOperatorNavigation.Paid == true))
