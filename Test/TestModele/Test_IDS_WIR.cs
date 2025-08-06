@@ -236,8 +236,8 @@ namespace Test.TestModele
         /// </summary>
         public void DeleteFilingOfID()
         {
-            int id_filing = 122272;
-            List<int> nums = new List<int> {  };
+            int id_filing = 140270;
+            List<int> nums = new List<int> { 52984861 };
             ResultCorrect result = ids_wir.DeleteFilingOfID(id_filing, nums);
             Console.WriteLine($" result : {result.result} \n message :{result.message}");
         }
