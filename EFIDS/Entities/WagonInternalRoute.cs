@@ -87,6 +87,9 @@ public partial class WagonInternalRoute
     [InverseProperty("WagonInternalRoutes")]
     public virtual WagonUsageFee? IdUsageFeeNavigation { get; set; }
 
+    [InverseProperty("IdWirNavigation")]
+    public virtual ICollection<InstructionalLettersWagon> InstructionalLettersWagons { get; set; } = new List<InstructionalLettersWagon>();
+
     [InverseProperty("Parent")]
     public virtual ICollection<WagonInternalRoute> InverseParent { get; set; } = new List<WagonInternalRoute>();
 

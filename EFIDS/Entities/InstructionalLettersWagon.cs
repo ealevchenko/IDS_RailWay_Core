@@ -43,7 +43,17 @@ public partial class InstructionalLettersWagon
     [StringLength(50)]
     public string? ChangeUser { get; set; }
 
+    [Column("status")]
+    public int? Status { get; set; }
+
+    [Column("id_wir")]
+    public long? IdWir { get; set; }
+
     [ForeignKey("IdInstructionalLetters")]
     [InverseProperty("InstructionalLettersWagons")]
     public virtual InstructionalLetter IdInstructionalLettersNavigation { get; set; } = null!;
+
+    [ForeignKey("IdWir")]
+    [InverseProperty("InstructionalLettersWagons")]
+    public virtual WagonInternalRoute? IdWirNavigation { get; set; }
 }

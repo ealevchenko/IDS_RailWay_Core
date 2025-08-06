@@ -683,7 +683,7 @@ namespace WebAPI.Controllers.Directory
                              .FirstOrDefault()
                          })
                          .ToListAsync();
-                foreach (var wir in result.Where(w => w.DirectoryWagonsRent!=null && w.DirectoryWagonsRent.IdOperatorNavigation != null && w.DirectoryWagonsRent.IdOperatorNavigation.Paid == true))
+                foreach (var wir in result.Where(w => w.DirectoryWagonsRent != null && w.DirectoryWagonsRent.IdOperatorNavigation != null && w.DirectoryWagonsRent.IdOperatorNavigation.Paid == true))
                 {
                     results.Add(ids_wir.CalcUsageFeeOfWIR(wir.Id));
                 }
@@ -1301,6 +1301,67 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // GET: WSD/view/instructional_letters/list/period/start/2023-07-01T00:00:00/stop/2025-07-31T00:00:00
+        [HttpGet("view/instructional_letters/list/period/start/{start:DateTime}/stop/{stop:DateTime}")]
+        public async Task<ActionResult> GetViewInstructionalLettersOfPeriod(DateTime start, DateTime stop)
+        {
+            try
+            {
+                db.Database.SetCommandTimeout(300);
+                var result = await db.InstructionalLetters
+                        .AsNoTracking()
+                        .Where(x => x.Dt >= start && x.Dt <= stop)
+                         .Select(l => new
+                         {
+                             l.Id,
+                             l.Num,
+                             l.Dt,
+                             l.Owner,
+                             l.DestinationStation,
+                             StationNameRu = db.DirectoryExternalStations.Where(s => s.Code == l.DestinationStation).FirstOrDefault() != null ? db.DirectoryExternalStations.Where(s => s.Code == l.DestinationStation).FirstOrDefault().StationNameRu : null,
+                             StationNameEn = db.DirectoryExternalStations.Where(s => s.Code == l.DestinationStation).FirstOrDefault() != null ? db.DirectoryExternalStations.Where(s => s.Code == l.DestinationStation).FirstOrDefault().StationNameEn : null,
+                             l.Note,
+                             l.Create,
+                             l.CreateUser,
+                             l.Change,
+                             l.ChangeUser,
+                             InstructionalLettersWagons = l.InstructionalLettersWagons.Select(
+                                 w => new
+                                 {
+                                     w.Id,
+                                     w.Num,
+                                     w.Note,
+                                     w.Status,
+                                     w.Close,
+                                     w.IdWir,
+                                     WirNote = w.IdWirNavigation.Note,
+                                     WirNote2 = w.IdWirNavigation.Note2,
+                                     w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalNavigation.DateAdoption,
+                                     w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalNavigation.DateAdoptionAct,
+                                     ArrivalOperatorAbbrRu = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperatorNavigation.OperatorsRu,
+                                     ArrivalOperatorAbbrEn = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperatorNavigation.OperatorsEn,
+                                     w.IdWirNavigation.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoing,
+                                     w.IdWirNavigation.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoingAct,
+                                     w.IdWirNavigation.IdOutgoingCarNavigation.IdOutgoingNavigation.DateDepartureAmkr,
+                                     w.Create,
+                                     w.CreateUser,
+                                     w.Change,
+                                     w.ChangeUser,
+                                 }),
+                         })
+                        .ToListAsync();
+                db.Database.SetCommandTimeout(0);
+                if (result == null)
+                    return NotFound();
+                return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         #endregion
 
         #region АДМИНИСТРИРОВАНИЕ

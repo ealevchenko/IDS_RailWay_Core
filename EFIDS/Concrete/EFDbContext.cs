@@ -697,6 +697,8 @@ public partial class EFDbContext : DbContext
             entity.HasOne(d => d.IdInstructionalLettersNavigation).WithMany(p => p.InstructionalLettersWagons)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_InstructionalLettersWagon_InstructionalLetters");
+
+            entity.HasOne(d => d.IdWirNavigation).WithMany(p => p.InstructionalLettersWagons).HasConstraintName("FK_InstructionalLettersWagon_WagonInternalRoutes");
         });
 
         modelBuilder.Entity<OutgoingCar>(entity =>
