@@ -19,7 +19,7 @@ using NLog.Extensions.Logging;
 using Helper;
 using GIVC;
 using System.Reflection;
-using NLog.Fluent;
+//using NLog.Fluent;
 using TestCore.TestModele;
 using Test.TestModele;
 
