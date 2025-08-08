@@ -160,6 +160,9 @@ namespace IDS_
         public int oper_unload_uz = 13;
         public int oper_unload_vz = 14;
 
+        public int control_enter_letter = 30; // Дней ожидания появления вагона на АМКР, после ввода письма
+        public int control_exit_letter = 30; // Дней ожидания выхода вагона из АМКР,
+
         public IDS_WIR(ILogger<Object> logger, IConfiguration configuration) : base()
         {
             _logger = logger;
@@ -328,6 +331,299 @@ namespace IDS_
                 _logger.LogError(_eventId, e, "UpdateOperationArrivalSostav(date_outgoing={0}, user={1})", date_adoption, user);
                 rt.SetResult((int)errors_base.global);
                 return rt;// Возвращаем id=-1 , Ошибка
+            }
+        }
+        #endregion
+
+        #region ИНСТРУКТИВНЫЕ ПИСЬМА (Поиск и обновление )
+        /// <summary>
+        /// Обновление статуса инструктивных писем
+        /// </summary>
+        /// <param name="date"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public OperationResultID UpdateInstructionalLetter(DateTime date, string user)
+        {
+            OperationResultID rt = new OperationResultID();
+            try
+            {
+                EFDbContext context = new EFDbContext(this.options);
+
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                // Получим все id открытых вагонов в письме
+                IEnumerable<int> id_il = context.InstructionalLettersWagons
+                    .AsNoTracking()
+                    .Where(s => s.Status == null || s.Status < 2)
+                    .Select(c => c.IdInstructionalLettersNavigation.Id)
+                    .ToList();
+                // Получим все письма с открытыми вагонами
+                List<InstructionalLetter> list_il = context.InstructionalLetters
+                .AsNoTracking()
+                .Where(x => id_il.Contains(x.Id))
+                .Include(wag => wag.InstructionalLettersWagons)
+                    .ThenInclude(wir => wir.IdWirNavigation)
+                        .ThenInclude(arr_car => arr_car.IdArrivalCarNavigation)
+                            .ThenInclude(arr_sost => arr_sost.IdArrivalNavigation)
+                .Include(wag => wag.InstructionalLettersWagons)
+                    .ThenInclude(wir => wir.IdWirNavigation)
+                        .ThenInclude(out_car => out_car.IdOutgoingCarNavigation)
+                            .ThenInclude(out_sost => out_sost.IdOutgoingNavigation)
+
+                .ToList();
+                // Пройдемся по письмам
+                foreach (InstructionalLetter lett in list_il.OrderBy(c => c.Dt)) //.Where(l=>l.Num == "4143")
+                {
+                    Console.WriteLine("Письмо №{0} от {1}", lett.Num, lett.Dt);
+                    foreach (InstructionalLettersWagon wag in lett.InstructionalLettersWagons.Where(w => w.Status == null || w.Status < 2))
+                    {
+                        
+                        int res = UpdateInstructionalLetter(wag.Id, lett.Dt, user);
+                        rt.SetResultOperation(res, wag.Id);
+                        Console.WriteLine(" Обработал вагон = {0}, id строки:{1}, результат:{2}", wag.Num, wag.Id, res);
+                    }
+                }
+                rt.SetResult(rt.error > 0 ? -1 : rt.listResult.Count());
+                _logger.LogInformation(_eventId, "Обработка писем завершена, определено {0} вагонов, код выполнения {1}", rt.listResult.Count(), rt.result);
+                return rt;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "UpdateInstructionalLetter(date_outgoing={0}, user={1})", date, user);
+                rt.SetResult((int)errors_base.global);
+                return rt;// Возвращаем id=-1 , Ошибка
+            }
+        }
+
+        /// <summary>
+        /// Обновим статус вагона в письме
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="dt_lett"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int UpdateInstructionalLetter(int id, DateTime dt_lett, string user)
+        {
+            try
+            {
+                EFDbContext context = new EFDbContext(this.options);
+                InstructionalLettersWagon? ilw = context.InstructionalLettersWagons.Where(w => w.Id == id).FirstOrDefault();
+                if (ilw == null)
+                {
+                    return (int)errors_base.not_instructional_letters_wagon_db; // Ошибка нет строки с вагоном письма
+                }
+                else
+                {
+                    // Проверим вагон письма.
+                    //Console.WriteLine("Письмо №{0} от {1}, вагон {2}", lett.Num, lett.Dt, wag.Num);
+                    if (ilw.IdWir == null)
+                    {
+                        // вагон не пренадлежит внутренему перемещению
+                        var list_wir = context.WagonInternalRoutes
+                            .AsNoTracking()
+                            .Where(w => w.Num == ilw.Num)
+                            .OrderBy(c => c.Id)
+                            .Select(w => new
+                            {
+                                Id = w.Id,
+                                DateAdoption = w.IdArrivalCarNavigation.IdArrivalNavigation.DateAdoption,
+                                DateOutgoing = w.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoing,
+                            })
+                            .ToList();
+                        // Получим последний заход
+
+                        if (list_wir != null && list_wir.Count() > 0)
+                        {
+                            DateTime? first = list_wir.First().DateAdoption != null && list_wir.First().DateOutgoing != null ? list_wir.First().DateAdoption : null;
+                            DateTime? last = list_wir.Last().DateAdoption != null && list_wir.First().DateOutgoing != null ? list_wir.First().DateOutgoing : null;
+                            //DateTime? first = list_wir.Where(f => f.DateAdoption != null).Count() > 0 ? list_wir.Where(f => f.DateAdoption != null).Min(w => w.DateAdoption).Value : null;
+                            //DateTime? last = list_wir.Where(l => l.DateOutgoing != null).Count() > 0 ? list_wir.Where(l => l.DateOutgoing != null).Max(w => w.DateOutgoing).Value : null;
+                            if (first != null && dt_lett < first)
+                            {
+                                // письмо старое (< за пределами wir)
+                                // Проверим на разрыв времени
+                                TimeSpan res = ((DateTime)first).Subtract(dt_lett);
+                                if (res.TotalHours <= 24 * this.control_enter_letter)
+                                {
+                                    var frst = list_wir.First();
+                                    ilw.IdWir = frst.Id;
+                                    if (frst.DateOutgoing == null)
+                                    {
+                                        ilw.Status = 1;
+                                        ilw.Close = null;
+                                        ilw.Note = null;
+                                    }
+                                    else
+                                    {
+                                        ilw.Status = 2;
+                                        ilw.Close = frst.DateOutgoing;
+                                        ilw.Note = String.IsNullOrWhiteSpace(ilw.Note) ? "" : ilw.Note;
+                                    }
+                                }
+                                else
+                                {
+                                    ilw.Status = -1; // Можно удалить
+                                    ilw.Close = dt_lett;
+                                    ilw.Note = "Письмо можно удалить (старое)";
+                                }
+                                //Console.WriteLine("Письмо №{0} от {1}, вагон {2}, результат {3}", lett.Num, lett.Dt, wag.Num, "[< за пределами wir]");
+                            }
+                            else if (last != null && dt_lett > last)
+                            {
+                                // письмо новое и еще вагон не защел (за пределами wir >)
+                                // Проверим на разрыв времени
+                                //if (dt_lett > new DateTime(2025, 8, 8, 0, 0, 0))
+                                //{
+
+                                //}
+                                //TimeSpan res = (dt_lett).Subtract((DateTime)last);
+                                TimeSpan res = (DateTime.Now).Subtract((DateTime)dt_lett);
+                                if (res.TotalHours <= 24 * this.control_enter_letter)
+                                {
+                                    // В рамках времени
+                                    ilw.Status = 0;
+                                    ilw.Close = null;
+                                    ilw.Note = null;
+                                }
+                                else
+                                {
+                                    ilw.Status = -1; // Можно удалить
+                                    ilw.Close = dt_lett;
+                                    ilw.Note = "Письмо можно удалить (истек срок ожидания)";
+                                }
+                                //Console.WriteLine("Письмо №{0} от {1}, вагон {2}, результат {3}", lett.Num, lett.Dt, wag.Num, "[за пределами wir >]");
+                            }
+                            else
+                            {
+                                // Определим wir по дате прибытия и отправке
+                                var res = list_wir.Where(w => w.DateAdoption <= dt_lett && (w.DateOutgoing >= dt_lett || w.DateOutgoing == null)).FirstOrDefault();
+                                if (res != null)
+                                {
+                                    // Нашли wir
+                                    ilw.IdWir = res.Id;
+                                    if (res.DateOutgoing == null)
+                                    {
+                                        ilw.Status = 1;
+                                        ilw.Close = null;
+                                        ilw.Note = "Вагон принят.";
+                                    }
+                                    else
+                                    {
+                                        ilw.Status = 2;
+                                        ilw.Close = res.DateOutgoing;
+                                        ilw.Note = "Вагон сдан.";
+                                    }
+                                    // Получим id- wir
+                                    //Console.WriteLine("Письмо №{0} от {1}, вагон {2}, результат {3}", lett.Num, lett.Dt, wag.Num, "[wir " + res.Id + "]");
+                                }
+                                else
+                                {
+                                    DateTime? start = null;
+                                    long? id_wir = null;
+                                    // между wir
+                                    foreach (var val in list_wir)
+                                    {
+                                        if (start != null && start <= dt_lett && dt_lett < val.DateAdoption)
+                                        {
+                                            id_wir = val.Id; break;
+                                        }
+                                        start = val.DateOutgoing;
+                                    }
+                                    if (id_wir == null)
+                                    {
+                                        // Не понятно, нет данных
+                                        ilw.Status = null; // 
+                                        ilw.Close = null;
+                                        ilw.Note = "Письмо нельзя сопоставить с перемещением!";
+                                        //Console.WriteLine("Письмо №{0} от {1}, вагон {2}, результат {3}", lett.Num, lett.Dt, wag.Num, "?????????");
+                                    }
+                                    else
+                                    {
+                                        var wr = list_wir.Where(w => w.Id == id_wir).First();
+                                        ilw.IdWir = wr.Id;
+                                        if (wr.DateOutgoing == null)
+                                        {
+                                            ilw.Status = 1;
+                                            ilw.Close = null;
+                                            ilw.Note = "Вагон принят.";
+                                        }
+                                        else
+                                        {
+                                            ilw.Status = 2;
+                                            ilw.Close = wr.DateOutgoing;
+                                            ilw.Note = "Вагон сдан.";
+                                        }
+                                        //Console.WriteLine("Письмо №{0} от {1}, вагон {2}, результат {3}", lett.Num, lett.Dt, wag.Num, "[wir " + id_wir + "]");
+                                    }
+
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // нет внутрених перемещений, Еще не заходил
+                            //if (dt_lett > new DateTime(2025, 8, 8, 0, 0, 0)) { 
+                            
+                            //}
+                            TimeSpan res = (DateTime.Now).Subtract(dt_lett);
+                            if (res.TotalHours <= 24 * this.control_enter_letter)
+                            {
+                                // В рамках времени
+                                ilw.Status = 0;
+                                ilw.Close = null;
+                                ilw.Note = null;
+                            }
+                            else
+                            {
+                                ilw.Status = -1; // Можно удалить
+                                ilw.Close = dt_lett;
+                                ilw.Note = "Письмо можно удалить (истек срок ожидания)";
+                            }
+                            //Console.WriteLine("Письмо №{0} от {1}, вагон {2}, результат {3}", lett.Num, lett.Dt, wag.Num, "Еще не заходил");
+                        } // {end list_wir != null && list_wir.Count() > 0}
+
+
+                    }
+                    else
+                    {
+                        // IdWir - существует, проверим состояние если закрыто закроем письмо                   
+                        WagonInternalRoute? wir_current = context
+                            .WagonInternalRoutes
+                            .Where(w => w.Id == ilw.IdWir)
+                            .Include(arr_car => arr_car.IdArrivalCarNavigation)
+                                .ThenInclude(arr_sost => arr_sost.IdArrivalNavigation)
+                            .Include(out_car => out_car.IdOutgoingCarNavigation)
+                                .ThenInclude(out_sost => out_sost.IdOutgoingNavigation)
+                            .FirstOrDefault();
+                        if (wir_current != null)
+                        {
+                            if (wir_current.IdOutgoingCarNavigation != null &&
+                                wir_current.IdOutgoingCarNavigation.IdOutgoingNavigation != null &&
+                                wir_current.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoing != null)
+                            {
+                                ilw.Status = 2;
+                                ilw.Close = wir_current.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoing;
+                                ilw.Note = "Вагон сдан.";
+                            }
+                            else
+                            {
+                                // Внутреннее перемещение не найдено!
+                                return (int)errors_base.not_wir_db;
+                            }
+                        }
+                    } // {end wag.IdWir == null}
+                    ilw.Change = DateTime.Now;
+                    ilw.ChangeUser = user;
+                    return context.SaveChanges();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "UpdateInstructionalLetter(id={0},dt_lett={1} user={2})", id, dt_lett, user);
+                return (int)errors_base.global;
             }
         }
         #endregion
@@ -5283,61 +5579,3 @@ namespace IDS_
     }
 }
 
-//public ResultTransfer InsertOutgoingSostav(ref EFDbContext context, int id_station_from, int id_way_from, int position, DateTime lead_time, List<long> list, string user)
-//{
-//    ResultTransfer res = new ResultTransfer(list.Count());
-//    try
-//    {
-//        OutgoingSostav? new_sostav = CreateOutgoingSostav(ref context, id_station_from, id_way_from, lead_time, user);
-//        if (new_sostav != null)
-//        {
-//            foreach (long id_wir in list.ToList())
-//            {
-//                position++;
-//                WagonInternalRoute? wir = context
-//                    .WagonInternalRoutes
-//                    .Where(r => r.Id == id_wir)
-//                    .FirstOrDefault();
-//                int result = 0;
-//                if (wir != null)
-//                {
-//                    if (wir.IdOutgoingCar == null)
-//                    {
-//                        result = InsertOutgoingCars(ref context, new_sostav, id_way_from, position, wir, lead_time, user); // Получим результат выполнения операции
-//                    }
-//                    else
-//                    {
-//                        result = (int)errors_base.outgoing_cars_wir; // Записи по WagonInternalRoutes - уже имеет ссылку на отправку
-//                    }
-//                    context.OutgoingSostavs.Add(new_sostav);
-//                    // Сохраним рзультат выполнения
-//                    res.SetMovedResult(result, wir.Num);
-//                }
-//                else
-//                {
-//                    result = (int)errors_base.not_wir_db; // В базе данных нет записи по WagonInternalRoutes (Внутренее перемещение вагонов)
-//                }
-//            }
-//        }
-//        else
-//        {
-//            res.SetResult((int)errors_base.not_outgoing_sostav_db);
-//        }
-//        // Если нет ошибок, сохраним изменения в базе
-//        if (res.error == 0)
-//        {
-//            res.SetResult(context.SaveChanges());
-//        }
-//        else
-//        {
-//            res.SetResult((int)errors_base.cancel_save_changes);
-//        }
-//    }
-//    catch (Exception e)
-//    {
-//        _logger.LogError(e, String.Format("InsertOutgoingSostav(context={0}, id_station_from={1}, id_way_from={2}, position={3}, lead_time={4}, list={5}, user={6})",
-//            context, id_station_from, id_way_from, position, lead_time, list, user));
-//        res.SetResult((int)errors_base.global); // Глобальная ошибка
-//    }
-//    return res;
-//}
