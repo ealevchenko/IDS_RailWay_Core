@@ -102,7 +102,8 @@ namespace HelloApp
                 //twir.DeleteWagonOfAMKR();
                 //twir.CorrectArrivalNotEPD_Document();
                 //twir.CorrectOutgoingDocument();
-                twir.DeleteFilingOfID();
+                //twir.DeleteFilingOfID();
+                twir.IDS_WIR_UpdateInstructionalLetter();
                 #endregion
                 //+++++++++++++++++++++++++++++++ req1892 ++++++++++++++++++++++++++++++
                 //WebClientGIVC client_givc = new WebClientGIVC(logger, config);

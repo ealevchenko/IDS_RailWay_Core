@@ -230,6 +230,16 @@ namespace Test.TestModele
 
 
         }
+        /// <summary>
+        /// Тест обновить инструктивные письма
+        /// </summary>
+        public void IDS_WIR_UpdateInstructionalLetter()
+        {
+
+            DateTime date = new DateTime(2025, 8, 1, 0, 0, 0);
+            OperationResultID res = ids_wir.UpdateInstructionalLetter(date, null);
+            Console.WriteLine($" result : {res.result} \n CountlistResult :{res.listResult.Count()}");
+        }
 
         /// <summary>
         /// Административная функция. Удалить подачу (или вагоны в подаче)
