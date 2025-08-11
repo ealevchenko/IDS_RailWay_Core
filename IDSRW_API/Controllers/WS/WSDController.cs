@@ -1,24 +1,25 @@
 ﻿using EF_IDS.Concrete;
 using EF_IDS.Entities;
 using EF_IDS.Functions;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using WebAPI.Repositories;
-using WebAPI.Repositories.Directory;
 using EFIDS.Functions;
 using IDS_;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using WebAPI.Controllers.GIVC;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json.Linq;
-using static IDS_.IDS_WIR;
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using WebAPI.Controllers.GIVC;
+using WebAPI.Repositories;
+using WebAPI.Repositories.Directory;
+using static IDS_.IDS_WIR;
 
 namespace WebAPI.Controllers.Directory
 {
@@ -1349,6 +1350,62 @@ namespace WebAPI.Controllers.Directory
                                      w.Change,
                                      w.ChangeUser,
                                  }),
+                         })
+                        .ToListAsync();
+                db.Database.SetCommandTimeout(0);
+                if (result == null)
+                    return NotFound();
+                return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // GET: WSD/view/instructional_letters_wagons/list/in_progress
+        [HttpGet("view/instructional_letters_wagons/list/in_progress")]
+        public async Task<ActionResult> GetViewInstructionalLettersWagonsInProgress()
+        {
+            try
+            {
+                db.Database.SetCommandTimeout(300);
+                var result = await db.InstructionalLettersWagons
+                        .AsNoTracking()
+                        .Where(x => x.Status < 2 || x.Status == 5)
+                         .Select(w => new
+                         {
+                             w.Id,
+                             IdInstructionalLetters = w.IdInstructionalLettersNavigation.Id,
+                             InstructionalLettersNum = w.IdInstructionalLettersNavigation.Num,
+                             InstructionalLettersDatetime = w.IdInstructionalLettersNavigation.Dt,
+                             InstructionalLettersOwner = w.IdInstructionalLettersNavigation.Owner,
+                             InstructionalLettersStationCode = w.IdInstructionalLettersNavigation.DestinationStation,
+                             InstructionalLettersStationNameRu = db.DirectoryExternalStations.Where(s => s.Code == w.IdInstructionalLettersNavigation.DestinationStation).FirstOrDefault() != null ? db.DirectoryExternalStations.Where(s => s.Code == w.IdInstructionalLettersNavigation.DestinationStation).FirstOrDefault().StationNameRu : null,
+                             InstructionalLettersStationNameEn = db.DirectoryExternalStations.Where(s => s.Code == w.IdInstructionalLettersNavigation.DestinationStation).FirstOrDefault() != null ? db.DirectoryExternalStations.Where(s => s.Code == w.IdInstructionalLettersNavigation.DestinationStation).FirstOrDefault().StationNameEn : null,
+                             InstructionalLettersNote = w.IdInstructionalLettersNavigation.Note,
+                             InstructionalLettersCreate = w.IdInstructionalLettersNavigation.Create,
+                             InstructionalLettersCreateUser = w.IdInstructionalLettersNavigation.CreateUser,
+                             InstructionalLettersChange = w.IdInstructionalLettersNavigation.Change,
+                             InstructionalLettersChangeUser = w.IdInstructionalLettersNavigation.ChangeUser,
+                             InstructionalLettersWagonsIdWir = w.IdWir,
+                             InstructionalLettersWagonsNum = w.Num,
+                             InstructionalLettersWagonsNote = w.Note,
+                             InstructionalLettersWagonsStatus = w.Status,
+                             InstructionalLettersWagonsClose = w.Close,
+                             InstructionalLettersWagonsWirNote = w.IdWirNavigation.Note,
+                             InstructionalLettersWagonsWirNote2 = w.IdWirNavigation.Note2,
+                             InstructionalLettersWagonsDateAdoption = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalNavigation.DateAdoption,
+                             InstructionalLettersWagonsDateAdoptionAct = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalNavigation.DateAdoptionAct,
+                             InstructionalLettersWagonsOperatorsAbbrRu = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperatorNavigation.AbbrRu,
+                             InstructionalLettersWagonsOperatorsAbbrEn = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperatorNavigation.AbbrEn,
+                             InstructionalLettersWagonsDateOutgoing = w.IdWirNavigation.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoing,
+                             InstructionalLettersWagonsDateOutgoingAct = w.IdWirNavigation.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoingAct,
+                             InstructionalLettersWagonsDateDepartureAmkr = w.IdWirNavigation.IdOutgoingCarNavigation.IdOutgoingNavigation.DateDepartureAmkr,
+                             InstructionalLettersWagonsCreate = w.Create,
+                             InstructionalLettersWagonsCreateUser = w.CreateUser,
+                             InstructionalLettersWagonsChange = w.Change,
+                             InstructionalLettersWagonsChangeUser = w.ChangeUser,
                          })
                         .ToListAsync();
                 db.Database.SetCommandTimeout(0);
