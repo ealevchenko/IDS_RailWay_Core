@@ -375,10 +375,10 @@ namespace IDS_
 
                 .ToList();
                 // Пройдемся по письмам
-                foreach (InstructionalLetter lett in list_il.OrderBy(c => c.Dt)) //.Where(l=>l.Num == "4143")
+                foreach (InstructionalLetter lett in list_il.OrderBy(c => c.Dt)) //Where(l=>l.Num == "2").
                 {
                     Console.WriteLine("Письмо №{0} от {1}", lett.Num, lett.Dt);
-                    foreach (InstructionalLettersWagon wag in lett.InstructionalLettersWagons.Where(w => w.Status == null || w.Status < 2))
+                    foreach (InstructionalLettersWagon wag in lett.InstructionalLettersWagons.Where(w => (w.Status == null || w.Status < 2))) // w.Num == 64245111 && 
                     {
                         
                         int res = UpdateInstructionalLetter(wag.Id, lett.Dt, user);
@@ -437,8 +437,9 @@ namespace IDS_
 
                         if (list_wir != null && list_wir.Count() > 0)
                         {
-                            DateTime? first = list_wir.First().DateAdoption != null && list_wir.First().DateOutgoing != null ? list_wir.First().DateAdoption : null;
-                            DateTime? last = list_wir.Last().DateAdoption != null && list_wir.First().DateOutgoing != null ? list_wir.First().DateOutgoing : null;
+                            DateTime? first = list_wir.First().DateAdoption != null ? list_wir.First().DateAdoption : null;                            
+                            //DateTime? first = list_wir.First().DateAdoption != null && list_wir.First().DateOutgoing != null ? list_wir.First().DateAdoption : null;
+                            DateTime? last = list_wir.Last().DateAdoption != null && list_wir.Last().DateOutgoing != null ? list_wir.Last().DateOutgoing : null;
                             //DateTime? first = list_wir.Where(f => f.DateAdoption != null).Count() > 0 ? list_wir.Where(f => f.DateAdoption != null).Min(w => w.DateAdoption).Value : null;
                             //DateTime? last = list_wir.Where(l => l.DateOutgoing != null).Count() > 0 ? list_wir.Where(l => l.DateOutgoing != null).Max(w => w.DateOutgoing).Value : null;
                             if (first != null && dt_lett < first)
@@ -460,12 +461,12 @@ namespace IDS_
                                     {
                                         ilw.Status = 2;
                                         ilw.Close = frst.DateOutgoing;
-                                        ilw.Note = String.IsNullOrWhiteSpace(ilw.Note) ? "" : ilw.Note;
+                                        ilw.Note = "Вагон сдан.";
                                     }
                                 }
                                 else
                                 {
-                                    ilw.Status = -1; // Можно удалить
+                                    ilw.Status = 5; // Можно удалить
                                     ilw.Close = dt_lett;
                                     ilw.Note = "Письмо можно удалить (старое)";
                                 }
@@ -490,7 +491,7 @@ namespace IDS_
                                 }
                                 else
                                 {
-                                    ilw.Status = -1; // Можно удалить
+                                    ilw.Status = 5; // Можно удалить
                                     ilw.Close = dt_lett;
                                     ilw.Note = "Письмо можно удалить (истек срок ожидания)";
                                 }
@@ -578,7 +579,7 @@ namespace IDS_
                             }
                             else
                             {
-                                ilw.Status = -1; // Можно удалить
+                                ilw.Status = 5; // Можно удалить
                                 ilw.Close = dt_lett;
                                 ilw.Note = "Письмо можно удалить (истек срок ожидания)";
                             }
