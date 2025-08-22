@@ -14,6 +14,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using WebAPI.Controllers.GIVC;
@@ -212,6 +214,14 @@ namespace WebAPI.Controllers.Directory
     {
         public int id_way { get; set; }
         public List<PositionWagons> positions { get; set; }
+    }
+    #endregion
+
+    #region ОПЕРАЦИЯ АДМ
+    public class StatusInstructionalLettersWagons
+    {
+        public List<int> nums { get; set; }
+        public DateTime date_lett { get; set; }
     }
     #endregion
 
@@ -1340,8 +1350,10 @@ namespace WebAPI.Controllers.Directory
                                      WirNote2 = w.IdWirNavigation.Note2,
                                      w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalNavigation.DateAdoption,
                                      w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalNavigation.DateAdoptionAct,
-                                     ArrivalOperatorAbbrRu = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperatorNavigation.OperatorsRu,
-                                     ArrivalOperatorAbbrEn = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperatorNavigation.OperatorsEn,
+                                     ArrivalOperatorRu = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperatorNavigation.OperatorsRu,
+                                     ArrivalOperatorEn = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperatorNavigation.OperatorsEn,
+                                     ArrivalOperatorAbbrRu = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperatorNavigation.AbbrRu,
+                                     ArrivalOperatorAbbrEn = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperatorNavigation.AbbrEn,
                                      w.IdWirNavigation.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoing,
                                      w.IdWirNavigation.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoingAct,
                                      w.IdWirNavigation.IdOutgoingCarNavigation.IdOutgoingNavigation.DateDepartureAmkr,
@@ -1349,6 +1361,9 @@ namespace WebAPI.Controllers.Directory
                                      w.CreateUser,
                                      w.Change,
                                      w.ChangeUser,
+                                     RentOperatorAbbrRu = db.DirectoryWagonsRents.Where(r => r.Num == w.Num && r.RentStart <= l.Dt && (r.RentEnd >= l.Dt || r.RentEnd == null)) != null ? db.DirectoryWagonsRents.Where(r => r.Num == w.Num && r.RentStart <= l.Dt && (r.RentEnd >= l.Dt || r.RentEnd == null)).First().IdOperatorNavigation.AbbrRu : null,
+                                     RentOperatorAbbrEn = db.DirectoryWagonsRents.Where(r => r.Num == w.Num && r.RentStart <= l.Dt && (r.RentEnd >= l.Dt || r.RentEnd == null)) != null ? db.DirectoryWagonsRents.Where(r => r.Num == w.Num && r.RentStart <= l.Dt && (r.RentEnd >= l.Dt || r.RentEnd == null)).First().IdOperatorNavigation.AbbrEn : null,
+
                                  }),
                          })
                         .ToListAsync();
@@ -1412,6 +1427,42 @@ namespace WebAPI.Controllers.Directory
                 if (result == null)
                     return NotFound();
                 return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        /// <summary>
+        /// Получить статус вагонов в письме
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        // POST: WSD/view/instructional_letters_wagons
+        // BODY: WSD (JSON, XML)
+        [HttpPost("view/instructional_letters_wagons")]
+        public async Task<ActionResult<IEnumerable<StatusInstructionalLettersWagon>>> PostStatusInstructionalLettersWagons([FromBody] StatusInstructionalLettersWagons value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                //if (user == "EUROPE\\ealevchenko" || user == "EUROPE\\lvgubarenko")
+                //{
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                List<StatusInstructionalLettersWagon> result = ids_wir.GetStatusInstructionalLetterWagons(value.nums, value.date_lett);
+                return Ok(result);
+                //}
+                //else
+                //{
+                //    return BadRequest();
+                //}
+
             }
             catch (Exception e)
             {
