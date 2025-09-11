@@ -547,26 +547,26 @@ public class ViewArrivalDocumentsVagons
     [Column("arrival_uz_vagon_summa_001")]
     public long? ArrivalUzVagonSumma001 { get; set; }
 
-    [Column("arrival_uz_vagon_id_act_services1")]
-    public int? ArrivalUzVagonIdActServices1 { get; set; }
+    //[Column("arrival_uz_vagon_id_act_services1")]
+    //public int? ArrivalUzVagonIdActServices1 { get; set; }
 
-    [Column("arrival_uz_vagon_id_act_services2")]
-    public int? ArrivalUzVagonIdActServices2 { get; set; }
+    //[Column("arrival_uz_vagon_id_act_services2")]
+    //public int? ArrivalUzVagonIdActServices2 { get; set; }
 
-    [Column("arrival_uz_vagon_id_act_services3")]
-    public int? ArrivalUzVagonIdActServices3 { get; set; }
+    //[Column("arrival_uz_vagon_id_act_services3")]
+    //public int? ArrivalUzVagonIdActServices3 { get; set; }
 
-    [Column("arrival_uz_vagon_num_act_services1")]
-    [StringLength(20)]
-    public string? ArrivalUzVagonNumActServices1 { get; set; }
+    //[Column("arrival_uz_vagon_num_act_services1")]
+    //[StringLength(20)]
+    //public string? ArrivalUzVagonNumActServices1 { get; set; }
 
-    [Column("arrival_uz_vagon_num_act_services2")]
-    [StringLength(20)]
-    public string? ArrivalUzVagonNumActServices2 { get; set; }
+    //[Column("arrival_uz_vagon_num_act_services2")]
+    //[StringLength(20)]
+    //public string? ArrivalUzVagonNumActServices2 { get; set; }
 
-    [Column("arrival_uz_vagon_num_act_services3")]
-    [StringLength(20)]
-    public string? ArrivalUzVagonNumActServices3 { get; set; }
+    //[Column("arrival_uz_vagon_num_act_services3")]
+    //[StringLength(20)]
+    //public string? ArrivalUzVagonNumActServices3 { get; set; }
 
     [Column("arrival_uz_vagon_create", TypeName = "datetime")]
     public DateTime ArrivalUzVagonCreate { get; set; }
