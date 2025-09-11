@@ -391,7 +391,7 @@ namespace IDS_
 
                 .ToList();
                 // Пройдемся по письмам (! сортируем по дате письма если даты совподают сортируем по id )
-                foreach (InstructionalLetter lett in list_il.OrderBy(c => c.Dt).ThenBy(c=>c.Id)) //Where(l=>l.Num == "2").
+                foreach (InstructionalLetter lett in list_il.OrderBy(c => c.Dt).ThenBy(c => c.Id)) //Where(l=>l.Num == "2").
                 {
                     Console.WriteLine("Письмо №{0} от {1}", lett.Num, lett.Dt);
                     foreach (InstructionalLettersWagon wag in lett.InstructionalLettersWagons.Where(w => (w.Status == null || w.Status < 2))) // w.Num == 64245111 && 
@@ -497,7 +497,7 @@ namespace IDS_
                             return (int)errors_base.not_wir_db;
                         }
                     } // {end wag.IdWir == null}
-                    if (context.Entry(ilw).State != EntityState.Unchanged || (old_silw != null &&  context.Entry(old_silw).State != EntityState.Unchanged))
+                    if (context.Entry(ilw).State != EntityState.Unchanged || (old_silw != null && context.Entry(old_silw).State != EntityState.Unchanged))
                     {
                         ilw.Change = DateTime.Now;
                         ilw.ChangeUser = user;
@@ -695,7 +695,7 @@ namespace IDS_
                     //       .ThenInclude(wag => wag.NumNavigation)
                     //           .ThenInclude(rent => rent.DirectoryWagonsRents)
                     //               .ThenInclude(operation => operation.IdOperatorNavigation)
-                    .Where(w => w.Num == num && w.Close == null && w.IdInstructionalLettersNavigation.Dt <= dt_lett && w.Id < id) // все не закрытые меньше проверяемого id 
+                    .Where(w => w.Num == num && w.Close == null && w.IdInstructionalLettersNavigation.Dt <= dt_lett && (w.Id < id || id == 0)) // все не закрытые меньше проверяемого id 
                     .OrderBy(c => c.Id).ToList();
                 if (lilw != null && lilw.Count() > 0)
                 {
