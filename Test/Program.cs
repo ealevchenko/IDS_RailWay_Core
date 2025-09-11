@@ -103,7 +103,7 @@ namespace HelloApp
                 //twir.CorrectArrivalNotEPD_Document();
                 //twir.CorrectOutgoingDocument();
                 //twir.DeleteFilingOfID();
-                twir.IDS_WIR_UpdateInstructionalLetter();
+                //twir.IDS_WIR_UpdateInstructionalLetter();
                 #endregion
                 //+++++++++++++++++++++++++++++++ req1892 ++++++++++++++++++++++++++++++
                 //WebClientGIVC client_givc = new WebClientGIVC(logger, config);
