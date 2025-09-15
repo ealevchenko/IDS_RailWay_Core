@@ -217,11 +217,27 @@ namespace WebAPI.Controllers.Directory
     }
     #endregion
 
-    #region ОПЕРАЦИЯ АДМ
+    #region ОПЕРАЦИЯ ИНСТРУКТИВНЫЕ ПИСЬМА
     public class StatusInstructionalLettersWagons
     {
         public List<int> nums { get; set; }
         public DateTime date_lett { get; set; }
+    }
+
+    public class UpdateInstructionalLettersWagons
+    {
+        public int id { get; set; }
+        public int num { get; set; }
+    }
+    public class OperationUpdateInstructionalLetters
+    {
+        public int id { get; set; }
+        public string num { get; set; } = null!;
+        public DateTime dt { get; set; }
+        public string owner { get; set; } = null!;
+        public int destination_station { get; set; }
+        public string? note { get; set; }
+        public List<UpdateInstructionalLettersWagons> wagons { get; set; }
     }
     #endregion
 
@@ -1313,6 +1329,8 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+
+        #region ИНСТРУКТИВНЫЕ ПИСЬМА
         // GET: WSD/view/instructional_letters/list/period/start/2023-07-01T00:00:00/stop/2025-07-31T00:00:00
         [HttpGet("view/instructional_letters/list/period/start/{start:DateTime}/stop/{stop:DateTime}")]
         public async Task<ActionResult> GetViewInstructionalLettersOfPeriod(DateTime start, DateTime stop)
@@ -1469,6 +1487,37 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // POST: WSD/operation/instructional_letters/update
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/instructional_letters/update")]
+        public async Task<ActionResult<ResultTransfer>> PostUpdateInstructionalLetters([FromBody] OperationUpdateInstructionalLetters value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                //ResultTransfer result = ids_wir.ReturnWagonsOfStationAMKR(value.id_outer_way, value.wagons, value.id_way, value.head, value.lead_time, value.locomotive1, value.locomotive2, value.type_return, user);
+                ResultTransfer result = new ResultTransfer(value.wagons.Count());
+                foreach (UpdateInstructionalLettersWagons wag in value.wagons)
+                {
+                    result.SetMovedResult(-1, wag.num);
+                }
+                result.result = -1;
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        #endregion
 
         #endregion
 
