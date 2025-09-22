@@ -157,10 +157,11 @@
 
 
         // Инструктивные письма -900..
-        not_instructional_letters_db = -900,                 // Ошибка, в базе данных нет строки инструктивного письма       
-        not_instructional_letters_wagon_db = -901,           // Ошибка, в базе данных нет строки вагона инструктивного письма
-        error_instructional_letters_wagon_out_of_date = -902,// Ошибка, попытка вставить вагон, который уже есть в письме позже
-
+        not_instructional_letters_db = -900,                    // Ошибка, в базе данных нет строки инструктивного письма       
+        instructional_letters_close = -901,                     // Письмо закрыто. 
+        not_instructional_letters_wagon_db = -920,              // Ошибка, в базе данных нет строки вагона инструктивного письма
+        error_instructional_letters_wagon_out_of_date = -921,   // Ошибка, попытка вставить вагон, который уже есть в письме позже
+        instructional_letters_wagon_close = -922,               // Вагон в письме закрыт.
         // СМС   -1500
         error_connect_sms = -1500,                           // Ошибка Подкллючения к модулю согласования
 
