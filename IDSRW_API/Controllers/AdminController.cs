@@ -3,6 +3,7 @@ using EF_IDS.Functions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace IDSRW_API.Controllers
@@ -49,6 +50,8 @@ namespace IDSRW_API.Controllers
                     }
                 }
 
+                bool isDevelopers = HttpContext.User.IsInRole(@"EUROPE\KRR-LG-PA-RailWay_Developers"); //EUROPE\\KRR-LG-PA-Developers_DB
+                
                 UserInfo result = new UserInfo()
                 {
                     Name = HttpContext.User.Identity.Name,
@@ -58,6 +61,27 @@ namespace IDSRW_API.Controllers
                     NameServer = Environment.MachineName
                 };
                 return new ObjectResult(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // GET: Admin/is_role/EUROPE\KRR-LG-PA-RailWay_Developers
+        [HttpGet("is_role/{role}")]
+        public async Task<ActionResult> IsRole(string role)
+        {
+            try
+            {
+                bool isRole = false;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+                if (IsAuthenticated)
+                {
+                    isRole = HttpContext.User.IsInRole(role); //EUROPE\\KRR-LG-PA-Developers_DB
+
+                }
+                return new ObjectResult(isRole);
             }
             catch (Exception e)
             {
