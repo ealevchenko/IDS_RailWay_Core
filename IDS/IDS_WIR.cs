@@ -31,6 +31,14 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace IDS_
 {
+    public class IdNumStatusWagon
+    {
+        public int id { get; set; }
+        public int num { get; set; }
+
+        public int? status_edit { get; set; }
+    }
+
     public class ArrivalCorrectDocument
     {
         public int? CodeStnFrom { get; set; }
@@ -451,7 +459,7 @@ namespace IDS_
                                     old_silw.Change = DateTime.Now;
                                     old_silw.ChangeUser = user;
                                     //string s = String.Format("Отмена, письмо № {0} от {1}", ilw.IdInstructionalLettersNavigation.Num, ilw.IdInstructionalLettersNavigation.Dt.ToString());
-                                    old_silw.Note = String.Format("Отмена, письмо №{0} от {1}", ilw.IdInstructionalLettersNavigation.Num, ilw.IdInstructionalLettersNavigation.Dt.ToString());
+                                    old_silw.Note = String.Format("Замена, письмо №{0} от {1}", ilw.IdInstructionalLettersNavigation.Num, ilw.IdInstructionalLettersNavigation.Dt.ToString());
                                 }
                             }
                             ilw.IdWir = silw.id_wir;
@@ -768,6 +776,295 @@ namespace IDS_
                 return list_silw;
             }
         }
+        /// <summary>
+        /// Добавим вагоны в письмо
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="result"></param>
+        /// <param name="il"></param>
+        /// <param name="wagons"></param>
+        /// <param name="user"></param>
+        public void AddInstructionalLetterWagons(ref EFDbContext context, ref ResultUpdateWagon result, InstructionalLetter il, List<IdNumStatusWagon> wagons, string user)
+        {
+            try
+            {
+                // Операции с вагонами которые добавили
+                List<IdNumStatusWagon> wagons_add = wagons.Where(w => w.id == 0).ToList();
+                if (wagons_add != null && wagons_add.Count() > 0)
+                {
+                    foreach (IdNumStatusWagon wag in wagons_add)
+                    {
+                        StatusInstructionalLettersWagon status = GetStatusInstructionalLetterWagon(wag.id, wag.num, il.Dt);
+                        if (status.error == 0)
+                        {
+                            // Ошибок нет, проверим на не закрытые вагоны в письме  
+                            if (status.not_close != null)
+                            {
+                                InstructionalLettersWagon? close_wagon_lett = context.InstructionalLettersWagons.Where(w => w.Id == status.not_close.Id).FirstOrDefault();
+                                if (close_wagon_lett != null)
+                                {
+                                    // Вагон в письме найден, закроем его со статусом замена
+                                    close_wagon_lett.Status = 3;
+                                    close_wagon_lett.Close = DateTime.Now;
+                                    close_wagon_lett.Note = String.Format("Замена, письмо №{0} от {1}", il.Num, il.Dt.ToString());
+                                    close_wagon_lett.Change = DateTime.Now;
+                                    close_wagon_lett.ChangeUser = user;
+                                    context.InstructionalLettersWagons.Update(close_wagon_lett);
+                                }
+                                else
+                                {
+                                    if (close_wagon_lett == null) result.SetInsertResult((int)errors_base.not_instructional_letters_wagon_db, wag.num);
+                                }
+                            }
+                            // Создадим строку вагона письма
+                            InstructionalLettersWagon ilw = new InstructionalLettersWagon()
+                            {
+                                Id = 0,
+                                IdInstructionalLetters = 0,
+                                Num = wag.num,
+                                Close = status.close,
+                                CloseStatus = status.close != null ? 1 : null,
+                                Note = status.note,
+                                Create = DateTime.Now,
+                                CreateUser = user,
+                                Status = status.status,
+                                IdWir = status.id_wir,
+                            };
+                            // Добавим вагон в письмо
+                            il.InstructionalLettersWagons.Add(ilw);
+                        }
+                        else
+                        {
+                            result.SetInsertResult(status.error, wag.num);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "AddInstructionalLetterWagons(context={0},il={1},wagons={2})", context, il, wagons);
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Обновить инструктивное письмо (добавить, править)
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="num"></param>
+        /// <param name="dt"></param>
+        /// <param name="owner"></param>
+        /// <param name="destination_station"></param>
+        /// <param name="note"></param>
+        /// <param name="wagons"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public ResultUpdateWagon UpdateInstructionalLetters(int id, string num, DateTime dt, string owner, int destination_station, string? note, List<IdNumStatusWagon> wagons, string user)
+        {
+            ResultUpdateWagon result = new ResultUpdateWagon(wagons.Count());
+            try
+            {
+                EFDbContext context = new EFDbContext(this.options);
+                if (id > 0)
+                {
+                    // правка письма
+                    InstructionalLetter? il = context.InstructionalLetters
+                        .Include(wag => wag.InstructionalLettersWagons)
+                        .Where(l => l.Id == id).FirstOrDefault();
+                    if (il != null)
+                    {
+                        result.count = il.InstructionalLettersWagons.Count();
+                        int close = il.InstructionalLettersWagons.Count(w => w.Close != null);
+                        // Добавим новые
+                        AddInstructionalLetterWagons(ref context, ref result, il, wagons, user);
+                        // Удалим старые
+                        List<IdNumStatusWagon> wagons_edit = wagons.Where(w => w.id > 0 && w.status_edit > 1).ToList();
+                        if (wagons_edit != null && wagons_edit.Count() > 0)
+                        {
+
+                            foreach (IdNumStatusWagon wge in wagons_edit)
+                            {
+                                InstructionalLettersWagon? wag = il.InstructionalLettersWagons.ToList().Find(w => w.Num == wge.num);
+                                if (wag != null)
+                                {
+                                    if (wge.status_edit == 2)
+                                    {
+                                        // Удалить
+                                        // Вагон удалим с проверкой предыдущего письма
+                                        int res_del = DeleteInstructionalLettersWagon(ref context, wag, user);
+                                        result.SetUpdateResult(res_del, wag.Num);
+                                    }
+                                    if (wge.status_edit == 3)
+                                    {
+                                        // Отменить
+                                        wag.Status = 4; // произошла отмена
+                                        wag.Close = DateTime.Now;
+                                        wag.CloseStatus = 1;
+                                        wag.Note = String.Format("Отмена, пользователем №{0} в {1}", user, DateTime.Now.ToString());
+                                        wag.Change = DateTime.Now;
+                                        wag.ChangeUser = user;
+                                        context.InstructionalLettersWagons.Update(wag);
+                                    }
+                                }
+                                else
+                                {
+                                    // вагон для правки не найден
+                                    result.SetUpdateResult((int)errors_base.not_instructional_letters_wagon_db, wge.num);
+                                }
+                            }
+                        }
+
+                        // Обновим письмо
+                        il.Num = num;
+                        il.Note = note;
+                        il.Owner = owner;
+                        il.DestinationStation = destination_station;
+                        il.Change = DateTime.Now;
+                        il.ChangeUser = user;
+                        context.InstructionalLetters.Update(il);
+                    }
+                    else
+                    {
+                        result.result = (int)errors_base.not_instructional_letters_db;
+                    }
+                }
+                else
+                {
+                    // Создадим письмо
+                    InstructionalLetter curr_il = new InstructionalLetter()
+                    {
+                        Id = 0,
+                        Num = num,
+                        Dt = dt,
+                        Owner = owner,
+                        DestinationStation = destination_station,
+                        Note = note,
+                        Create = DateTime.Now,
+                        CreateUser = user,
+                    };
+                    // Добавим письмо 
+                    context.InstructionalLetters.Add(curr_il);
+                    // Операции с вагонами которые добавили
+                    AddInstructionalLetterWagons(ref context, ref result, curr_il, wagons, user);
+                }
+                // Если нет, ошибки обновим
+                if (result.error == 0)
+                {
+                    result.result = context.SaveChanges();
+                }
+                // Обозначим ошибку
+                if (result.error < 0 && result.result >= 0) result.result = -1;
+                return result;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "UpdateInstructionalLetters(id={0}, num={1}, dt={2}, owner={3}, destination_station={4}, note={5}, wagons={6}, user={7})", id, num, dt, owner, destination_station, note, wagons, user);
+                result.result = (int)errors_base.global;
+                return result;
+            }
+        }
+        /// <summary>
+        /// Удалить вагон из письма с учетом предыдущего письма (если стоит отмена)
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="wag"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int DeleteInstructionalLettersWagon(ref EFDbContext context, InstructionalLettersWagon wag, string user)
+        {
+            try
+            {
+                // Проверим предыдущее письмо
+                InstructionalLettersWagon? wag_prev = context.InstructionalLettersWagons
+                    .Include(lett => lett.IdInstructionalLettersNavigation)
+                    .Where(w => w.Num == wag.Num && w.Id < wag.Id).OrderByDescending(c => c.Id).FirstOrDefault();
+                //InstructionalLettersWagon wag_next = context.InstructionalLettersWagons.Where(w => w.Num == wag.Num && w.Id > wag.Id).OrderBy(c => c.Id).FirstOrDefault();
+                // Проверим если предыдущий вагон был отмененн восстанавливаем
+                if (wag_prev != null && wag_prev.Status == 3)
+                {
+                    StatusInstructionalLettersWagon status = GetStatusInstructionalLetterWagon(wag_prev.Id, wag_prev.Num, wag_prev.IdInstructionalLettersNavigation.Dt);
+                    wag_prev.Close = status.close;
+                    wag_prev.CloseStatus = status.close != null ? 1 : null;
+                    wag_prev.Status = status.status;
+                    wag_prev.Note = status.note;
+                    wag_prev.Change = DateTime.Now;
+                    wag_prev.ChangeUser = user;
+                    context.InstructionalLettersWagons.Update(wag_prev);
+                }
+                context.InstructionalLettersWagons.Remove(wag);
+                return 1;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "DeleteInstructionalLettersWagon(context={0}, wag={1}, user={1})", context, wag, user);
+                return (int)errors_base.global;
+            }
+        }
+        /// <summary>
+        /// Удалить письмо 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public ResultUpdateWagon DeleteInstructionalLetters(int id, string user)
+        {
+            ResultUpdateWagon result = new ResultUpdateWagon(0);
+            try
+            {
+                EFDbContext context = new EFDbContext(this.options);
+                InstructionalLetter? il = context.InstructionalLetters
+                    .Include(wag => wag.InstructionalLettersWagons)
+                    .Where(l => l.Id == id).FirstOrDefault();
+                if (il != null)
+                {
+                    //Удаляем
+                    result.count = il.InstructionalLettersWagons.Count();
+                    int close = il.InstructionalLettersWagons.Count(w => w.Close != null);
+                    if (result.count > 0 && close == 0)
+                    {
+                        foreach (InstructionalLettersWagon wag in il.InstructionalLettersWagons.ToList())
+                        {
+                            // Проверим предыдущее письмо
+                            int res_del = DeleteInstructionalLettersWagon(ref context, wag, user);
+                            result.SetUpdateResult(res_del, wag.Num);
+                        }
+                        context.InstructionalLetters.Remove(il);
+                    }
+                    else
+                    {
+                        if (result.count == 0)
+                        {
+                            // Вагонов нет, удалим письмо
+                            context.InstructionalLetters.Remove(il);
+                        }
+                        else
+                        {
+                            result.result = (int)errors_base.instructional_letters_close;
+                        }
+                    }
+                }
+                else
+                {
+                    result.result = (int)errors_base.not_instructional_letters_db;
+                }
+
+                // Если нет, ошибки обновим
+                if (result.error == 0)
+                {
+                    result.result = context.SaveChanges();
+                }
+                // Обозначим ошибку
+                if (result.error < 0 && result.result >= 0) result.result = -1;
+                return result;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "DeleteInstructionalLetters(id={0}, user={1})", id, user);
+                result.result = (int)errors_base.global;
+                return result;
+            }
+        }
+
         #endregion
 
         #region Отправка составов

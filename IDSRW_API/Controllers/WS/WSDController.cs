@@ -224,11 +224,11 @@ namespace WebAPI.Controllers.Directory
         public DateTime date_lett { get; set; }
     }
 
-    public class UpdateInstructionalLettersWagons
-    {
-        public int id { get; set; }
-        public int num { get; set; }
-    }
+    //public class UpdateInstructionalLettersWagons
+    //{
+    //    public int id { get; set; }
+    //    public int num { get; set; }
+    //}
     public class OperationUpdateInstructionalLetters
     {
         public int id { get; set; }
@@ -237,7 +237,7 @@ namespace WebAPI.Controllers.Directory
         public string owner { get; set; } = null!;
         public int destination_station { get; set; }
         public string? note { get; set; }
-        public List<UpdateInstructionalLettersWagons> wagons { get; set; }
+        public List<IdNumStatusWagon> wagons { get; set; }
     }
     #endregion
 
@@ -272,6 +272,7 @@ namespace WebAPI.Controllers.Directory
 
     #endregion
 
+    //[Authorize]
     [Route("[controller]")]
     [ApiController]
     public class WSDController : ControllerBase
@@ -1491,7 +1492,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/instructional_letters/update
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/instructional_letters/update")]
-        public async Task<ActionResult<ResultTransfer>> PostUpdateInstructionalLetters([FromBody] OperationUpdateInstructionalLetters value)
+        public async Task<ActionResult<ResultUpdateWagon>> PostUpdateInstructionalLetters([FromBody] OperationUpdateInstructionalLetters value)
         {
             try
             {
@@ -1502,14 +1503,33 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                //ResultTransfer result = ids_wir.ReturnWagonsOfStationAMKR(value.id_outer_way, value.wagons, value.id_way, value.head, value.lead_time, value.locomotive1, value.locomotive2, value.type_return, user);
-                ResultTransfer result = new ResultTransfer(value.wagons.Count());
-                foreach (UpdateInstructionalLettersWagons wag in value.wagons)
-                {
-                    result.SetMovedResult(-1, wag.num);
-                }
-                result.result = -1;
+                ResultUpdateWagon result = ids_wir.UpdateInstructionalLetters(value.id, value.num, value.dt, value.owner, value.destination_station, value.note, value.wagons, user);
+                //ResultTransfer result = new ResultTransfer(value.wagons.Count());
+                //foreach (UpdateInstructionalLettersWagons wag in value.wagons)
+                //{
+                //    result.SetMovedResult(-1, wag.num);
+                //}
+                //result.result = -1;
                 return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // DELETE WSD/operation/instructional_letters/delete/1
+        [HttpDelete("operation/instructional_letters/delete/{id}")]
+        public async Task<ActionResult<ResultUpdateWagon>> DeleteInstructionalLetters(int id)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+                if (!IsAuthenticated) { return BadRequest(); }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateWagon result = ids_wir.DeleteInstructionalLetters(id, user);
+                return result;
             }
             catch (Exception e)
             {
