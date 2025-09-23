@@ -891,7 +891,7 @@ namespace IDS_
                                     {
                                         // Удалить
                                         // Вагон удалим с проверкой предыдущего письма
-                                        int res_del = DeleteInstructionalLettersWagon(ref context, wag, user);
+                                        int res_del = DeleteInstructionalLettersWagon(ref context, il, wag, user);
                                         result.SetUpdateResult(res_del, wag.Num);
                                     }
                                     if (wge.status_edit == 3)
@@ -913,15 +913,22 @@ namespace IDS_
                                 }
                             }
                         }
+                        if (il.InstructionalLettersWagons.Count() > 0)
+                        {
+                            // Обновим письмо
+                            il.Num = num;
+                            il.Note = note;
+                            il.Owner = owner;
+                            il.DestinationStation = destination_station;
+                            il.Change = DateTime.Now;
+                            il.ChangeUser = user;
+                            context.InstructionalLetters.Update(il);
+                        }
+                        else
+                        {
+                            context.InstructionalLetters.Remove(il);
+                        }
 
-                        // Обновим письмо
-                        il.Num = num;
-                        il.Note = note;
-                        il.Owner = owner;
-                        il.DestinationStation = destination_station;
-                        il.Change = DateTime.Now;
-                        il.ChangeUser = user;
-                        context.InstructionalLetters.Update(il);
                     }
                     else
                     {
@@ -970,7 +977,7 @@ namespace IDS_
         /// <param name="wag"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public int DeleteInstructionalLettersWagon(ref EFDbContext context, InstructionalLettersWagon wag, string user)
+        public int DeleteInstructionalLettersWagon(ref EFDbContext context, InstructionalLetter il, InstructionalLettersWagon wag, string user)
         {
             try
             {
@@ -992,6 +999,7 @@ namespace IDS_
                     context.InstructionalLettersWagons.Update(wag_prev);
                 }
                 context.InstructionalLettersWagons.Remove(wag);
+                il.InstructionalLettersWagons.Remove(wag);
                 return 1;
             }
             catch (Exception e)
@@ -1025,7 +1033,7 @@ namespace IDS_
                         foreach (InstructionalLettersWagon wag in il.InstructionalLettersWagons.ToList())
                         {
                             // Проверим предыдущее письмо
-                            int res_del = DeleteInstructionalLettersWagon(ref context, wag, user);
+                            int res_del = DeleteInstructionalLettersWagon(ref context, il, wag, user);
                             result.SetUpdateResult(res_del, wag.Num);
                         }
                         context.InstructionalLetters.Remove(il);
