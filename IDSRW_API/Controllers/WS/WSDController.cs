@@ -1433,6 +1433,8 @@ namespace WebAPI.Controllers.Directory
                              InstructionalLettersWagonsDateAdoptionAct = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalNavigation.DateAdoptionAct,
                              InstructionalLettersWagonsOperatorsAbbrRu = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperatorNavigation.AbbrRu,
                              InstructionalLettersWagonsOperatorsAbbrEn = w.IdWirNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperatorNavigation.AbbrEn,
+                             InstructionalLettersWagonsRentOperatorAbbrRu = db.DirectoryWagonsRents.Where(r => r.Num == w.Num && r.RentStart <= w.IdInstructionalLettersNavigation.Dt && (r.RentEnd >= w.IdInstructionalLettersNavigation.Dt || r.RentEnd == null)) != null ? db.DirectoryWagonsRents.Where(r => r.Num == w.Num && r.RentStart <= w.IdInstructionalLettersNavigation.Dt && (r.RentEnd >= w.IdInstructionalLettersNavigation.Dt || r.RentEnd == null)).First().IdOperatorNavigation.AbbrRu : null,
+                             InstructionalLettersWagonsRentOperatorAbbrEn = db.DirectoryWagonsRents.Where(r => r.Num == w.Num && r.RentStart <= w.IdInstructionalLettersNavigation.Dt && (r.RentEnd >= w.IdInstructionalLettersNavigation.Dt || r.RentEnd == null)) != null ? db.DirectoryWagonsRents.Where(r => r.Num == w.Num && r.RentStart <= w.IdInstructionalLettersNavigation.Dt && (r.RentEnd >= w.IdInstructionalLettersNavigation.Dt || r.RentEnd == null)).First().IdOperatorNavigation.AbbrEn : null,
                              InstructionalLettersWagonsDateOutgoing = w.IdWirNavigation.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoing,
                              InstructionalLettersWagonsDateOutgoingAct = w.IdWirNavigation.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoingAct,
                              InstructionalLettersWagonsDateDepartureAmkr = w.IdWirNavigation.IdOutgoingCarNavigation.IdOutgoingNavigation.DateDepartureAmkr,
@@ -1440,6 +1442,7 @@ namespace WebAPI.Controllers.Directory
                              InstructionalLettersWagonsCreateUser = w.CreateUser,
                              InstructionalLettersWagonsChange = w.Change,
                              InstructionalLettersWagonsChangeUser = w.ChangeUser,
+
                          })
                         .ToListAsync();
                 db.Database.SetCommandTimeout(0);
