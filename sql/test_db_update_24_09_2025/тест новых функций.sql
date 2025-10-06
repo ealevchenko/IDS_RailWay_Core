@@ -1,5 +1,9 @@
 USE [KRR-PA-CNT-Railway-Test]
 
+select * from [IDS].[get_view_wagons_of_id_way](213)
+
+--select top(1) id from [IDS].[InstructionalLettersWagon] as ilws where ilws.id_wir = 1129027 and ilws.status < 3
+
 --select * from [IDS].[get_current_operation_wagon_of_id_wir](1132614) -- отмена
 --select * from [IDS].[get_current_operation_wagon_of_id_wir](1132624)
 
