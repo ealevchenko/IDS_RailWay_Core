@@ -223,12 +223,6 @@ namespace WebAPI.Controllers.Directory
         public List<int> nums { get; set; }
         public DateTime date_lett { get; set; }
     }
-
-    //public class UpdateInstructionalLettersWagons
-    //{
-    //    public int id { get; set; }
-    //    public int num { get; set; }
-    //}
     public class OperationUpdateInstructionalLetters
     {
         public int id { get; set; }
@@ -395,23 +389,6 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-
-        //// GET: WSD/view/wagon/nums/61236972;63679914;62853650;64053002;64175037;4772;4838;56968837;62976337;58583949;68026632
-        //[HttpGet("view/wagon/nums/{nums}")]
-        //public async Task<ActionResult<IEnumerable<ViewCarsGroup>>> getViewWagonsOfListNums(string nums)
-        //{
-        //    try
-        //    {
-        //        List<ViewCarsGroup> result = await db.getViewWagonsOfListNums(nums).ToListAsync();
-        //        if (result == null)
-        //            return NotFound();
-        //        return Ok(result);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return BadRequest(e.Message);
-        //    }
-        //}
 
         // GET: WSD/view/total_balance
         [HttpGet("view/total_balance")]
@@ -1513,6 +1490,25 @@ namespace WebAPI.Controllers.Directory
                 //    result.SetMovedResult(-1, wag.num);
                 //}
                 //result.result = -1;
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // POST: WSD/operation/open_instructional_letters/update
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/open_instructional_letters/update")]
+        public async Task<ActionResult<OperationResultID>> PostUpdateOpenInstructionalLetters()
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                OperationResultID result = ids_wir.UpdateOpenInstructionalLetter(user);
                 return Ok(result);
             }
             catch (Exception e)

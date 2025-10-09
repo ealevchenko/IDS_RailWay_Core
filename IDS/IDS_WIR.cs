@@ -421,7 +421,66 @@ namespace IDS_
                 return rt;// Возвращаем id=-1 , Ошибка
             }
         }
+        /// <summary>
+        /// Обновление статуса открытых инструктивных писем
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public OperationResultID UpdateOpenInstructionalLetter(string user)
+        {
+            OperationResultID rt = new OperationResultID();
+            try
+            {
+                EFDbContext context = new EFDbContext(this.options);
 
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                // Получим все id открытых вагонов в письме
+                IEnumerable<int> id_il = context.InstructionalLettersWagons
+                    .AsNoTracking()
+                    .Where(s => s.Status == null || s.Status < 2)
+                    .Select(c => c.IdInstructionalLettersNavigation.Id)
+                    .ToList();
+                // Получим все письма с открытыми вагонами
+                List<InstructionalLetter> list_il = context.InstructionalLetters
+                .AsNoTracking()
+                .Where(x => id_il.Contains(x.Id))
+                .Include(wag => wag.InstructionalLettersWagons)
+                    .ThenInclude(wir => wir.IdWirNavigation)
+                        .ThenInclude(arr_car => arr_car.IdArrivalCarNavigation)
+                            .ThenInclude(arr_sost => arr_sost.IdArrivalNavigation)
+                .Include(wag => wag.InstructionalLettersWagons)
+                    .ThenInclude(wir => wir.IdWirNavigation)
+                        .ThenInclude(out_car => out_car.IdOutgoingCarNavigation)
+                            .ThenInclude(out_sost => out_sost.IdOutgoingNavigation)
+
+                .ToList();
+                // Пройдемся по письмам (! сортируем по дате письма если даты совподают сортируем по id )
+                foreach (InstructionalLetter lett in list_il.OrderBy(c => c.Dt).ThenBy(c => c.Id)) //Where(l=>l.Num == "2").
+                {
+                    Console.WriteLine("Письмо №{0} от {1}", lett.Num, lett.Dt);
+                    foreach (InstructionalLettersWagon wag in lett.InstructionalLettersWagons.Where(w => (w.Status == null || w.Status < 2))) // w.Num == 64245111 && 
+                    {
+
+                        int res = UpdateInstructionalLetter(wag.Id, lett.Dt, user);
+                        rt.SetResultOperation(res, wag.Id);
+                        Console.WriteLine(" Обработал вагон = {0}, id строки:{1}, результат:{2}", wag.Num, wag.Id, res);
+                    }
+                }
+                rt.SetResult(rt.error > 0 ? -1 : rt.listResult.Count());
+                _logger.LogInformation(_eventId, "Обработка писем завершена, определено {0} вагонов, код выполнения {1}", rt.listResult.Count(), rt.result);
+                return rt;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "UpdateOpenInstructionalLetter(user={0})", user);
+                rt.SetResult((int)errors_base.global);
+                return rt;// Возвращаем id=-1 , Ошибка
+            }
+        }
         /// <summary>
         /// Обновим статус вагона в письме
         /// </summary>
