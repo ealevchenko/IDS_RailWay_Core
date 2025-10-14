@@ -1501,7 +1501,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/open_instructional_letters/update
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/open_instructional_letters/update")]
-        public async Task<ActionResult<OperationResultID>> PostUpdateOpenInstructionalLetters()
+        public async Task<ActionResult<OperationResultID>> PostUpdateOpenInstructionalLetters([FromBody] List<int> value)
         {
             try
             {
