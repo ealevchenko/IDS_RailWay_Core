@@ -1,12 +1,13 @@
 ﻿using EF_IDS.Concrete;
 using EF_IDS.Entities;
+using EFIDS.Functions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using WebAPI.Repositories;
 using WebAPI.Repositories.Directory;
 
@@ -54,6 +55,25 @@ namespace WebAPI.Controllers.Directory
             if (result == null)
                 return NotFound();
             return new ObjectResult(result);
+        }
+
+        // GET: DirectoryOperatorsWagon/genus/all
+        [HttpGet("genus/all")]
+        public async Task<ActionResult<IEnumerable<ViewOperatorsAndGenus>>> GetListOperatorsAndGenus()
+        {
+            try
+            {
+                db.Database.SetCommandTimeout(300);
+                List<ViewOperatorsAndGenus> result = await db.getOperatorsAndGenus().ToListAsync();
+                db.Database.SetCommandTimeout(0);
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
         //// POST: DirectoryOperatorsWagon
         //// BODY: DirectoryOperatorsWagon (JSON, XML)

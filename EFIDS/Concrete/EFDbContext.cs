@@ -258,6 +258,8 @@ public partial class EFDbContext : DbContext
 
     // Оперативный остаток
     public IQueryable<ViewOperatingBalanceRwCar> getViewRemainderWagons() => FromExpression(() => getViewRemainderWagons());
+    // Список операторов и родов 
+    public IQueryable<ViewOperatorsAndGenus> getOperatorsAndGenus() => FromExpression(() => getOperatorsAndGenus());
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -285,7 +287,7 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOfListNums), new[] { typeof(string) })).HasSchema("IDS").HasName("get_view_wagons_of_list_nums");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewArrivalDocumentsVagonsOfPeriod), new[] { typeof(DateTime), typeof(DateTime) })).HasSchema("IDS").HasName("get_view_arrival_documents_vagons_of_period");
         modelBuilder.HasDbFunction(() => getViewRemainderWagons()).HasSchema("IDS").HasName("get_view_remainder_wagons");
-
+        modelBuilder.HasDbFunction(() => getOperatorsAndGenus()).HasSchema("IDS").HasName("get_operators_and_genus");
         modelBuilder.Entity<ArrivalCar>(entity =>
         {
             entity.HasOne(d => d.IdArrivalNavigation).WithMany(p => p.ArrivalCars).HasConstraintName("FK_ArrivalCars_ArrivalSostav");
