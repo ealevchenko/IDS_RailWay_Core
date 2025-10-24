@@ -260,7 +260,8 @@ public partial class EFDbContext : DbContext
     public IQueryable<ViewOperatingBalanceRwCar> getViewRemainderWagons() => FromExpression(() => getViewRemainderWagons());
     // Список операторов и родов 
     public IQueryable<ViewOperatorsAndGenus> getOperatorsAndGenus() => FromExpression(() => getOperatorsAndGenus());
-
+    // Получить список периодов ставок по оператору и роду
+    public IQueryable<ViewUsageFeePeriod> getViewUsageFeePeriodOfOperatorGenus(int id_operator, int id_genus) => FromExpression(() => getViewUsageFeePeriodOfOperatorGenus(id_operator, id_genus));
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDbFunction(() => getViewStatusAllStation()).HasSchema("IDS").HasName("get_view_status_all_station");
@@ -288,6 +289,8 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewArrivalDocumentsVagonsOfPeriod), new[] { typeof(DateTime), typeof(DateTime) })).HasSchema("IDS").HasName("get_view_arrival_documents_vagons_of_period");
         modelBuilder.HasDbFunction(() => getViewRemainderWagons()).HasSchema("IDS").HasName("get_view_remainder_wagons");
         modelBuilder.HasDbFunction(() => getOperatorsAndGenus()).HasSchema("IDS").HasName("get_operators_and_genus");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewUsageFeePeriodOfOperatorGenus), new[] { typeof(int), typeof(int) })).HasSchema("IDS").HasName("get_view_usage_fee_period_of_operator_genus");  
+        
         modelBuilder.Entity<ArrivalCar>(entity =>
         {
             entity.HasOne(d => d.IdArrivalNavigation).WithMany(p => p.ArrivalCars).HasConstraintName("FK_ArrivalCars_ArrivalSostav");

@@ -235,6 +235,8 @@ namespace WebAPI.Controllers.Directory
     }
     #endregion
 
+
+
     #region ОПЕРАЦИЯ АДМ
     public class AdmDivisionOutgoingWagons
     {
@@ -1536,6 +1538,25 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        #endregion
+
+        #region ПЛАТА ЗА ПОЛЬЗОВАНИЕ
+        // GET: WSD/view/usage_fee_period/operator/3/genus/22
+        [HttpGet("view/usage_fee_period/operator/{id_operator}/genus/{id_genus}")]
+        public async Task<ActionResult<IEnumerable<ViewUsageFeePeriod>>> GetViewUsageFeePeriodOfOperatorGenus(int id_operator, int id_genus)
+        {
+            try
+            {
+                List<ViewUsageFeePeriod> result = await db.getViewUsageFeePeriodOfOperatorGenus(id_operator, id_genus).ToListAsync(); ;
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         #endregion
 
         #endregion
