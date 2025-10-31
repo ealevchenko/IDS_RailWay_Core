@@ -6082,6 +6082,7 @@ namespace IDS_
                             {
                                 if (wim_old != null)
                                 {
+                                    wim_old.WayEnd = wim_next != null ? wim_next.WayStart : wim_old.WayEnd;
                                     wim_old.Close = wim.Close == null ? null : wim_old.Close;
                                     wim_old.CloseUser = wim.CloseUser == null ? null : wim_old.CloseUser;
                                     context.WagonInternalMovements.Update(wim_old);
