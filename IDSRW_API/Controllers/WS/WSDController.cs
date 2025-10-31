@@ -1541,6 +1541,12 @@ namespace WebAPI.Controllers.Directory
         #endregion
 
         #region ПЛАТА ЗА ПОЛЬЗОВАНИЕ
+        /// <summary>
+        /// Получить список периодов по оператору и типу вагона
+        /// </summary>
+        /// <param name="id_operator"></param>
+        /// <param name="id_genus"></param>
+        /// <returns></returns>
         // GET: WSD/view/usage_fee_period/operator/3/genus/22
         [HttpGet("view/usage_fee_period/operator/{id_operator}/genus/{id_genus}")]
         public async Task<ActionResult<IEnumerable<ViewUsageFeePeriod>>> GetViewUsageFeePeriodOfOperatorGenus(int id_operator, int id_genus)
@@ -1557,6 +1563,28 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+        /// <summary>
+        /// Получить список дополнительных условий для указанного периода
+        /// </summary>
+        /// <param name="id_usage_fee_period"></param>
+        /// <returns></returns>
+        // GET: WSD/view/usage_fee_period_detali/id_usage_fee_period/2438
+        [HttpGet("view/usage_fee_period_detali/id_usage_fee_period/{id_usage_fee_period}")]
+        public async Task<ActionResult<IEnumerable<ViewUsageFeePeriodDetali>>> getViewUsageFeePeriodDetaliOfIdPeriod(int id_usage_fee_period)
+        {
+            try
+            {
+                List<ViewUsageFeePeriodDetali> result = await db.getViewUsageFeePeriodDetaliOfIdPeriod(id_usage_fee_period).ToListAsync(); ;
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }       
+        
         #endregion
 
         #endregion
