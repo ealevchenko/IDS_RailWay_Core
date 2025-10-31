@@ -2,8 +2,8 @@
 1. в папке EF_IDS -> Открыть в терминале
 2. В терминале набрать :
 dotnet-ef dbcontext scaffold "data source=krr-sql-paclx03;initial catalog=KRR-PA-CNT-Railway;integrated security=True;TrustServerCertificate=true" Microsoft.EntityFrameworkCore.SqlServer --schema IDS --data-annotations -o Models
-dotnet-ef dbcontext scaffold "Data Source=krr-sql-paclx02;Initial Catalog=KRR-PA-CNT-Railway-Archive;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;" Microsoft.EntityFrameworkCore.SqlServer --schema IDS --data-annotations -o Models
+dotnet-ef dbcontext scaffold "Data Source=krr-sql-paclx02;Initial Catalog=KRR-PA-CNT-Railway-Test;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;" Microsoft.EntityFrameworkCore.SqlServer --schema IDS --data-annotations -o Models
 
 3. Если только несколько таблиц, набрать: 
-dotnet-ef dbcontext scaffold "Data Source=krr-sql-paclx02;Initial Catalog=KRR-PA-CNT-Railway-Archive;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;" Microsoft.EntityFrameworkCore.SqlServer --schema ids --table WagonInternalRoutes --data-annotations -o Models
+dotnet-ef dbcontext scaffold "Data Source=krr-sql-paclx02;Initial Catalog=KRR-PA-CNT-Railway-Test;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;" Microsoft.EntityFrameworkCore.SqlServer --schema dbo --table ufpds --data-annotations -o Models
 dotnet-ef dbcontext scaffold "Data Source=krr-sql-paclx03;Initial Catalog=KRR-PA-CNT-Railway;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;" Microsoft.EntityFrameworkCore.SqlServer --schema dbo --table view_ufp --data-annotations -o Models
