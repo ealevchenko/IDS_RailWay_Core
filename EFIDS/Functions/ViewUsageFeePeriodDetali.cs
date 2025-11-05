@@ -62,24 +62,24 @@ public partial class ViewUsageFeePeriodDetali
     [Column("grace_time")]
     public int? GraceTime { get; set; }
 
-    [Column("usage_fee_period_id_currency")]
-    public int? UsageFeePeriodIdCurrency { get; set; }
+    [Column("id_currency")]
+    public int? IdCurrency { get; set; }
 
-    [Column("usage_fee_period_currency_ru")]
+    [Column("currency_ru")]
     [StringLength(50)]
-    public string? UsageFeePeriodCurrencyRu { get; set; }
+    public string? CurrencyRu { get; set; }
 
-    [Column("usage_fee_period_currency_en")]
+    [Column("currency_en")]
     [StringLength(50)]
-    public string? UsageFeePeriodCurrencyEn { get; set; }
+    public string? CurrencyEn { get; set; }
 
-    [Column("usage_fee_period_code")]
-    public int? UsageFeePeriodCode { get; set; }
+    [Column("currency_code")]
+    public int? CurrencyCode { get; set; }
 
-    [Column("usage_fee_period_code_cc")]
+    [Column("currency_code_cc")]
     [StringLength(3)]
-    public string? UsageFeePeriodCodeCc { get; set; }
+    public string? CurrencyCodeCc { get; set; }
 
-    [Column("usage_fee_period_rate", TypeName = "money")]
-    public decimal? UsageFeePeriodRate { get; set; }
+    [Column("rate", TypeName = "money")]
+    public decimal? Rate { get; set; }
 }
