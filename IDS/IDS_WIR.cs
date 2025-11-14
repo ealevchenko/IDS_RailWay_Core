@@ -4832,6 +4832,105 @@ namespace IDS_
                 return result;
             }
         }
+        /// <summary>
+        /// Добавить или править детали доп условия
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="id_usage_fee_period"></param>
+        /// <param name="code_stn_from"></param>
+        /// <param name="id_cargo_arrival"></param>
+        /// <param name="code_stn_to"></param>
+        /// <param name="id_cargo_outgoing"></param>
+        /// <param name="grace_time"></param>
+        /// <param name="id_currency"></param>
+        /// <param name="rate"></param>
+        /// <param name="arrival_end_unload"></param>
+        /// <param name="outgoing_start_load"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int UpdateUpdateUsageFeePeriodDetali(int id, int id_usage_fee_period, int? code_stn_from, int? id_cargo_arrival, int? code_stn_to, int? id_cargo_outgoing, int? grace_time, int? id_currency, decimal? rate, bool? arrival_end_unload, bool? outgoing_start_load, string user)
+        {
+            try
+            {
+                EFDbContext context = new EFDbContext(this.options);
+                if (id > 0)
+                {
+                    // правка доп. условия
+                    UsageFeePeriodDetali? detali = context.UsageFeePeriodDetalis.Where(d => d.Id == id).FirstOrDefault();
+                    if (detali != null)
+                    {
+                        detali.CodeStnFrom = code_stn_from;
+                        detali.IdCargoArrival = id_cargo_arrival;
+                        detali.CodeStnTo = code_stn_to;
+                        detali.IdCargoOutgoing = id_cargo_outgoing;
+                        detali.GraceTime = grace_time;
+                        detali.IdCurrency = id_currency;
+                        detali.Rate = rate;
+                        detali.EndUnload = arrival_end_unload;
+                        detali.StartLoad = outgoing_start_load;
+                    }
+                    else
+                    {
+                        return (int)errors_base.not_usage_fee_period_detali_of_db;
+                    }
+                }
+                else
+                {
+                    UsageFeePeriodDetali? detali = new UsageFeePeriodDetali()
+                    {
+                        Id = id,
+                        IdUsageFeePeriod = id_usage_fee_period,
+                        CodeStnFrom = code_stn_from,
+                        IdCargoArrival = id_cargo_arrival,
+                        CodeStnTo = code_stn_to,
+                        IdCargoOutgoing = id_cargo_outgoing,
+                        GraceTime = grace_time,
+                        IdCurrency = id_currency,
+                        Rate = rate,
+                        EndUnload = arrival_end_unload,
+                        StartLoad = outgoing_start_load,
+
+                    };
+                    context.UsageFeePeriodDetalis.Add(detali);
+                }
+                return context.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "UpdateUpdateUsageFeePeriodDetali(id={0}, id_usage_fee_period={1}, code_stn_from={2}, id_cargo_arrival={3}, code_stn_to={4}, id_cargo_outgoing={5}, grace_time={6}, id_currency={7}, rate={8}, arrival_end_unload={9}, outgoing_start_load={10}, user={11})",
+                    id, id_usage_fee_period, code_stn_from, id_cargo_arrival, code_stn_to, id_cargo_outgoing, grace_time, id_currency, rate, arrival_end_unload, outgoing_start_load, user);
+                return (int)errors_base.global;
+            }
+        }
+        /// <summary>
+        /// Удалить детали
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int DeleteUsageFeePeriodDetali(int id, string user)
+        {
+            try
+            {
+                EFDbContext context = new EFDbContext(this.options);
+                UsageFeePeriodDetali? detali = context.UsageFeePeriodDetalis.Where(d => d.Id == id).FirstOrDefault();
+                if (detali != null)
+                {
+                    context.UsageFeePeriodDetalis.Remove(detali);
+                }
+                else
+                {
+                    return (int)errors_base.not_usage_fee_period_detali_of_db;
+                }
+
+                return context.SaveChanges(); 
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "DeleteUsageFeePeriodDetali(id={0}, user={1})", id, user);
+                return (int)errors_base.global;
+            }
+        }
         #endregion
 
         #region АДМИНИСТРИРОВАНИЕ
@@ -6076,6 +6175,11 @@ namespace IDS_
                             if (wim_next != null)
                             {
                                 wim_next.ParentId = wim_old != null ? wim_old.Id : null;
+                                if (wim_old != null)
+                                {
+                                    wim_old.WayEnd = wim_next != null ? wim_next.WayStart : wim_old.WayEnd;
+                                    context.WagonInternalMovements.Update(wim_old);
+                                }
                                 context.WagonInternalMovements.Update(wim_next);
                             }
                             else
@@ -6085,7 +6189,7 @@ namespace IDS_
                                     wim_old.WayEnd = wim_next != null ? wim_next.WayStart : wim_old.WayEnd;
                                     wim_old.Close = wim.Close == null ? null : wim_old.Close;
                                     wim_old.CloseUser = wim.CloseUser == null ? null : wim_old.CloseUser;
-                                    context.WagonInternalMovements.Update(wim_old);
+
                                 }
                             }
                             context.WagonInternalMovements.Remove(wim);
@@ -6117,205 +6221,3 @@ namespace IDS_
     }
 }
 
-//// Проверим вагон письма.
-////Console.WriteLine("Письмо №{0} от {1}, вагон {2}", lett.Num, lett.Dt, wag.Num);
-//if (ilw.IdWir == null)
-//{
-//    // вагон не пренадлежит внутренему перемещению
-//    var list_wir = context.WagonInternalRoutes
-//        .AsNoTracking()
-//        .Where(w => w.Num == ilw.Num)
-//        .OrderBy(c => c.Id)
-//        .Select(w => new
-//        {
-//            Id = w.Id,
-//            DateAdoption = w.IdArrivalCarNavigation.IdArrivalNavigation.DateAdoption,
-//            DateOutgoing = w.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoing,
-//        })
-//        .ToList();
-//    // Получим последний заход
-
-//    if (list_wir != null && list_wir.Count() > 0)
-//    {
-//        DateTime? first = list_wir.First().DateAdoption != null ? list_wir.First().DateAdoption : null;
-//        //DateTime? first = list_wir.First().DateAdoption != null && list_wir.First().DateOutgoing != null ? list_wir.First().DateAdoption : null;
-//        DateTime? last = list_wir.Last().DateAdoption != null && list_wir.Last().DateOutgoing != null ? list_wir.Last().DateOutgoing : null;
-//        //DateTime? first = list_wir.Where(f => f.DateAdoption != null).Count() > 0 ? list_wir.Where(f => f.DateAdoption != null).Min(w => w.DateAdoption).Value : null;
-//        //DateTime? last = list_wir.Where(l => l.DateOutgoing != null).Count() > 0 ? list_wir.Where(l => l.DateOutgoing != null).Max(w => w.DateOutgoing).Value : null;
-//        if (first != null && dt_lett < first)
-//        {
-//            // письмо старое (< за пределами wir)
-//            // Проверим на разрыв времени
-//            TimeSpan res = ((DateTime)first).Subtract(dt_lett);
-//            if (res.TotalHours <= 24 * this.control_enter_letter)
-//            {
-//                var frst = list_wir.First();
-//                ilw.IdWir = frst.Id;
-//                if (frst.DateOutgoing == null)
-//                {
-//                    ilw.Status = 1;
-//                    ilw.Close = null;
-//                    ilw.Note = null;
-//                }
-//                else
-//                {
-//                    ilw.Status = 2;
-//                    ilw.Close = frst.DateOutgoing;
-//                    ilw.Note = "Вагон сдан.";
-//                }
-//            }
-//            else
-//            {
-//                ilw.Status = 5; // Можно удалить
-//                ilw.Close = dt_lett;
-//                ilw.Note = "Письмо можно удалить (старое)";
-//            }
-//            //Console.WriteLine("Письмо №{0} от {1}, вагон {2}, результат {3}", lett.Num, lett.Dt, wag.Num, "[< за пределами wir]");
-//        }
-//        else if (last != null && dt_lett > last)
-//        {
-//            // письмо новое и еще вагон не защел (за пределами wir >)
-//            // Проверим на разрыв времени
-//            //if (dt_lett > new DateTime(2025, 8, 8, 0, 0, 0))
-//            //{
-
-//            //}
-//            //TimeSpan res = (dt_lett).Subtract((DateTime)last);
-//            TimeSpan res = (DateTime.Now).Subtract((DateTime)dt_lett);
-//            if (res.TotalHours <= 24 * this.control_enter_letter)
-//            {
-//                // В рамках времени
-//                ilw.Status = 0;
-//                ilw.Close = null;
-//                ilw.Note = null;
-//            }
-//            else
-//            {
-//                ilw.Status = 5; // Можно удалить
-//                ilw.Close = dt_lett;
-//                ilw.Note = "Письмо можно удалить (истек срок ожидания)";
-//            }
-//            //Console.WriteLine("Письмо №{0} от {1}, вагон {2}, результат {3}", lett.Num, lett.Dt, wag.Num, "[за пределами wir >]");
-//        }
-//        else
-//        {
-//            // Определим wir по дате прибытия и отправке
-//            var res = list_wir.Where(w => w.DateAdoption <= dt_lett && (w.DateOutgoing >= dt_lett || w.DateOutgoing == null)).FirstOrDefault();
-//            if (res != null)
-//            {
-//                // Нашли wir
-//                ilw.IdWir = res.Id;
-//                if (res.DateOutgoing == null)
-//                {
-//                    ilw.Status = 1;
-//                    ilw.Close = null;
-//                    ilw.Note = "Вагон принят.";
-//                }
-//                else
-//                {
-//                    ilw.Status = 2;
-//                    ilw.Close = res.DateOutgoing;
-//                    ilw.Note = "Вагон сдан.";
-//                }
-//                // Получим id- wir
-//                //Console.WriteLine("Письмо №{0} от {1}, вагон {2}, результат {3}", lett.Num, lett.Dt, wag.Num, "[wir " + res.Id + "]");
-//            }
-//            else
-//            {
-//                DateTime? start = null;
-//                long? id_wir = null;
-//                // между wir
-//                foreach (var val in list_wir)
-//                {
-//                    if (start != null && start <= dt_lett && dt_lett < val.DateAdoption)
-//                    {
-//                        id_wir = val.Id; break;
-//                    }
-//                    start = val.DateOutgoing;
-//                }
-//                if (id_wir == null)
-//                {
-//                    // Не понятно, нет данных
-//                    ilw.Status = null; // 
-//                    ilw.Close = null;
-//                    ilw.Note = "Письмо нельзя сопоставить с перемещением!";
-//                    //Console.WriteLine("Письмо №{0} от {1}, вагон {2}, результат {3}", lett.Num, lett.Dt, wag.Num, "?????????");
-//                }
-//                else
-//                {
-//                    var wr = list_wir.Where(w => w.Id == id_wir).First();
-//                    ilw.IdWir = wr.Id;
-//                    if (wr.DateOutgoing == null)
-//                    {
-//                        ilw.Status = 1;
-//                        ilw.Close = null;
-//                        ilw.Note = "Вагон принят.";
-//                    }
-//                    else
-//                    {
-//                        ilw.Status = 2;
-//                        ilw.Close = wr.DateOutgoing;
-//                        ilw.Note = "Вагон сдан.";
-//                    }
-//                    //Console.WriteLine("Письмо №{0} от {1}, вагон {2}, результат {3}", lett.Num, lett.Dt, wag.Num, "[wir " + id_wir + "]");
-//                }
-
-//            }
-//        }
-//    }
-//    else
-//    {
-//        // нет внутрених перемещений, Еще не заходил
-//        //if (dt_lett > new DateTime(2025, 8, 8, 0, 0, 0)) { 
-
-//        //}
-//        TimeSpan res = (DateTime.Now).Subtract(dt_lett);
-//        if (res.TotalHours <= 24 * this.control_enter_letter)
-//        {
-//            // В рамках времени
-//            ilw.Status = 0;
-//            ilw.Close = null;
-//            ilw.Note = null;
-//        }
-//        else
-//        {
-//            ilw.Status = 5; // Можно удалить
-//            ilw.Close = dt_lett;
-//            ilw.Note = "Письмо можно удалить (истек срок ожидания)";
-//        }
-//        //Console.WriteLine("Письмо №{0} от {1}, вагон {2}, результат {3}", lett.Num, lett.Dt, wag.Num, "Еще не заходил");
-//    } // {end list_wir != null && list_wir.Count() > 0}
-//}
-//else
-//{
-//    // IdWir - существует, проверим состояние если закрыто закроем письмо                   
-//    WagonInternalRoute? wir_current = context
-//        .WagonInternalRoutes
-//        .Where(w => w.Id == ilw.IdWir)
-//        .Include(arr_car => arr_car.IdArrivalCarNavigation)
-//            .ThenInclude(arr_sost => arr_sost.IdArrivalNavigation)
-//        .Include(out_car => out_car.IdOutgoingCarNavigation)
-//            .ThenInclude(out_sost => out_sost.IdOutgoingNavigation)
-//        .FirstOrDefault();
-//    if (wir_current != null)
-//    {
-//        if (wir_current.IdOutgoingCarNavigation != null &&
-//            wir_current.IdOutgoingCarNavigation.IdOutgoingNavigation != null &&
-//            wir_current.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoing != null)
-//        {
-//            ilw.Status = 2;
-//            ilw.Close = wir_current.IdOutgoingCarNavigation.IdOutgoingNavigation.DateOutgoing;
-//            ilw.Note = "Вагон сдан.";
-//        }
-//        else
-//        {
-//            // Вагон еще не ушел
-//            return 0;
-//        }
-//    }
-//    else
-//    {
-//        // Внутреннее перемещение не найдено!
-//        return (int)errors_base.not_wir_db;
-//    }
-//} // {end wag.IdWir == null}
