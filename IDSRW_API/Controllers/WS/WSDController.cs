@@ -234,7 +234,22 @@ namespace WebAPI.Controllers.Directory
         public List<IdNumStatusWagon> wagons { get; set; }
     }
     #endregion
-
+    #region ОПЕРАЦИЯ ПЛАТА ПОЛЬЗОВАНИЯ
+    public class OperationUpdateUsageFeePeriodDetali
+    {
+        public int id { get; set; }
+        public int id_usage_fee_period { get; set; }
+        public int? code_stn_from { get; set; }
+        public int? id_cargo_arrival { get; set; }
+        public int? code_stn_to { get; set; }
+        public int? id_cargo_outgoing { get; set; }
+        public int? grace_time { get; set; }
+        public int? id_currency { get; set; }
+        public decimal? rate { get; set; }
+        public bool? arrival_end_unload { get; set; }
+        public bool? outgoing_start_load { get; set; }
+    }
+    #endregion
 
 
     #region ОПЕРАЦИЯ АДМ
@@ -1583,8 +1598,50 @@ namespace WebAPI.Controllers.Directory
             {
                 return BadRequest(e.Message);
             }
-        }       
-        
+        }
+
+        // POST: WSD/operation/usage_fee_period_detali/update
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/usage_fee_period_detali/update")]
+        public async Task<ActionResult<int>> PostUpdateUsageFeePeriodDetali([FromBody] OperationUpdateUsageFeePeriodDetali value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                int result = ids_wir.UpdateUpdateUsageFeePeriodDetali(value.id, value.id_usage_fee_period, value.code_stn_from, value.id_cargo_arrival, 
+                    value.code_stn_to, value.id_cargo_outgoing, value.grace_time, value.id_currency, value.rate, value.arrival_end_unload, value.outgoing_start_load, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // DELETE WSD/operation/instructional_letters/delete/1
+        [HttpDelete("operation/usage_fee_period_detali/delete/{id}")]
+        public async Task<ActionResult<int>> DeleteUsageFeePeriodDetali(int id)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+                if (!IsAuthenticated) { return BadRequest(); }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                int result = ids_wir.DeleteUsageFeePeriodDetali(id, user);
+                return result;
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         #endregion
 
         #endregion

@@ -37,6 +37,9 @@ public partial class ViewUsageFeePeriodDetali
     [StringLength(50)]
     public string? ArrivalCargoNameEn { get; set; }
 
+    [Column("arrival_end_unload")]
+    public bool? ArrivalEndUnload { get; set; }
+
     [Column("code_stn_to")]
     public int? CodeStnTo { get; set; }
 
@@ -58,6 +61,9 @@ public partial class ViewUsageFeePeriodDetali
     [Column("outgoing_cargo_name_en")]
     [StringLength(50)]
     public string? OutgoingCargoNameEn { get; set; }
+
+    [Column("outgoing_start_load")]
+    public bool? OutgoingStartLoad { get; set; }
 
     [Column("grace_time")]
     public int? GraceTime { get; set; }

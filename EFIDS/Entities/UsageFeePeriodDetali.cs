@@ -31,6 +31,18 @@ public partial class UsageFeePeriodDetali
     [Column("grace_time")]
     public int? GraceTime { get; set; }
 
+    [Column("id_currency")]
+    public int? IdCurrency { get; set; }
+
+    [Column("rate", TypeName = "money")]
+    public decimal? Rate { get; set; }
+
+    [Column("end_unload")]
+    public bool? EndUnload { get; set; }
+
+    [Column("start_load")]
+    public bool? StartLoad { get; set; }
+
     [ForeignKey("CodeStnFrom")]
     [InverseProperty("UsageFeePeriodDetaliCodeStnFromNavigations")]
     public virtual DirectoryExternalStation? CodeStnFromNavigation { get; set; }
