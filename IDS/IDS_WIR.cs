@@ -29,6 +29,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
+
 namespace IDS_
 {
     public class IdNumStatusWagon
@@ -131,6 +132,15 @@ namespace IDS_
         public int? Downtime { get; set; }
         public int error { get; set; }
     }
+
+    public class ListUsageFeeEdit
+    {
+        public int id { get; set; }
+        public int id_operator { get; set; }
+        public int id_genus { get; set; }
+        public int type { get; set; }
+    }
+
     //public class ResultCalcWagonUsageFee
     //{
     //    public CalcWagonUsageFee? CalcWagonUsageFee { get; set; }
@@ -4833,6 +4843,125 @@ namespace IDS_
             }
         }
         /// <summary>
+        /// Добавить или править список условий условия
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <param name="hour_after_30"></param>
+        /// <param name="id_currency"></param>
+        /// <param name="rate"></param>
+        /// <param name="id_currency_derailment"></param>
+        /// <param name="rate_derailment"></param>
+        /// <param name="coefficient_route"></param>
+        /// <param name="coefficient_not_route"></param>
+        /// <param name="grace_time_1"></param>
+        /// <param name="grace_time_2"></param>
+        /// <param name="note"></param>
+        /// <param name="list_period_edit"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int UpdateUpdateUsageFeePeriod(int id, DateTime start, DateTime stop, bool hour_after_30, int id_currency, decimal rate, int? id_currency_derailment,
+            decimal? rate_derailment, float? coefficient_route, float? coefficient_not_route, int? grace_time_1, int? grace_time_2, string? note, List<ListUsageFeeEdit> list_period_edit, string user)
+        {
+            try
+            {
+                EFDbContext context = new EFDbContext(this.options);
+
+                foreach (ListUsageFeeEdit ufe in list_period_edit)
+                {
+                    UsageFeePeriod? ufp = null;
+                    UsageFeePeriod? ufp_old = null;
+
+                    if (ufe.type == 0)
+                    {
+                        // Создать новое условие
+                        if (ufe.id > 0)
+                        {
+                            ufp_old = context.UsageFeePeriods.Where(p => p.Id == ufe.id).FirstOrDefault();
+                            if (ufp_old == null) { }
+                            ufp_old.Close = DateTime.Now;
+                            ufp_old.CloseUser = user;
+                            context.UsageFeePeriods.Update(ufp_old);
+                        }
+                        ufp = new UsageFeePeriod()
+                        {
+                            Id = 0,
+                            IdOperator = ufe.id_operator,
+                            IdGenus = ufe.id_genus,
+                            Start = start,
+                            Stop = stop,
+                            IdCurrency = id_currency,
+                            Rate = rate,
+                            IdCurrencyDerailment = id_currency_derailment,
+                            RateDerailment = rate_derailment,
+                            CoefficientRoute = coefficient_route,
+                            CoefficientNotRoute = coefficient_not_route,
+                            GraceTime1 = grace_time_1,
+                            GraceTime2 = grace_time_2,
+                            Note = note,
+                            Create = DateTime.Now,
+                            CreateUser = user,
+                            Change = null,
+                            ChangeUser = null,
+                            Close = null,
+                            CloseUser = null,
+                            ParentId = ufp_old != null ? ufp_old.Id : null,
+                            HourAfter30 = hour_after_30,
+                        };
+                        context.UsageFeePeriods.Add(ufp);
+                    }
+                    else
+                    {
+                        if (ufe.id > 0)
+                        {
+                            // Править существующее условие
+                            ufp = context.UsageFeePeriods.Where(p => p.Id == ufe.id).FirstOrDefault();
+                            if (ufp != null)
+                            {
+                                ufp.Id = ufe.id;
+                                ufp.IdOperator = ufe.id_operator;
+                                ufp.IdGenus = ufe.id_genus;
+                                ufp.Start = start;
+                                ufp.Stop = stop;
+                                ufp.IdCurrency = id_currency;
+                                ufp.Rate = rate;
+                                ufp.IdCurrencyDerailment = id_currency_derailment;
+                                ufp.RateDerailment = rate_derailment;
+                                ufp.CoefficientRoute = coefficient_route;
+                                ufp.CoefficientNotRoute = coefficient_not_route;
+                                ufp.GraceTime1 = grace_time_1;
+                                ufp.GraceTime2 = grace_time_2;
+                                ufp.Note = note;
+                                ufp.Change = DateTime.Now;
+                                ufp.ChangeUser = user;
+                                ufp.HourAfter30 = hour_after_30;
+                                context.UsageFeePeriods.Update(ufp);
+                            }
+                            else
+                            {
+                                // Ошибка нет ufp
+                            }
+                        }
+                        else
+                        {
+                            // Ошибка ufe.id = 0
+                        }
+                    }
+                }
+
+                //return context.SaveChanges();
+                return 0;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "UpdateUpdateUsageFeePeriod(id={0}, start={1}, stop={2}, hour_after_30={3}, id_currency={4}, rate={5}, id_currency_derailment={6}, rate_derailment={7}, coefficient_route={8}, coefficient_not_route={9}, grace_time_1={10}, grace_time_2={11}, note={12}, list_period_edit={13},user={14})",
+                    id, start, stop, hour_after_30, id_currency, rate, id_currency_derailment, rate_derailment, coefficient_route, coefficient_not_route, grace_time_1, grace_time_2, note, list_period_edit, user);
+                return (int)errors_base.global;
+            }
+        }
+
+        /// <summary>
         /// Добавить или править детали доп условия
         /// </summary>
         /// <param name="id"></param>
@@ -4923,7 +5052,7 @@ namespace IDS_
                     return (int)errors_base.not_usage_fee_period_detali_of_db;
                 }
 
-                return context.SaveChanges(); 
+                return context.SaveChanges();
             }
             catch (Exception e)
             {

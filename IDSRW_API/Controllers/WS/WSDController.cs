@@ -23,6 +23,7 @@ using WebAPI.Repositories;
 using WebAPI.Repositories.Directory;
 using static IDS_.IDS_WIR;
 
+
 namespace WebAPI.Controllers.Directory
 {
     #region ОПЕРАЦИЯ ПРИНЯТЬ (АРМ)
@@ -248,6 +249,24 @@ namespace WebAPI.Controllers.Directory
         public decimal? rate { get; set; }
         public bool? arrival_end_unload { get; set; }
         public bool? outgoing_start_load { get; set; }
+    }
+    public class OperationUpdateUsageFeePeriod
+    {
+        public int id { get; set; }
+        public DateTime start { get; set; }
+        public DateTime stop { get; set; }
+        public bool hour_after_30 { get; set; }
+        public int id_currency { get; set; }
+        public decimal rate { get; set; }
+        public int? id_currency_derailment { get; set; }
+        public decimal? rate_derailment { get; set; }
+        public float? coefficient_route { get; set; }
+        public float? coefficient_not_route { get; set; }
+        public int? grace_time_1 { get; set; }
+        public int? grace_time_2 { get; set; }
+        public string? note { get; set; }
+        public List<ListUsageFeeEdit> list_period_edit { get; set; }
+
     }
     #endregion
 
@@ -1600,6 +1619,32 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        // POST: WSD/operation/usage_fee_period/update
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/usage_fee_period/update")]
+        public async Task<ActionResult<int>> PostUpdateUsageFeePeriod([FromBody] OperationUpdateUsageFeePeriod value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                //!!!!!!! Время сдвинуто на 2 часа
+                int result = ids_wir.UpdateUpdateUsageFeePeriod(value.id, value.start, value.stop, value.hour_after_30, value.id_currency, value.rate, value.id_currency_derailment,
+             value.rate_derailment, value.coefficient_route, value.coefficient_not_route, value.grace_time_1, value.grace_time_2, value.note, value.list_period_edit, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+
         // POST: WSD/operation/usage_fee_period_detali/update
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/usage_fee_period_detali/update")]
@@ -1614,7 +1659,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                int result = ids_wir.UpdateUpdateUsageFeePeriodDetali(value.id, value.id_usage_fee_period, value.code_stn_from, value.id_cargo_arrival, 
+                int result = ids_wir.UpdateUpdateUsageFeePeriodDetali(value.id, value.id_usage_fee_period, value.code_stn_from, value.id_cargo_arrival,
                     value.code_stn_to, value.id_cargo_outgoing, value.grace_time, value.id_currency, value.rate, value.arrival_end_unload, value.outgoing_start_load, user);
                 return Ok(result);
             }
