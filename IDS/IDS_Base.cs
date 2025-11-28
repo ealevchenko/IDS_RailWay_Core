@@ -221,6 +221,7 @@
     {
         public int result { get; set; } // Глобальный ресурс выполнения всего переноса
         public int error { get; set; } // количество ошибок
+
         public List<ResultID> listResult = new List<ResultID>();
 
 
@@ -243,6 +244,12 @@
         public void SetResultOperation(int result, long id)
         {
             this.listResult.Add(new ResultID() { id = id, result = result });
+            if (result < 0) { AddError(); }
+        }
+
+        public void SetResultOperation(int result, long id, int? type)
+        {
+            this.listResult.Add(new ResultID() { id = id, result = result, type = type });
             if (result < 0) { AddError(); }
         }
     }

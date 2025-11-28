@@ -1622,7 +1622,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/usage_fee_period/update
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/usage_fee_period/update")]
-        public async Task<ActionResult<int>> PostUpdateUsageFeePeriod([FromBody] OperationUpdateUsageFeePeriod value)
+        public async Task<ActionResult<OperationResultID>> PostUpdateUsageFeePeriod([FromBody] OperationUpdateUsageFeePeriod value)
         {
             try
             {
@@ -1633,8 +1633,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                //!!!!!!! Время сдвинуто на 2 часа
-                int result = ids_wir.UpdateUpdateUsageFeePeriod(value.id, value.start, value.stop, value.hour_after_30, value.id_currency, value.rate, value.id_currency_derailment,
+                OperationResultID result = ids_wir.UpdateUpdateUsageFeePeriod(value.id, value.start, value.stop, value.hour_after_30, value.id_currency, value.rate, value.id_currency_derailment,
              value.rate_derailment, value.coefficient_route, value.coefficient_not_route, value.grace_time_1, value.grace_time_2, value.note, value.list_period_edit, user);
                 return Ok(result);
             }

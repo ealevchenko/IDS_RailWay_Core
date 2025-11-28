@@ -4861,9 +4861,13 @@ namespace IDS_
         /// <param name="list_period_edit"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public int UpdateUpdateUsageFeePeriod(int id, DateTime start, DateTime stop, bool hour_after_30, int id_currency, decimal rate, int? id_currency_derailment,
+        public OperationResultID UpdateUpdateUsageFeePeriod(int id, DateTime start, DateTime stop, bool hour_after_30, int id_currency, decimal rate, int? id_currency_derailment,
             decimal? rate_derailment, float? coefficient_route, float? coefficient_not_route, int? grace_time_1, int? grace_time_2, string? note, List<ListUsageFeeEdit> list_period_edit, string user)
         {
+            OperationResultID rt = new OperationResultID();
+            // 0 - добавить
+            // 1 - править
+            // 2 - закрыть предыдущее
             try
             {
                 EFDbContext context = new EFDbContext(this.options);
@@ -4879,10 +4883,17 @@ namespace IDS_
                         if (ufe.id > 0)
                         {
                             ufp_old = context.UsageFeePeriods.Where(p => p.Id == ufe.id).FirstOrDefault();
-                            if (ufp_old == null) { }
-                            ufp_old.Close = DateTime.Now;
-                            ufp_old.CloseUser = user;
-                            context.UsageFeePeriods.Update(ufp_old);
+                            if (ufp_old != null)
+                            {
+                                ufp_old.Close = DateTime.Now;
+                                ufp_old.CloseUser = user;
+                                context.UsageFeePeriods.Update(ufp_old);
+                            }
+                            else
+                            {
+                                rt.SetResultOperation((int)errors_base.not_usage_fee_period_of_db, ufe.id, 2); // ошибка обновления 
+                                continue;
+                            }
                         }
                         ufp = new UsageFeePeriod()
                         {
@@ -4910,6 +4921,7 @@ namespace IDS_
                             HourAfter30 = hour_after_30,
                         };
                         context.UsageFeePeriods.Add(ufp);
+                        rt.SetResultOperation(1, ufe.id, 0); // обновление 
                     }
                     else
                     {
@@ -4940,24 +4952,32 @@ namespace IDS_
                             }
                             else
                             {
-                                // Ошибка нет ufp
+                                rt.SetResultOperation((int)errors_base.not_usage_fee_period_of_db, ufe.id, 1); // ошибка обновления 
                             }
                         }
                         else
                         {
                             // Ошибка ufe.id = 0
+                            rt.SetResultOperation(-1, ufe.id, 1); // ошибка обновления 
                         }
                     }
                 }
-
-                //return context.SaveChanges();
-                return 0;
+                if (rt.error >= 0)
+                {
+                    rt.result = context.SaveChanges();
+                }
+                else
+                {
+                    rt.result = (int)errors_base.cancel_save_changes;
+                }
+                return rt;
             }
             catch (Exception e)
             {
                 _logger.LogError(_eventId, e, "UpdateUpdateUsageFeePeriod(id={0}, start={1}, stop={2}, hour_after_30={3}, id_currency={4}, rate={5}, id_currency_derailment={6}, rate_derailment={7}, coefficient_route={8}, coefficient_not_route={9}, grace_time_1={10}, grace_time_2={11}, note={12}, list_period_edit={13},user={14})",
                     id, start, stop, hour_after_30, id_currency, rate, id_currency_derailment, rate_derailment, coefficient_route, coefficient_not_route, grace_time_1, grace_time_2, note, list_period_edit, user);
-                return (int)errors_base.global;
+                rt.result = (int)errors_base.global;
+                return rt;
             }
         }
 
