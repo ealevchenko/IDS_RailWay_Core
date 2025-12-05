@@ -437,6 +437,7 @@ namespace WebAPI.Controllers.Directory
         // POST: OutgoingUzDocument/update/pay
         // BODY: OutgoingUzDocument/update/pay (JSON, XML)
         [HttpPost("update/pay")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_SEND")]
         public async Task<ActionResult<int>> PostUpdatePayOutgoingUzDocument([FromBody] UpdatePay value)
         {
             try
@@ -526,10 +527,11 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-        #region СВЕРКА ДОКУМЕНТОВ ПО ПРИБЫТИЮ
+        #region СВЕРКА ДОКУМЕНТОВ ПО ОТПРАВКЕ
         // POST: OutgoingUzDocument/update/verification
         // BODY: OutgoingUzDocument/update/verification (JSON, XML)
         [HttpPost("update/verification")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_DOK_SEND")]
         public async Task<int> PostVerificationOutgoingUzDocument([FromBody] UpdateVerificationOutgoing value)
         {
             try
@@ -570,144 +572,5 @@ namespace WebAPI.Controllers.Directory
         }
         #endregion
 
-        // POST: OutgoingUzDocument/update/pay
-        // BODY: OutgoingUzDocument/update/pay (JSON, XML)
-        //[HttpPost("update/pay")]
-        //public async Task<int> PostOutgoingUzDocumentPay([FromBody] UpdateOutgoingUzDocumentPay value)
-        //{
-        //    try
-        //    {
-        //        OutgoingUzDocument? result = await db.OutgoingUzDocuments
-        //            .Include(doc => doc.OutgoingUzDocumentDocs)
-        //            .Include(act => act.OutgoingUzDocumentActs)
-        //            .Include(pays => pays.OutgoingUzDocumentPays)
-        //            .Include(wag_doc => wag_doc.OutgoingUzVagons)
-        //            .FirstOrDefaultAsync(x => x.Id == value.id_document);
-        //        if (result != null)
-        //        {
-        //            IEnumerable<OutgoingUzDocumentPay> pays = result.OutgoingUzDocumentPays
-        //                .Where(d => d.Kod == value.kod)
-        //                .ToList();
-
-        //            OutgoingUzDocumentPay new_pay = new OutgoingUzDocumentPay()
-        //            {
-        //                Id = 0,
-        //                IdDocument = value.id_document,
-        //                CodePayer = result.CodePayerSender != null ? int.Parse(result.CodePayerSender) : 0,
-        //                Kod = value.kod,
-        //                Summa = value.summa,
-        //                TypePayer = 0
-        //            };
-
-        //            if (pays == null || pays.Count() == 0)
-        //            {
-        //                result.OutgoingUzDocumentPays.Add(new_pay);
-        //            }
-        //            else
-        //            {
-        //                if (pays.Count() > 2)
-        //                {
-        //                    // Удалить
-        //                    foreach (OutgoingUzDocumentPay pay in pays)
-        //                    {
-        //                        result.OutgoingUzDocumentPays.Remove(pay);
-        //                    }
-        //                    result.OutgoingUzDocumentPays.Add(new_pay);
-        //                }
-        //                else
-        //                {
-        //                    pays.ToList()[0].Summa = value.summa;
-        //                }
-        //            }
-        //            return await db.SaveChangesAsync();
-
-        //        }
-        //        else
-        //        {
-        //            return (int)errors_base.not_inp_uz_vag_db;
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return (int)errors_base.global;
-        //    }
-        //}
-
-        //// POST: OutgoingUzDocument/update/payer_local
-        //// BODY: OutgoingUzDocument/update/payer_local (JSON, XML)
-        //[HttpPost("update/payer_local")]
-        //public async Task<ActionResult<int>> PostOutgoingUzDocumentPayerLocal([FromBody] UpdatePayerLocal value)
-        //{
-        //    try
-        //    {
-        //        string user = HttpContext.User.Identity.Name;
-        //        bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
-
-        //        if (value == null || !IsAuthenticated)
-        //        {
-        //            //return (int)errors_base.error_authenticated;
-        //            return Unauthorized();
-        //        }
-
-        //        OutgoingUzDocument? result = await db.OutgoingUzDocuments
-        //            .Include(doc => doc.OutgoingUzDocumentDocs)
-        //            .Include(act => act.OutgoingUzDocumentActs)
-        //            .Include(pays => pays.OutgoingUzDocumentPays)
-        //            .Include(wag_doc => wag_doc.OutgoingUzVagons)
-        //            .FirstOrDefaultAsync(x => x.Id == value.id_document);
-        //        if (result != null)
-        //        {
-        //            result.CodePayerLocal = value.code_payer_local;
-        //            result.TariffContract = value.tariff_contract;
-        //            result.CalcPayerUser = user;
-        //            result.CalcPayer = DateTime.Now;
-
-        //            return await db.SaveChangesAsync();
-
-        //        }
-        //        else
-        //        {
-        //            return (int)errors_base.not_inp_uz_vag_db;
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return (int)errors_base.global;
-        //    }
-        //}
-
-
-        //// PUT OutgoingUzDocument/
-        //// BODY: OutgoingUzDocument (JSON, XML)
-        //[HttpPut]
-        //public async Task<ActionResult<OutgoingUzDocument>> PutOutgoingUzDocument(OutgoingUzDocument obj)
-        //{
-        //    if (obj == null)
-        //    {
-        //        return BadRequest();
-        //    }
-        //    if (!db.OutgoingUzDocuments.Any(x => x.Id == obj.Id))
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    db.Update(obj);
-        //    await db.SaveChangesAsync();
-        //    return Ok(obj);
-        //}
-
-        //// DELETE OutgoingUzDocument/[id]
-        //[HttpDelete("{id}")]
-        //public async Task<ActionResult<OutgoingUzDocument>> DeleteOutgoingUzDocument(int id)
-        //{
-        //    OutgoingUzDocument result = db.OutgoingUzDocuments.FirstOrDefault(x => x.Id == id);
-        //    if (result == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    db.OutgoingUzDocuments.Remove(result);
-        //    await db.SaveChangesAsync();
-        //    return Ok(result);
-        //}
     }
 }

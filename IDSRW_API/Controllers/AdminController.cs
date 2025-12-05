@@ -1,5 +1,6 @@
 ﻿using EF_IDS.Concrete;
 using EF_IDS.Functions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ namespace IDSRW_API.Controllers
 
     [Route("[controller]")]
     [ApiController]
+    //[Authorize(Policy = "ADMIN")]
     public class AdminController : ControllerBase
     {
         private EFDbContext db;
@@ -50,8 +52,8 @@ namespace IDSRW_API.Controllers
                     }
                 }
 
-                bool isDevelopers = HttpContext.User.IsInRole(@"EUROPE\KRR-LG-PA-RailWay_Developers"); //EUROPE\\KRR-LG-PA-Developers_DB
-                
+                //bool isDevelopers = HttpContext.User.IsInRole(@"EUROPE\KRR-LG-PA-RailWay_Developers"); //EUROPE\\KRR-LG-PA-Developers_DB
+
                 UserInfo result = new UserInfo()
                 {
                     Name = HttpContext.User.Identity.Name,
@@ -78,7 +80,7 @@ namespace IDSRW_API.Controllers
                 bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
                 if (IsAuthenticated)
                 {
-                    isRole = HttpContext.User.IsInRole(role); //EUROPE\\KRR-LG-PA-Developers_DB
+                    isRole = HttpContext.User.IsInRole(role);
 
                 }
                 return new ObjectResult(isRole);

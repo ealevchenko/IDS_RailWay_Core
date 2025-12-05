@@ -51,9 +51,6 @@ try
     //builder.Services.AddScoped<IRepository<DirectoryCargoGroup>, DirectoryCargoGroupRepository>();
     builder.Services.AddScoped<IRepository<GivcRequest>, GIVCRepository>();
 
-
-    //builder.Services.AddScoped<EF_IDS.Abstract.IRepository<GivcRequest>, EFGivcRequest>();
-
     builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
    .AddNegotiate();
 
@@ -61,11 +58,25 @@ try
     {
         // By default, all incoming requests will be authorized according to the default policy.
         options.FallbackPolicy = options.DefaultPolicy;
+        options.AddPolicy("ADMIN", policy => policy.RequireRole(Configuration["Roles:ADMIN"]));
+        //options.AddPolicy("ACCEPT_RW", policy => policy.RequireRole(Configuration["Roles:ACCEPT_RW"]));
+        //options.AddPolicy("SEND_RW", policy => policy.RequireRole(Configuration["Roles:SEND_RW"]));
+        //options.AddPolicy("TRF_ACCEPT_RW", policy => policy.RequireRole(Configuration["Roles:TRF_ACCEPT_RW"]));
+        //options.AddPolicy("TRF_SEND_RW", policy => policy.RequireRole(Configuration["Roles:TRF_SEND_RW"]));
+        //options.AddPolicy("TRF_SEND_RW", policy => policy.RequireRole(Configuration["Roles:TRF_SEND_RW"]));
+        //options.AddPolicy("DOK_ACCEPT_RW", policy => policy.RequireRole(Configuration["Roles:DOK_ACCEPT_RW"]));
+        //options.AddPolicy("DOK_SEND_RW", policy => policy.RequireRole(Configuration["Roles:DOK_SEND_RW"]));
+        //options.AddPolicy("LET_WORK_RO", policy => policy.RequireRole(Configuration["Roles:LET_WORK_RO"]));
+        //options.AddPolicy("PAY_RW", policy => policy.RequireRole(Configuration["Roles:PAY_RW"]));
+        //options.AddPolicy("LETTERS", policy => policy.RequireRole(Configuration["Roles:LETTERS"]));
+        //options.AddPolicy("DIRECTORY_RW", policy => policy.RequireRole(Configuration["Roles:DIRECTORY_RW"]));
+        //options.AddPolicy("ADDRESS_RW", policy => policy.RequireRole(Configuration["Roles:ADDRESS_RW"]));
+        //options.AddPolicy("COM_STAT_RW", policy => policy.RequireRole(Configuration["Roles:COM_STAT_RW"]));
+        //options.AddPolicy("COND_ARR_RW", policy => policy.RequireRole(Configuration["Roles:COND_ARR_RW"]));
+        //options.AddPolicy("COND_SEND_RW", policy => policy.RequireRole(Configuration["Roles:COND_SEND_RW"]));
     });
 
     // настраиваем CORS
-
-
     var app = builder.Build();
 
     app.UseCors(MyAllowSpecificOrigins);

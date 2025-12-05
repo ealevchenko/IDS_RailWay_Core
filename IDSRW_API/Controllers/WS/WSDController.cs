@@ -312,6 +312,22 @@ namespace WebAPI.Controllers.Directory
         private readonly IConfiguration _configuration;
         EventId _eventId = new EventId(0);
         EventId _eventId_ids_wir = new EventId(0);
+        //string _Role_ACCEPT_RW = "";
+        //string _Role_SEND_RW = "";
+        //string _Role_TRF_ACCEPT_RW = "";
+        //string _Role_TRF_SEND_RW = "";
+        //string _Role_DOK_ACCEPT_RW = "";
+        //string _Role_DOK_SEND_RW = "";
+        //string _Role_DOK_RO = "";
+        //string _Role_LET_WORK_RO = "";
+        //public string _Role_ADMIN = "";
+        //string _Role_PAY_RW = "";
+        //string _Role_LETTERS = "";
+        //string _Role_DIRECTORY_RW = "";
+        //string _Role_ADDRESS_RW = "";
+        //string _Role_COM_STAT_RW = "";
+        //string _Role_COND_ARR_RW = "";
+        //string _Role_COND_SEND_RW = "";
 
         public WSDController(EFDbContext db, ILogger<WSDController> logger, IConfiguration configuration)
         {
@@ -319,7 +335,24 @@ namespace WebAPI.Controllers.Directory
             _logger = logger;
             _configuration = configuration;
             _eventId_ids_wir = int.Parse(_configuration["EventID:IDS_WIR"]);
+            //_Role_ACCEPT_RW = _configuration["Roles:ACCEPT_RW"];
+            //_Role_SEND_RW = _configuration["Roles:SEND_RW"];
+            //_Role_TRF_ACCEPT_RW = _configuration["Roles:TRF_ACCEPT_RW"];
+            //_Role_TRF_SEND_RW = _configuration["Roles:TRF_SEND_RW"];
+            //_Role_DOK_ACCEPT_RW = _configuration["Roles:DOK_ACCEPT_RW"];
+            //_Role_DOK_SEND_RW = _configuration["Roles:DOK_SEND_RW"];
+            //_Role_DOK_RO = _configuration["Roles:DOK_RO"];
+            //_Role_LET_WORK_RO = _configuration["Roles:LET_WORK_RO"];
+            //_Role_ADMIN = _configuration["Roles:ADMIN"];
+            //_Role_PAY_RW = _configuration["Roles:PAY_RW"];
+            //_Role_LETTERS = _configuration["Roles:LETTERS"];
+            //_Role_DIRECTORY_RW = _configuration["Roles:DIRECTORY_RW"];
+            //_Role_ADDRESS_RW = _configuration["Roles:ADDRESS_RW"];
+            //_Role_COM_STAT_RW = _configuration["Roles:COM_STAT_RW"];
+            //_Role_COND_ARR_RW = _configuration["Roles:COND_ARR_RW"];
+            //_Role_COND_SEND_RW = _configuration["Roles:COND_SEND_RW"];
             _logger.LogDebug(1, "NLog injected into WSDController");
+
         }
 
         #region ОТПРАВЛЕННЫЕ СОСТАВЫ (АРМ)
@@ -1508,6 +1541,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/instructional_letters/update
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/instructional_letters/update")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_LETTERS")]
         public async Task<ActionResult<ResultUpdateWagon>> PostUpdateInstructionalLetters([FromBody] OperationUpdateInstructionalLetters value)
         {
             try
@@ -1537,6 +1571,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/open_instructional_letters/update
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/open_instructional_letters/update")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_LETTERS")]
         public async Task<ActionResult<OperationResultID>> PostUpdateOpenInstructionalLetters([FromBody] List<int> value)
         {
             try
@@ -1555,6 +1590,7 @@ namespace WebAPI.Controllers.Directory
 
         // DELETE WSD/operation/instructional_letters/delete/1
         [HttpDelete("operation/instructional_letters/delete/{id}")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_LETTERS")]
         public async Task<ActionResult<ResultUpdateWagon>> DeleteInstructionalLetters(int id)
         {
             try
@@ -1608,6 +1644,7 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
+
                 List<ViewUsageFeePeriodDetali> result = await db.getViewUsageFeePeriodDetaliOfIdPeriod(id_usage_fee_period).ToListAsync(); ;
                 if (result == null)
                     return NotFound();
@@ -1622,6 +1659,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/usage_fee_period/update
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/usage_fee_period/update")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_PAY")]
         public async Task<ActionResult<OperationResultID>> PostUpdateUsageFeePeriod([FromBody] OperationUpdateUsageFeePeriod value)
         {
             try
@@ -1643,10 +1681,10 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-
         // POST: WSD/operation/usage_fee_period_detali/update
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/usage_fee_period_detali/update")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_PAY")]
         public async Task<ActionResult<int>> PostUpdateUsageFeePeriodDetali([FromBody] OperationUpdateUsageFeePeriodDetali value)
         {
             try
@@ -1670,6 +1708,7 @@ namespace WebAPI.Controllers.Directory
 
         // DELETE WSD/operation/instructional_letters/delete/1
         [HttpDelete("operation/usage_fee_period_detali/delete/{id}")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_PAY")]
         public async Task<ActionResult<int>> DeleteUsageFeePeriodDetali(int id)
         {
             try
@@ -1694,6 +1733,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/admin/change/division/outgoing
         // BODY: WSD (JSON, XML)
         [HttpPost("admin/change/division/outgoing")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN")]
         public async Task<ActionResult<ResultTransfer>> PostAdmChangeDivisionOutgoingWagons([FromBody] AdmDivisionOutgoingWagons value)
         {
             try
@@ -1725,6 +1765,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/admin/change/vesg/outgoing
         // BODY: WSD (JSON, XML)
         [HttpPost("admin/change/vesg/outgoing")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN")]
         public async Task<ActionResult<ResultTransfer>> PostAdmChangeVesgOutgoingWagons([FromBody] AdmChangeVesgOutgoingWagons value)
         {
             try
@@ -1757,6 +1798,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/admin/change/vesg/outgoing
         // BODY: WSD (JSON, XML)
         [HttpPost("admin/change/correct/arrival/document")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN")]
         public async Task<ActionResult<ResultTransfer>> PostAdmCorrectArrivalDocument([FromBody] AdmCorrectArrivalDocument value)
         {
             try
@@ -1789,6 +1831,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/admin/change/delete/car/amkr
         // BODY: WSD (JSON, XML)
         [HttpPost("admin/change/delete/cars/amkr")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN")]
         public async Task<ActionResult<ResultTransfer>> PostAdmDeleteWagonOfAMKR([FromBody] AdmDeleteWagonOfAMKR value)
         {
             try

@@ -315,6 +315,7 @@ namespace WebAPI.Controllers.Directory
 
         // POST: ArrivalUzDocument/update/verification
         // BODY: ArrivalUzDocument/update/verification (JSON, XML)
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_DOK_ACCEPT")]
         [HttpPost("update/verification")]
         public async Task<int> PostVerificationArrivalUzDocument([FromBody] UpdateVerificationArrival value)
         {
@@ -370,6 +371,7 @@ namespace WebAPI.Controllers.Directory
         // POST: ArrivalUzDocument/update/pay
         // BODY: ArrivalUzDocument/update/pay (JSON, XML)
         [HttpPost("update/pay")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_TRF_ACCEPT")]
         public async Task<int> PostArrivalUzDocumentPay([FromBody] UpdateArrivalUzDocumentPay value)
         {
             try
@@ -433,6 +435,7 @@ namespace WebAPI.Controllers.Directory
         // POST: ArrivalUzDocument/update/payer_local
         // BODY: ArrivalUzDocument/update/payer_local (JSON, XML)
         [HttpPost("update/payer_local")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_TRF_ACCEPT")]
         public async Task<ActionResult<int>> PostArrivalUzDocumentPayerLocal([FromBody] UpdatePayerLocal value)
         {
             try
@@ -472,39 +475,5 @@ namespace WebAPI.Controllers.Directory
                 return (int)errors_base.global;
             }
         }
-
-
-        //// PUT ArrivalUzDocument/
-        //// BODY: ArrivalUzDocument (JSON, XML)
-        //[HttpPut]
-        //public async Task<ActionResult<ArrivalUzDocument>> PutArrivalUzDocument(ArrivalUzDocument obj)
-        //{
-        //    if (obj == null)
-        //    {
-        //        return BadRequest();
-        //    }
-        //    if (!db.ArrivalUzDocuments.Any(x => x.Id == obj.Id))
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    db.Update(obj);
-        //    await db.SaveChangesAsync();
-        //    return Ok(obj);
-        //}
-
-        //// DELETE ArrivalUzDocument/[id]
-        //[HttpDelete("{id}")]
-        //public async Task<ActionResult<ArrivalUzDocument>> DeleteArrivalUzDocument(int id)
-        //{
-        //    ArrivalUzDocument result = db.ArrivalUzDocuments.FirstOrDefault(x => x.Id == id);
-        //    if (result == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    db.ArrivalUzDocuments.Remove(result);
-        //    await db.SaveChangesAsync();
-        //    return Ok(result);
-        //}
     }
 }
