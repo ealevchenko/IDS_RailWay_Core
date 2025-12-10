@@ -1619,6 +1619,7 @@ namespace WebAPI.Controllers.Directory
         /// <returns></returns>
         // GET: WSD/view/usage_fee_period/operator/3/genus/22
         [HttpGet("view/usage_fee_period/operator/{id_operator}/genus/{id_genus}")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_PAY")]
         public async Task<ActionResult<IEnumerable<ViewUsageFeePeriod>>> GetViewUsageFeePeriodOfOperatorGenus(int id_operator, int id_genus)
         {
             try
@@ -1640,6 +1641,7 @@ namespace WebAPI.Controllers.Directory
         /// <returns></returns>
         // GET: WSD/view/usage_fee_period_detali/id_usage_fee_period/2438
         [HttpGet("view/usage_fee_period_detali/id_usage_fee_period/{id_usage_fee_period}")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_PAY")]
         public async Task<ActionResult<IEnumerable<ViewUsageFeePeriodDetali>>> getViewUsageFeePeriodDetaliOfIdPeriod(int id_usage_fee_period)
         {
             try
