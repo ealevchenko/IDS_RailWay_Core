@@ -241,14 +241,16 @@ namespace WebAPI.Controllers.Directory
         public int id { get; set; }
         public int id_usage_fee_period { get; set; }
         public int? code_stn_from { get; set; }
+        public int? id_cargo_group_arrival { get; set; }
         public int? id_cargo_arrival { get; set; }
+        public bool? arrival_end_unload { get; set; }
         public int? code_stn_to { get; set; }
+        public int? id_cargo_group_outgoing { get; set; }
         public int? id_cargo_outgoing { get; set; }
+        public bool? outgoing_start_load { get; set; }
         public int? grace_time { get; set; }
         public int? id_currency { get; set; }
         public decimal? rate { get; set; }
-        public bool? arrival_end_unload { get; set; }
-        public bool? outgoing_start_load { get; set; }
     }
     public class OperationUpdateUsageFeePeriod
     {
@@ -1698,8 +1700,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                int result = ids_wir.UpdateUpdateUsageFeePeriodDetali(value.id, value.id_usage_fee_period, value.code_stn_from, value.id_cargo_arrival,
-                    value.code_stn_to, value.id_cargo_outgoing, value.grace_time, value.id_currency, value.rate, value.arrival_end_unload, value.outgoing_start_load, user);
+                int result = ids_wir.UpdateUpdateUsageFeePeriodDetali(value.id, value.id_usage_fee_period, value.code_stn_from, value.id_cargo_group_arrival, value.id_cargo_arrival, value.code_stn_to, value.id_cargo_group_outgoing, value.id_cargo_outgoing, value.grace_time, value.id_currency, value.rate, value.arrival_end_unload, value.outgoing_start_load, user);
                 return Ok(result);
             }
             catch (Exception e)

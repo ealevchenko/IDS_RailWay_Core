@@ -4997,7 +4997,7 @@ namespace IDS_
         /// <param name="outgoing_start_load"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public int UpdateUpdateUsageFeePeriodDetali(int id, int id_usage_fee_period, int? code_stn_from, int? id_cargo_arrival, int? code_stn_to, int? id_cargo_outgoing, int? grace_time, int? id_currency, decimal? rate, bool? arrival_end_unload, bool? outgoing_start_load, string user)
+        public int UpdateUpdateUsageFeePeriodDetali(int id, int id_usage_fee_period, int? code_stn_from, int? id_cargo_group_arrival, int? id_cargo_arrival, int? code_stn_to, int? id_cargo_group_outgoing, int? id_cargo_outgoing, int? grace_time, int? id_currency, decimal? rate, bool? arrival_end_unload, bool? outgoing_start_load, string user)
         {
             try
             {
@@ -5009,8 +5009,10 @@ namespace IDS_
                     if (detali != null)
                     {
                         detali.CodeStnFrom = code_stn_from;
+                        detali.IdCargoGroupArrival = id_cargo_group_arrival;
                         detali.IdCargoArrival = id_cargo_arrival;
                         detali.CodeStnTo = code_stn_to;
+                        detali.IdCargoGroupOutgoing = id_cargo_group_outgoing;
                         detali.IdCargoOutgoing = id_cargo_outgoing;
                         detali.GraceTime = grace_time;
                         detali.IdCurrency = id_currency;
@@ -5030,8 +5032,10 @@ namespace IDS_
                         Id = id,
                         IdUsageFeePeriod = id_usage_fee_period,
                         CodeStnFrom = code_stn_from,
+                        IdCargoGroupArrival = id_cargo_group_arrival,
                         IdCargoArrival = id_cargo_arrival,
                         CodeStnTo = code_stn_to,
+                        IdCargoGroupOutgoing = id_cargo_group_outgoing,
                         IdCargoOutgoing = id_cargo_outgoing,
                         GraceTime = grace_time,
                         IdCurrency = id_currency,

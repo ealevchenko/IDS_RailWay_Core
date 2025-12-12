@@ -19,6 +19,9 @@ public partial class UsageFeePeriodDetali
     [Column("code_stn_from")]
     public int? CodeStnFrom { get; set; }
 
+    [Column("id_cargo_group_arrival")]
+    public int? IdCargoGroupArrival { get; set; }
+
     [Column("id_cargo_arrival")]
     public int? IdCargoArrival { get; set; }
 
@@ -27,6 +30,9 @@ public partial class UsageFeePeriodDetali
 
     [Column("id_cargo_outgoing")]
     public int? IdCargoOutgoing { get; set; }
+
+    [Column("id_cargo_group_outgoing")]
+    public int? IdCargoGroupOutgoing { get; set; }
 
     [Column("grace_time")]
     public int? GraceTime { get; set; }

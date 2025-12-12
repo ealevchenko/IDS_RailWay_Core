@@ -26,6 +26,17 @@ public partial class ViewUsageFeePeriodDetali
     [StringLength(50)]
     public string? FromStationNameEn { get; set; }
 
+    [Column("id_cargo_group_arrival")]
+    public int? IdCargoGroupArrival { get; set; }
+
+    [Column("arrival_cargo_group_name_ru")]
+    [StringLength(50)]
+    public string? ArrivalCargoGroupNameRu { get; set; }
+
+    [Column("arrival_cargo_group_name_en")]
+    [StringLength(50)]
+    public string? ArrivalCargoGroupNameEn { get; set; }
+
     [Column("id_cargo_arrival")]
     public int? IdCargoArrival { get; set; }
 
@@ -51,13 +62,24 @@ public partial class ViewUsageFeePeriodDetali
     [StringLength(50)]
     public string? ToStationNameEn { get; set; }
 
+    [Column("id_cargo_group_outgoing")]
+    public int? IdCargoGroupOutgoing { get; set; }
+
+    [Column("outgoing_cargo_group_name_ru")]
+    [StringLength(50)]
+    public string? OutgoingCargoGroupNameRu { get; set; }
+
+    [Column("outgoing_cargo_group_name_en")]
+    [StringLength(50)]
+    public string? OutgoingCargoGroupNameEn { get; set; }
+
     [Column("id_cargo_outgoing")]
     public int? IdCargoOutgoing { get; set; }
 
     [Column("outgoing_cargo_name_ru")]
     [StringLength(50)]
     public string? OutgoingCargoNameRu { get; set; }
-
+ 
     [Column("outgoing_cargo_name_en")]
     [StringLength(50)]
     public string? OutgoingCargoNameEn { get; set; }
