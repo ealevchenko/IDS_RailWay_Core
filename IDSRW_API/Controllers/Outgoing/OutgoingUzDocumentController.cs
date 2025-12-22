@@ -437,7 +437,7 @@ namespace WebAPI.Controllers.Directory
         // POST: OutgoingUzDocument/update/pay
         // BODY: OutgoingUzDocument/update/pay (JSON, XML)
         [HttpPost("update/pay")]
-        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_SEND")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_TRF_SEND")]
         public async Task<ActionResult<int>> PostUpdatePayOutgoingUzDocument([FromBody] UpdatePay value)
         {
             try
