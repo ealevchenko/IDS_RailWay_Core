@@ -34,6 +34,9 @@ public partial class DirectoryCargo
     [Column("empty_weight")]
     public bool? EmptyWeight { get; set; }
 
+    [Column("ban_change")]
+    public bool? BanChange { get; set; }
+
     [Column("sending")]
     public bool? Sending { get; set; }
 
