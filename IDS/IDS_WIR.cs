@@ -112,11 +112,17 @@ namespace IDS_
         public bool? UzWagon { get; set; }
         public DateTime? DateAdoption { get; set; }
         public DateTime? DateOutgoing { get; set; }
+        public DateTime? DateStartUnload { get; set; }  // Выгрузка груза УЗ
+        public DateTime? DateEndUnload { get; set; }    // Выгрузка груза УЗ
+        public DateTime? DateStartLoad { get; set; }    // Погрузка груза УЗ
+        public DateTime? DateEndLoad { get; set; }      // Погрузка груза УЗ
         public bool? Route { get; set; }
         public bool? InpCargo { get; set; }
         public bool? OutCargo { get; set; }
         public int? IdCargoArr { get; set; }
+        public int? IdCargoGroupArr { get; set; }
         public int? IdCargoOut { get; set; }
+        public int? IdCargoGroupOut { get; set; }
         public int? CodeStnFrom { get; set; }
         public int? CodeStnTo { get; set; }
         public bool? Derailment { get; set; }
@@ -4051,8 +4057,8 @@ namespace IDS_
         {
             public int id_currency { get; set; } = -1;               // Выбранная валюта
             public decimal rate { get; set; } = 0;                   // Выбранная ставка
-            public decimal rate_currency { get; set; } = 0;          // ставка для расчета (с учетом схода)
-            public decimal exchange_rate { get; set; } = 1;
+            public decimal rate_currency { get; set; } = 0;          // ставка для расчета (с учетом схода) 
+            public decimal exchange_rate { get; set; } = 1;          // Обменный курс (если валюта) если гривна 1
         }
         /// <summary>
         /// Получить ставку, курс и валюту (с учетом схода)
@@ -4069,6 +4075,7 @@ namespace IDS_
             // Проверим на сход
             if (!derailment)
             {
+                // Несход
                 if (wufp.id_currency != null)
                 {
                     srate.id_currency = (int)wufp.id_currency;
@@ -4138,7 +4145,9 @@ namespace IDS_
                 InpCargo = false,
                 OutCargo = false,
                 IdCargoArr = null,
+                IdCargoGroupArr = null,
                 IdCargoOut = null,
+                IdCargoGroupOut = null,
                 CodeStnFrom = null,
                 CodeStnTo = null,
                 Derailment = false,
@@ -4164,6 +4173,7 @@ namespace IDS_
                     if (wir == null) { cwuf.error = (int)errors_base.not_wir_db; return cwuf; }
                     cwuf.Derailment = context.isDerailmentOperation(id_wir); // проверим признак схода
                                                                              // Получить id_wir прибытия с учетом (если был возврат)
+
                     long id_wir_arrival = context.GetIDWIR(wir.Id);
                     // Прибытие
                     WagonInternalRoute? wir_arrival = context.WagonInternalRoutes
@@ -4197,8 +4207,24 @@ namespace IDS_
                     cwuf.DateAdoption = arr_sostav.DateAdoptionAct != null ? (DateTime)arr_sostav.DateAdoptionAct : (arr_car.DateAdoptionAct != null ? (DateTime)arr_car.DateAdoptionAct : (DateTime)arr_sostav.DateAdoption);    // Зашел
                     cwuf.DateOutgoing = DateTime.Now;
                     // признак гружен по прибытию
-                    cwuf.InpCargo = (arr_uz_vag.IdCargoNavigation != null ? list_groups_cargo.Find(x => x == arr_uz_vag.IdCargoNavigation.IdGroup) == 0 : false);
+                    //cwuf.InpCargo = (arr_uz_vag.IdCargoNavigation != null ? list_groups_cargo.Find(x => x == arr_uz_vag.IdCargoNavigation.IdGroup) == 0 : false);
+
+
+                    cwuf.InpCargo = (arr_uz_vag.IdCargoNavigation != null && arr_uz_vag.IdCargoNavigation.EmptyWeight == true ? false : true);
+
+                    cwuf.DateStartUnload = null;
+                    cwuf.DateEndUnload = null;
+                    if (cwuf.InpCargo == true)
+                    {
+                        WagonInternalOperation? unload_uz = context.GetUnloadUzOperation(id_wir);
+                        if (unload_uz != null)
+                        {
+                            cwuf.DateStartUnload = unload_uz.OperationStart;
+                            cwuf.DateEndUnload = unload_uz.OperationEnd;
+                        }
+                    }
                     cwuf.IdCargoArr = (arr_uz_vag.IdCargoNavigation != null ? arr_uz_vag.IdCargoNavigation.Id : null);
+                    cwuf.IdCargoGroupArr = (arr_uz_vag.IdCargoNavigation != null ? arr_uz_vag.IdCargoNavigation.IdGroup : null);
                     cwuf.CodeStnFrom = (arr_uz_sost != null ? arr_uz_sost.CodeStnFrom : null);
                     //cwuf.OutCargo = false;
                     // оператор
@@ -4233,8 +4259,21 @@ namespace IDS_
                             DirectoryCargo? outg_cargo = out_uz_vag.IdCargoNavigation;
                             OutgoingUzDocument out_doc_uz = out_uz_vag.IdDocumentNavigation;
                             // признак гружен по отправке 
-                            cwuf.OutCargo = (outg_cargo != null ? list_groups_cargo.Find(x => x == outg_cargo.IdGroup) == 0 : false);
+                            //cwuf.OutCargo = (outg_cargo != null ? list_groups_cargo.Find(x => x == outg_cargo.IdGroup) == 0 : false);
+                            cwuf.OutCargo = (outg_cargo != null && outg_cargo.EmptyWeight == true ? false : true);
+                            // Определение даты погрузки
+                            if (cwuf.OutCargo == true)
+                            {
+                                WagonInternalOperation? load_uz = context.GetLoadUzOperation(id_wir);
+                                if (load_uz != null)
+                                {
+                                    cwuf.DateStartLoad = load_uz.OperationStart;
+                                    cwuf.DateEndLoad = load_uz.OperationEnd;
+                                }
+                            }
+                            //
                             cwuf.IdCargoOut = (outg_cargo != null ? outg_cargo.Id : null);
+                            cwuf.IdCargoGroupOut = (outg_cargo != null ? outg_cargo.IdOutGroup : null);
                             cwuf.CodeStnTo = (out_uz_vag.IdDocumentNavigation != null ? out_uz_vag.IdDocumentNavigation.CodeStnTo : null);
                         }
                         OutgoingSostav? out_sostav = out_car.IdOutgoingNavigation;
@@ -4290,9 +4329,6 @@ namespace IDS_
                             list_period_where.Add(out_perriod);
                         }
                     }
-                    // Детальный период
-                    //UsageFeePeriod ufp_last = list_period_where.Last();
-                    //UsageFeePeriodDetali ufpd_last = 
                     // Расчеты
                     DateTime date = DateTime.Now.Date;
                     List<DirectoryBankRate> list_bank = context.DirectoryBankRates.Where(b => b.Date == date).ToList();
@@ -4328,8 +4364,13 @@ namespace IDS_
                     int remaining_minutes_period = 0;                   // Остаток минут
                     int sum_remaining_minutes_period = 0;               // Остаток минут (суммируемый)
                     int grace_time = 0;                                 // Льготное время
-                    int grace_detali_time = 0;                          // Льготное время (детальное условие)
                     SettlementRate curr_rate = new SettlementRate();    // Ставка, курс и валюта (с учетом схода)
+
+                    int grace_time_detali = 0;                          // Льготное время (доп. условие)
+                    SettlementRate detali_rate = new SettlementRate();  // Ставка (доп. условие)
+                    DateTime? dt_end_detali = null;                     // По окончанию выгрузки (доп. условие)                    
+                    DateTime? dt_start_detali = null;                   // С начала погрузки (доп. условие)
+
                     float coefficient_route = 1;                        // коэффициент маршрута, для всех по умолчанию 1;
                                                                         // -----
                     int calc_hour_period = 0;                           // Время расчетное (часов)
@@ -4339,39 +4380,82 @@ namespace IDS_
                     TimeSpan tm_period;
                     if (list_period_setup.Count() > 0)
                     {
+                        // Берем последний интервал основного условия для расчета доп. условий
                         UsageFeePeriod ufp_last = list_period_where.Last();
-                        // Проверим детальные настройки
-
+                        // Проверим дополнительное условие
+                        UsageFeePeriodDetali curr_ufpd = null;
                         List<UsageFeePeriodDetali> ufpds = ufp_last.UsageFeePeriodDetalis.ToList();
                         if (ufpds != null && ufpds.Count() > 0)
                         {
-                            // есть детальные настройки, пройдемся
-                            foreach (UsageFeePeriodDetali det in ufpds)
+                            List<UsageFeePeriodDetali> select_ufod = ufpds.Where(d =>
+                            (d.IdCargoOutgoing == cwuf.IdCargoOut || d.IdCargoOutgoing == null) &&
+                            (d.IdCargoGroupOutgoing == cwuf.IdCargoGroupOut || d.IdCargoGroupOutgoing == null) &&
+                            (d.CodeStnTo == cwuf.CodeStnTo || d.CodeStnTo == null) &&
+                            (d.IdCargoArrival == cwuf.IdCargoArr || d.IdCargoArrival == null) &&
+                            (d.IdCargoGroupArrival == cwuf.IdCargoGroupArr || d.IdCargoGroupArrival == null) &&
+                            (d.CodeStnFrom == cwuf.CodeStnFrom || d.CodeStnFrom == null)
+                            ).ToList();
+
+                            if (select_ufod.Count() == 0)
                             {
-                                if (det.CodeStnFrom != null)
+                                curr_ufpd = null;
+                            }
+                            else if (select_ufod.Count() == 1)
+                            {
+                                curr_ufpd = select_ufod[0];
+                            }
+                            else
+                            {
+                                //Выбрало более 1 варианта
+                                cwuf.error = (int)errors_base.not_usage_fee_period_detali_error_data;
+                                return cwuf;
+                            }
+                            // Определим доп условия
+                            if (curr_ufpd != null)
+                            {
+                                if (curr_ufpd.EndUnload == true)
                                 {
-                                    grace_detali_time = det.CodeStnFrom == cwuf.CodeStnFrom ? (int)det.GraceTime : 0;
+                                    // уставка считать до окончания выгрузки
+                                    dt_start_detali = null;
+                                    dt_end_detali = cwuf.DateEndUnload;
                                 }
-                                if (det.IdCargoArrival != null)
+                                if (curr_ufpd.StartLoad == true)
                                 {
-                                    grace_detali_time = det.IdCargoArrival == cwuf.IdCargoArr ? (int)det.GraceTime : 0;
+                                    // уставка с начала погрузки после начала погрузки
+                                    dt_start_detali = cwuf.DateStartLoad;
+                                    dt_end_detali = null;
                                 }
-                                if (det.CodeStnTo != null)
+                                if (curr_ufpd.IdCurrency != null)
                                 {
-                                    grace_detali_time = det.CodeStnTo == cwuf.CodeStnTo ? (int)det.GraceTime : 0;
+                                    detali_rate.id_currency = (int)curr_ufpd.IdCurrency;
+                                    detali_rate.rate = curr_ufpd.Rate != null ? (decimal)curr_ufpd.Rate : 0;
+                                    detali_rate.rate_currency = curr_ufpd.Rate != null ? (decimal)curr_ufpd.Rate : 0;
+                                    if (curr_ufpd.IdCurrency > 1)
+                                    {
+                                        // отправимся за курсом
+                                        DirectoryCurrency? curr = context.DirectoryCurrencies
+                                            .AsNoTracking().Where(c => c.Id == curr_ufpd.IdCurrency).FirstOrDefault();
+                                        if (curr != null)
+                                        {
+                                            DirectoryBankRate? res_er = list_bank.Where(e => e.Code == curr.Code).FirstOrDefault();
+                                            detali_rate.exchange_rate = res_er != null ? (decimal)res_er.Rate : 0;
+                                        }
+                                    }
                                 }
-                                if (det.IdCargoOutgoing != null)
+                                if (curr_ufpd.GraceTime != null)
                                 {
-                                    grace_detali_time = det.IdCargoOutgoing == cwuf.IdCargoOut ? (int)det.GraceTime : 0;
+                                    grace_time_detali = (int)curr_ufpd.GraceTime;
                                 }
+
                             }
                         }
                         // Опредеим расчет ЦТЛ или собственники
                         if (!(bool)cwuf.UzWagon)
                         {
                             // Вагоны собственники (Считаем без периодов берем по последнему)
-                            DateTime? dt_start = list_period_setup.First().date_adoption;
-                            DateTime? dt_end = list_period_setup.Last().date_outgoing;
+                            // определим время с учетом доп условия если нет схода
+                            DateTime? dt_start = dt_start_detali != null && !(bool)cwuf.Derailment ? dt_start_detali : list_period_setup.First().date_adoption;
+                            DateTime? dt_end = dt_end_detali != null && !(bool)cwuf.Derailment ? dt_end_detali : list_period_setup.Last().date_outgoing;
                             Wagon_Usage_Fee_Period wufp = list_period_setup.Last();
                             if (dt_start == null || dt_end == null)
                             {
@@ -4389,16 +4473,32 @@ namespace IDS_
                                 remaining_minutes_period = 0;
                             }
                             // определим льготный период
-                            if ((bool)cwuf.InpCargo && (bool)cwuf.OutCargo)
+                            if (curr_ufpd != null)
                             {
-                                grace_time = wufp.grace_time_2 != null ? (int)wufp.grace_time_2 : 0;
+                                grace_time = grace_time_detali;
                             }
                             else
                             {
-                                grace_time = wufp.grace_time_1 != null ? (int)wufp.grace_time_1 : 0;
+                                if ((bool)cwuf.InpCargo && (bool)cwuf.OutCargo)
+                                {
+                                    grace_time = wufp.grace_time_2 != null ? (int)wufp.grace_time_2 : 0;
+                                }
+                                else
+                                {
+                                    grace_time = wufp.grace_time_1 != null ? (int)wufp.grace_time_1 : 0;
+                                }
                             }
-                            // Получим ставку, курс
-                            curr_rate = GetExchangeRate(context, (bool)cwuf.Derailment, wufp, list_bank);
+                            // Получим ставку, курс если нет схода с учетом доп условия
+                            if (detali_rate.id_currency > 0 && !(bool)cwuf.Derailment)
+                            {
+                                curr_rate = detali_rate;
+                            }
+                            else
+                            {
+                                curr_rate = GetExchangeRate(context, (bool)cwuf.Derailment, wufp, list_bank);
+                            }
+
+
                             // Определим коэффициент маршрута если нет схода
                             if (!(bool)cwuf.Derailment && wufp.coefficient_route != null && cwuf.Route != null && cwuf.Route == true)
                             {
@@ -4409,7 +4509,7 @@ namespace IDS_
                                 coefficient_route = (float)wufp.coefficient_not_route;
                             }
                             calc_hour_period = hour_period;
-                            int hour_calc = (hour_period - grace_time - grace_detali_time);
+                            int hour_calc = (hour_period - grace_time);
                             if (hour_calc < 0) hour_calc = 0;
                             // пересчет времени с учетом uz_wagon
                             var remainder = (hour_calc % 24);
@@ -4433,7 +4533,7 @@ namespace IDS_
                             foreach (Wagon_Usage_Fee_Period wufp in list_period_setup)
                             {
                                 grace_time = 0;                 // сбросим льготный период
-                                                                //grace_detali_time = 0;          // сбросим льготный период
+                                                                //grace_time_detali = 0;          // сбросим льготный период
                                 curr_rate.exchange_rate = 1;    // сбросим курс
                                 curr_rate.rate_currency = 0;    // сбросим ставку
                                 coefficient_route = 1;          // сбросим коэффициент
@@ -4474,7 +4574,6 @@ namespace IDS_
                                         stage = 2;
                                     }
                                     // Льготное время 
-
                                 }
                                 // просчитаем интервал
                                 hour_period = (int)Math.Truncate(tm_period.TotalHours);
@@ -4511,7 +4610,8 @@ namespace IDS_
                                         {
                                             // первый и последний период
                                             calc_hour_period = hour_period;
-                                            int hour_calc = (hour_period - grace_time - grace_detali_time);
+                                            //int hour_calc = (hour_period - grace_time - grace_time_detali);
+                                            int hour_calc = (hour_period - grace_time);
                                             if (hour_calc < 0) hour_calc = 0;
                                             // пересчет времени с учетом uz_wagon
                                             calc_time = hour_calc; // округлим до целых суток
@@ -4541,8 +4641,8 @@ namespace IDS_
                                     case 3:
                                         {
                                             // последний период
-                                            int hour_calc = (hour_period - grace_detali_time);
-
+                                            //int hour_calc = (hour_period - grace_time_detali);
+                                            int hour_calc = (hour_period);
                                             int test_calc_time = calc_time + hour_calc;
                                             // Если небыло округления а сумма остатков >=0 тогда добавим час (hour_common)
                                             //if (sum_remaining_minutes_period >= 30 && (!rounding || rounding_common))
@@ -4792,7 +4892,7 @@ namespace IDS_
                     }
                     //List<OutgoingCar> cars = out_sostav.OutgoingCars.ToList();
                     List<long> lost_id_wir = new List<long>();
-                    foreach (OutgoingCar car in out_sostav.OutgoingCars.Where(c=>c.Num == 64169279)) // .Where(c=>c.Num == 64169279)
+                    foreach (OutgoingCar car in out_sostav.OutgoingCars.Where(c => c.Num == 64169279)) // .Where(c=>c.Num == 64169279)
                     {
                         lost_id_wir.Add(car.WagonInternalRoutes.FirstOrDefault().Id);
                     }
