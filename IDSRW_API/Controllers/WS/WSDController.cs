@@ -1573,7 +1573,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/open_instructional_letters/update
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/open_instructional_letters/update")]
-        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_LETTERS")]
+        //[Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_LETTERS")]
         public async Task<ActionResult<OperationResultID>> PostUpdateOpenInstructionalLetters([FromBody] List<int> value)
         {
             try
