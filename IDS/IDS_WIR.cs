@@ -109,6 +109,7 @@ namespace IDS_
         public int? Num { get; set; }
         public int? IdOperator { get; set; }
         public int? IdGenus { get; set; }
+        // 
         public bool? UzWagon { get; set; }
         public DateTime? DateAdoption { get; set; }
         public DateTime? DateOutgoing { get; set; }
@@ -126,17 +127,25 @@ namespace IDS_
         public int? CodeStnFrom { get; set; }
         public int? CodeStnTo { get; set; }
         public bool? Derailment { get; set; }
+        // 
         public int? CountStage { get; set; }
+        public string? IdUFP { get; set; }
+        public int? IdUFPD { get; set; }
+        //
         public int? IdCurrency { get; set; }
         public decimal? Rate { get; set; }
         public decimal? ExchangeRate { get; set; }
         public double? Coefficient { get; set; }
-        public int? UseTime { get; set; }
         public int? GraceTime { get; set; }
+        //
+        public DateTime? CalcDateStart { get; set; }
+        public DateTime? CalcDateEnd { get; set; }
+        public int? Downtime { get; set; }
+        public int? UseTime { get; set; }
         public int? CalcTime { get; set; }
         public decimal? CalcFeeAmount { get; set; }
-        public int? Downtime { get; set; }
         public int error { get; set; }
+
     }
 
     public class ListUsageFeeEdit
@@ -4138,44 +4147,58 @@ namespace IDS_
                 Num = null,
                 IdOperator = 0,
                 IdGenus = 0,
-                UzWagon = false,
-                DateAdoption = null,
-                DateOutgoing = null,
-                Route = false,
-                InpCargo = false,
-                OutCargo = false,
-                IdCargoArr = null,
-                IdCargoGroupArr = null,
-                IdCargoOut = null,
-                IdCargoGroupOut = null,
-                CodeStnFrom = null,
-                CodeStnTo = null,
-                Derailment = false,
-                CountStage = 0,
-                IdCurrency = 0,
-                Rate = 0,
-                ExchangeRate = 0,
-                Coefficient = 0,
-                UseTime = 0,
-                GraceTime = 0,
-                CalcTime = 0,
-                CalcFeeAmount = 0,
-                Downtime = 0,
+
+                UzWagon = false,        // Вагоны УЗ (ЦТЛ)
+
+                DateAdoption = null,    // Принят
+                DateOutgoing = null,    // сдан
+                DateStartUnload = null, // Начало выгрузки УЗ
+                DateEndUnload = null,   // Окончание выгрузки УЗ
+                DateStartLoad = null,   // Начало погрузки УЗ
+                DateEndLoad = null,     // Окончание погрузки УЗ
+                Route = false,          // Маршрут
+                InpCargo = false,       // Груженный по прибытию
+                OutCargo = false,       // Груженный по отправке
+                IdCargoArr = null,      // Груз прибытие
+                IdCargoGroupArr = null, // Гуппа груз прибытие
+                IdCargoOut = null,      // Груз отправка
+                IdCargoGroupOut = null, // Гуппа груз отправка
+                CodeStnFrom = null,     // Станция отправления
+                CodeStnTo = null,       // Станция назначения
+                Derailment = false,     // Признак сход
+
+                CountStage = 0,         // количество стадий расчета
+                IdUFP = null,           // перечень id стадий выбранных для расчета
+                IdUFPD = null,          // перечень id доп условия
+
+                IdCurrency = 0,         // Валюта
+                Rate = 0,               // Ставка
+                ExchangeRate = 0,       // Обменный курс(если валюта) если гривна 1
+                Coefficient = 0,        // маршрут не маршрут
+                GraceTime = 0,          // Льготное время (час)
+
+                CalcDateStart = null,   // Время выбранное для начала расчета (мин.)
+                CalcDateEnd = null,     // Время выбранное для окончания расчета (мин.)
+                Downtime = 0,           // Время реальное (мин.)
+                UseTime = 0,            // Время реальное округленное к часам (час)
+
+                CalcTime = 0,           // Расчетное время (час)
+                CalcFeeAmount = 0,      // Расчитаная плата (грн)
+
                 error = 0,
             };
             try
             {
                 using (EFDbContext context = new EFDbContext(this.options))
                 {
+                    // определим WIR
                     WagonInternalRoute? wir = context.WagonInternalRoutes
                         .AsNoTracking()
                         .Where(r => r.Id == id_wir).FirstOrDefault();
                     if (wir == null) { cwuf.error = (int)errors_base.not_wir_db; return cwuf; }
                     cwuf.Derailment = context.isDerailmentOperation(id_wir); // проверим признак схода
-                                                                             // Получить id_wir прибытия с учетом (если был возврат)
-
+                    // Определим прибытие                                                                             // Получить id_wir прибытия с учетом (если был возврат)
                     long id_wir_arrival = context.GetIDWIR(wir.Id);
-                    // Прибытие
                     WagonInternalRoute? wir_arrival = context.WagonInternalRoutes
                         .AsNoTracking()
                         .Where(w => w.Id == id_wir_arrival)
@@ -4205,13 +4228,11 @@ namespace IDS_
                     cwuf.IdGenus = (int)arr_uz_vag.IdGenus;
                     // уставки времени
                     cwuf.DateAdoption = arr_sostav.DateAdoptionAct != null ? (DateTime)arr_sostav.DateAdoptionAct : (arr_car.DateAdoptionAct != null ? (DateTime)arr_car.DateAdoptionAct : (DateTime)arr_sostav.DateAdoption);    // Зашел
-                    cwuf.DateOutgoing = DateTime.Now;
+                    cwuf.DateOutgoing = DateTime.Now; // Установим текущую дату если вагон не сдан (расчет на пути)
                     // признак гружен по прибытию
                     //cwuf.InpCargo = (arr_uz_vag.IdCargoNavigation != null ? list_groups_cargo.Find(x => x == arr_uz_vag.IdCargoNavigation.IdGroup) == 0 : false);
-
-
                     cwuf.InpCargo = (arr_uz_vag.IdCargoNavigation != null && arr_uz_vag.IdCargoNavigation.EmptyWeight == true ? false : true);
-
+                    // Определим выгрузку УЗ
                     cwuf.DateStartUnload = null;
                     cwuf.DateEndUnload = null;
                     if (cwuf.InpCargo == true)
@@ -4223,15 +4244,14 @@ namespace IDS_
                             cwuf.DateEndUnload = unload_uz.OperationEnd;
                         }
                     }
+                    // Определим груз
                     cwuf.IdCargoArr = (arr_uz_vag.IdCargoNavigation != null ? arr_uz_vag.IdCargoNavigation.Id : null);
                     cwuf.IdCargoGroupArr = (arr_uz_vag.IdCargoNavigation != null ? arr_uz_vag.IdCargoNavigation.IdGroup : null);
+                    // Станция отправления
                     cwuf.CodeStnFrom = (arr_uz_sost != null ? arr_uz_sost.CodeStnFrom : null);
-                    //cwuf.OutCargo = false;
-                    // оператор
+                    // определим Оператора по прибытию
                     cwuf.IdOperator = arr_uz_vag.IdWagonsRentArrivalNavigation != null ? arr_uz_vag.IdWagonsRentArrivalNavigation.IdOperator : null;
-                    // маршрут (по отправке)
-                    //cwuf.Route = null;
-                    // Отправка
+                    // Определим отправку
                     OutgoingCar? out_car = context.OutgoingCars
                         .AsNoTracking()
                         .Where(c => c.Id == wir.IdOutgoingCar)
@@ -4249,7 +4269,7 @@ namespace IDS_
                         OutgoingUzVagon? out_uz_vag = out_car.IdOutgoingUzVagonNavigation;
                         if (out_uz_vag != null)
                         {
-                            // Аренда по отправке
+                            // уточним Оператора по отправке
                             DirectoryWagonsRent? out_wag_rent = out_uz_vag.IdWagonsRentOutgoingNavigation;
                             if (out_wag_rent != null)
                             {
@@ -4261,7 +4281,7 @@ namespace IDS_
                             // признак гружен по отправке 
                             //cwuf.OutCargo = (outg_cargo != null ? list_groups_cargo.Find(x => x == outg_cargo.IdGroup) == 0 : false);
                             cwuf.OutCargo = (outg_cargo != null && outg_cargo.EmptyWeight == true ? false : true);
-                            // Определение даты погрузки
+                            // Определение даты погрузки на УЗ
                             if (cwuf.OutCargo == true)
                             {
                                 WagonInternalOperation? load_uz = context.GetLoadUzOperation(id_wir);
@@ -4271,19 +4291,22 @@ namespace IDS_
                                     cwuf.DateEndLoad = load_uz.OperationEnd;
                                 }
                             }
-                            //
+                            // Определим груз по отправке
                             cwuf.IdCargoOut = (outg_cargo != null ? outg_cargo.Id : null);
                             cwuf.IdCargoGroupOut = (outg_cargo != null ? outg_cargo.IdOutGroup : null);
+                            // Определим станцию 
                             cwuf.CodeStnTo = (out_uz_vag.IdDocumentNavigation != null ? out_uz_vag.IdDocumentNavigation.CodeStnTo : null);
                         }
                         OutgoingSostav? out_sostav = out_car.IdOutgoingNavigation;
                         if (out_sostav != null)
                         {
+                            // Уточним дату сдачи
                             cwuf.DateOutgoing = out_sostav.DateOutgoingAct != null ? (DateTime)out_sostav.DateOutgoingAct : (out_car.DateOutgoingAct != null ? (DateTime)out_car.DateOutgoingAct : (out_sostav.DateOutgoing != null ? (DateTime)out_sostav.DateOutgoing : DateTime.Now));//   Вышел (согласно всех актов) или еще нет тогда текущее время
+                            // Определим маршрут
                             cwuf.Route = out_sostav.RouteSign;
                         }
                     }
-                    // Получим оператора
+                    // Скорректируем оператора (выберем основного оператора)
                     if (cwuf.IdOperator != null)
                     {
                         DirectoryOperatorsWagon? oper_wag = context.DirectoryOperatorsWagons.AsNoTracking().Where(w => w.Id == cwuf.IdOperator).FirstOrDefault();
@@ -4293,15 +4316,13 @@ namespace IDS_
                             cwuf.IdOperator = oper_wag.ParentId != null ? oper_wag.ParentId : oper_wag.Id;
                         }
                     }
-                    // Взведем в исходное состояние (исключим ошибку если нет условий расчета)
-                    //bool rounding_common = false;
+                    //
                     TimeSpan tm = (DateTime)cwuf.DateOutgoing - (DateTime)cwuf.DateAdoption; // за первый период
                     int hour_common = (int)Math.Truncate(tm.TotalHours);
                     cwuf.Downtime = (int)tm.TotalMinutes;
                     int remaining_minutes_period_common = (int)Math.Truncate(tm.TotalMinutes - (hour_common * 60));
                     if (remaining_minutes_period_common >= 30)
                     {
-                        //rounding_common = true;
                         hour_common++; // Добавим час
                     }
 
@@ -4317,7 +4338,9 @@ namespace IDS_
                     UsageFeePeriod? arr_perriod = list_uf_period_outgoing.Where(o => o.Start <= cwuf.DateAdoption && o.Stop >= cwuf.DateAdoption).FirstOrDefault();
                     UsageFeePeriod? out_perriod = list_uf_period_outgoing.Where(o => o.Start <= cwuf.DateOutgoing && o.Stop >= cwuf.DateOutgoing).FirstOrDefault();
                     // Если периодов нет выйдем с расчета
-                    if ((arr_perriod == null && out_perriod == null)) { cwuf.error = (int)errors_base.not_dt_calc_usage_fee; return cwuf; }
+                    if ((arr_perriod == null && out_perriod == null)) { 
+                        cwuf.error = (int)errors_base.not_dt_calc_usage_fee; 
+                        return cwuf; }
                     // Периоды определены. Сформируем список
                     List<UsageFeePeriod> list_period_where = new List<UsageFeePeriod>();
                     list_period_where.Clear();
@@ -4330,9 +4353,12 @@ namespace IDS_
                         }
                     }
                     // Расчеты
-                    DateTime date = DateTime.Now.Date;
+                    // Определим курс валюты на день расчета
+                    //DateTime date = DateTime.Now.Date;
+                    // Определим дату для определения курса из даты сдачи вагонов на УЗ
+                    DateTime date = ((DateTime)cwuf.DateOutgoing).Date;
                     List<DirectoryBankRate> list_bank = context.DirectoryBankRates.Where(b => b.Date == date).ToList();
-                    if (list_bank == null || list_bank.Count() < 2) { cwuf.error = (int)errors_base.not_list_exchange_rate; return cwuf; }
+                    //if (list_bank == null || list_bank.Count() < 2) { cwuf.error = (int)errors_base.not_list_exchange_rate; return cwuf; }
                     List<Wagon_Usage_Fee_Period> list_period_setup = new List<Wagon_Usage_Fee_Period>();
 
                     foreach (UsageFeePeriod ufp in list_period_where)
