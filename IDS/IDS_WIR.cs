@@ -6369,6 +6369,88 @@ namespace IDS_
                 return res;
             }
         }
+        /// <summary>
+        /// Очистить выгоны в подаче (порожний сделать порожний)
+        /// </summary>
+        /// <param name="id_filing"></param>
+        /// <param name="nums"></param>
+        /// <returns></returns>
+        public ResultCorrect ClearWagonLoadingFilingOfID(int id_filing, List<int> nums)
+        {
+            ResultCorrect res = new ResultCorrect() { result = 0, message = null };
+            try
+            {
+                EFDbContext context = new(this.options);
+                WagonFiling? wf = context.WagonFilings
+                   .Where(s => s.Id == id_filing)
+                   .OrderByDescending(c => c.Id)
+                   .FirstOrDefault();
+                if (wf == null) { res.result = (int)errors_base.not_wf_db; return res; }
+                if (wf.TypeFiling != 2) { res.result = (int)errors_base.err_type_wf; return res; }
+                List<WagonInternalMovement> list_wim = context.WagonInternalMovements.Where(m => m.IdFiling == id_filing).ToList();
+                // пройдемся по wim
+                foreach (WagonInternalMovement wim in list_wim.ToList())
+                {
+                    WagonInternalRoute? wir = context.WagonInternalRoutes.Where(r => r.Id == wim.IdWagonInternalRoutes).FirstOrDefault();
+                    if (wir == null) { res.result = (int)errors_base.not_wir_db; return res; }
+                    int index = nums.IndexOf(wir.Num);
+                    if (index >= 0)
+                    {
+                        // Производим операции очистки
+                        // Получим операцию
+                        WagonInternalOperation? wio = context.WagonInternalOperations.Where(o => o.Id == wim.IdWio).FirstOrDefault();
+                        if (wio == null) { res.result = (int)errors_base.not_wio_db; return res; }
+                        // Получим погрузку
+                        WagonInternalMoveCargo? wimc = context.WagonInternalMoveCargos.Where(o => o.IdWimLoad == wim.Id).FirstOrDefault();
+                        if (wimc == null) { res.result = (int)errors_base.not_wimc_db; return res; }
+
+                        int IdLoadingStatus = wio.IdLoadingStatus;
+                        int IdOperation = wio.IdOperation;
+                        if (IdLoadingStatus > 0 && (IdOperation == 16 || IdOperation == 15))
+                        {
+                            // Очистим операции
+                            List<WagonInternalOperation> list_wio = context.WagonInternalOperations.Where(o => o.IdWagonInternalRoutes == wir.Id && o.Id >= wio.Id).ToList();
+                            foreach (WagonInternalOperation wio_curr in list_wio.OrderBy(c => c.Id).ToList())
+                            {
+                                if (wio_curr.IdLoadingStatus == IdLoadingStatus)
+                                {
+                                    wio_curr.IdLoadingStatus = 0;
+                                    context.WagonInternalOperations.Update(wio_curr);
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                            if (wimc.IdCargo != null) {
+                                wimc.IdCargo = 1;
+                                wimc.Empty = true;
+                                wimc.Vesg = null;
+                                context.WagonInternalMoveCargos.Update(wimc);
+                            }
+                            if (wimc.IdInternalCargo != null) {
+                                wimc.IdInternalCargo = 0;
+                                wimc.Empty = true;
+                                wimc.Vesg = null;
+                                context.WagonInternalMoveCargos.Update(wimc);
+                            }
+
+                        }
+                    }
+                }
+                //
+                res.result = context.SaveChanges();
+                res.message = res.result < 0 ? "Error" : "Ok";
+                return res;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "ClearWagonLoadingFilingOfID(id_filing={0}, nums={1})", id_filing, nums);
+                res.result = (int)errors_base.global;
+                res.message = e.Message;
+                return res;
+            }
+        }
         #endregion
 
     }
