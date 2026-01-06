@@ -102,7 +102,8 @@ namespace HelloApp
                 //twir.DeleteWagonOfAMKR();
                 //twir.CorrectArrivalNotEPD_Document();
                 //twir.CorrectOutgoingDocument();
-                twir.DeleteFilingOfID();
+                //twir.DeleteFilingOfID();
+                twir.ClearWagonLoadingFilingOfID();
                 //twir.IDS_WIR_UpdateInstructionalLetter();
                 //twir.IDS_WIR_UpdateOpenInstructionalLetter();
                 #endregion

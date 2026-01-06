@@ -257,6 +257,15 @@ namespace Test.TestModele
             ResultCorrect result = ids_wir.DeleteFilingOfID(id_filing, nums);
             Console.WriteLine($" result : {result.result} \n message :{result.message}");
         }
-
+        /// <summary>
+        /// Административная функция. Очистить вагон в подаче
+        /// </summary>
+        public void ClearWagonLoadingFilingOfID()
+        {
+            int id_filing = 194273;
+            List<int> nums = new List<int> { 28333 };
+            ResultCorrect result = ids_wir.ClearWagonLoadingFilingOfID(id_filing, nums);
+            Console.WriteLine($" result : {result.result} \n message :{result.message}");
+        }
     }
 }
