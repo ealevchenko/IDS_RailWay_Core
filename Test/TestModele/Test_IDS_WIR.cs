@@ -252,7 +252,7 @@ namespace Test.TestModele
         /// </summary>
         public void DeleteFilingOfID()
         {
-            int id_filing = 186342;
+            int id_filing = 192879;
             List<int> nums = new List<int> { 52984861 };
             ResultCorrect result = ids_wir.DeleteFilingOfID(id_filing, nums);
             Console.WriteLine($" result : {result.result} \n message :{result.message}");
@@ -262,9 +262,19 @@ namespace Test.TestModele
         /// </summary>
         public void ClearWagonLoadingFilingOfID()
         {
-            int id_filing = 194273;
-            List<int> nums = new List<int> { 28333 };
+            int id_filing = 194377;
+            List<int> nums = new List<int> { 6069, 16139, 26428, 52921764 };
             ResultCorrect result = ids_wir.ClearWagonLoadingFilingOfID(id_filing, nums);
+            Console.WriteLine($" result : {result.result} \n message :{result.message}");
+        }
+        /// <summary>
+        /// Административная функция. удалить вагоны из подачи очистки
+        /// </summary>
+        public void DeleteWagonClearFilingOfID()
+        {
+            int id_filing = 194396;
+            List<int> nums = new List<int> { 61489738,61122685,62004015,56030901,56619059,56030638,63470439,64225089,64225055 };
+            ResultCorrect result = ids_wir.DeleteWagonClearFilingOfID(id_filing, nums);
             Console.WriteLine($" result : {result.result} \n message :{result.message}");
         }
     }
