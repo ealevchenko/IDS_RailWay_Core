@@ -6208,7 +6208,13 @@ namespace IDS_
                 return res;
             }
         }
-
+        /// <summary>
+        /// Скорректируем статусы перепишим статусы предыдущего до конца изменяемого статуса
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="wio"></param>
+        /// <param name="OldLoadingStatus"></param>
+        /// <param name="NewLoadingStatus"></param>
         public void CorrectLoadingStatus(ref EFDbContext context, WagonInternalOperation wio, int OldLoadingStatus, int NewLoadingStatus)
         {
             if (wio.IdLoadingStatus == OldLoadingStatus)
@@ -6422,13 +6428,15 @@ namespace IDS_
                                     break;
                                 }
                             }
-                            if (wimc.IdCargo != null) {
+                            if (wimc.IdCargo != null)
+                            {
                                 wimc.IdCargo = 1;
                                 wimc.Empty = true;
                                 wimc.Vesg = null;
                                 context.WagonInternalMoveCargos.Update(wimc);
                             }
-                            if (wimc.IdInternalCargo != null) {
+                            if (wimc.IdInternalCargo != null)
+                            {
                                 wimc.IdInternalCargo = 0;
                                 wimc.Empty = true;
                                 wimc.Vesg = null;
@@ -6436,6 +6444,78 @@ namespace IDS_
                             }
 
                         }
+                    }
+                }
+                //
+                res.result = context.SaveChanges();
+                res.message = res.result < 0 ? "Error" : "Ok";
+                return res;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "ClearWagonLoadingFilingOfID(id_filing={0}, nums={1})", id_filing, nums);
+                res.result = (int)errors_base.global;
+                res.message = e.Message;
+                return res;
+            }
+        }
+        /// <summary>
+        /// Удалить вагоны из подачи очистки
+        /// </summary>
+        /// <param name="id_filing"></param>
+        /// <param name="nums"></param>
+        /// <returns></returns>
+        public ResultCorrect DeleteWagonClearFilingOfID(int id_filing, List<int> nums)
+        {
+            ResultCorrect res = new ResultCorrect() { result = 0, message = null };
+            try
+            {
+                EFDbContext context = new(this.options);
+                WagonFiling? wf = context.WagonFilings
+                   .Where(s => s.Id == id_filing)
+                   .OrderByDescending(c => c.Id)
+                   .FirstOrDefault();
+                if (wf == null) { res.result = (int)errors_base.not_wf_db; return res; }
+                if (wf.TypeFiling != 3) { res.result = (int)errors_base.err_type_wf; return res; }
+                List<WagonInternalMovement> list_wim = context.WagonInternalMovements.Where(m => m.IdFiling == id_filing).ToList();
+                // пройдемся по wim
+                foreach (WagonInternalMovement wim in list_wim.ToList())
+                {
+                    WagonInternalRoute? wir = context.WagonInternalRoutes.Where(r => r.Id == wim.IdWagonInternalRoutes).FirstOrDefault();
+                    if (wir == null) { res.result = (int)errors_base.not_wir_db; return res; }
+                    int index = nums.IndexOf(wir.Num);
+                    if (index >= 0)
+                    {
+                        // Производим операции очистки
+                        // Получим операцию
+                        WagonInternalOperation? wio = context.WagonInternalOperations.Where(o => o.Id == wim.IdWio).FirstOrDefault();
+                        if (wio == null) { res.result = (int)errors_base.not_wio_db; return res; }
+
+                        // смотрим на предыдущую операцию 
+                        WagonInternalOperation? wio_old = context.WagonInternalOperations.Where(o => o.Id == wio.ParentId).FirstOrDefault();
+                        if (wio_old != null)
+                        {
+                            // скорректируем статусы по операциям
+                            WagonInternalOperation? wio_next = context.WagonInternalOperations.Where(o => o.ParentId == wio.Id).FirstOrDefault();
+                            if (wio_next != null)
+                            {
+                                int ls_curr = wio.IdLoadingStatus;
+                                int ls_old = wio_old.IdLoadingStatus;
+
+                                // Скорректируем статусы
+                                CorrectLoadingStatus(ref context, wio_next, ls_curr, ls_old);
+                                wio_next.ParentId = wio_old.Id;
+                                context.WagonInternalOperations.Update(wio_next);
+                            }
+                        }
+                        // скорректируем wim удалим сылку на очистку
+                        wim.IdFiling = null;
+                        wim.FilingStart = null;
+                        wim.FilingEnd = null;
+                        wim.IdWio = null;
+                        // обновим
+                        context.WagonInternalMovements.Update(wim);
+                        context.WagonInternalOperations.Remove(wio);
                     }
                 }
                 //
