@@ -1685,6 +1685,30 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        // POST: WSD/operation/usage_fee_period/delete
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/usage_fee_period/delete")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_PAY")]
+        public async Task<ActionResult<OperationResultID>> PostUpdateUsageFeePeriod([FromBody] List<int> value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                OperationResultID result = ids_wir.DeleteUpdateUsageFeePeriod(value, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         // POST: WSD/operation/usage_fee_period_detali/update
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/usage_fee_period_detali/update")]

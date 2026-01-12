@@ -4338,9 +4338,11 @@ namespace IDS_
                     UsageFeePeriod? arr_perriod = list_uf_period_outgoing.Where(o => o.Start <= cwuf.DateAdoption && o.Stop >= cwuf.DateAdoption).FirstOrDefault();
                     UsageFeePeriod? out_perriod = list_uf_period_outgoing.Where(o => o.Start <= cwuf.DateOutgoing && o.Stop >= cwuf.DateOutgoing).FirstOrDefault();
                     // Если периодов нет выйдем с расчета
-                    if ((arr_perriod == null && out_perriod == null)) { 
-                        cwuf.error = (int)errors_base.not_dt_calc_usage_fee; 
-                        return cwuf; }
+                    if ((arr_perriod == null && out_perriod == null))
+                    {
+                        cwuf.error = (int)errors_base.not_dt_calc_usage_fee;
+                        return cwuf;
+                    }
                     // Периоды определены. Сформируем список
                     List<UsageFeePeriod> list_period_where = new List<UsageFeePeriod>();
                     list_period_where.Clear();
@@ -5107,6 +5109,78 @@ namespace IDS_
             }
         }
 
+        /// <summary>
+        /// Удалить условия
+        /// </summary>
+        /// <param name="list_delete"></param>
+        /// <returns></returns>
+        public OperationResultID DeleteUpdateUsageFeePeriod(List<int> list_delete, string user)
+        {
+            OperationResultID rt = new OperationResultID();
+            // 3 - удалить
+            try
+            {
+                EFDbContext context = new EFDbContext(this.options);
+                foreach (int id in list_delete)
+                {
+                    UsageFeePeriod? del_period = context.UsageFeePeriods.Where(p => p.Id == id).FirstOrDefault();
+                    if (del_period == null)
+                    {
+                        rt.SetResultOperation((int)errors_base.not_usage_fee_period_of_db, id, 3); // ошибка обновления 
+                        continue;
+                    }
+                    // Удаляем
+                    // проверим условие не старое закрытого периода
+                    if (del_period.Stop < DateTime.Now)
+                    {
+                        rt.SetResultOperation((int)errors_base.close_usage_fee_period, id, 3); // ошибка обновления 
+                        continue;
+                    }
+                    // Найдем предыдущий и следующий период
+                    UsageFeePeriod? next_period = context.UsageFeePeriods.Where(p => p.ParentId == del_period.Id).FirstOrDefault();
+                    UsageFeePeriod? old_period = context.UsageFeePeriods.Where(p => p.Id == del_period.ParentId).FirstOrDefault();
+
+                    // удалим доп условия
+                    List<UsageFeePeriodDetali> list_detali = context.UsageFeePeriodDetalis.Where(d => d.IdUsageFeePeriod == del_period.Id).ToList();
+                    foreach (UsageFeePeriodDetali detali in list_detali)
+                    {
+                        context.UsageFeePeriodDetalis.Remove(detali);
+                    }
+                    if (next_period != null)
+                    {
+                        next_period.ParentId = del_period.ParentId;
+                        context.UsageFeePeriods.Update(next_period);
+                    }
+                    else
+                    {
+                        if (old_period != null)
+                        {
+                            old_period.Close = null;
+                            old_period.CloseUser = null;
+                            context.UsageFeePeriods.Update(old_period);
+                        }
+                    }
+                    context.UsageFeePeriods.Remove(del_period);
+                    rt.SetResultOperation(1, id, 3); //Обновил обновления 
+                }
+                if (rt.error >= 0)
+                {
+                    rt.result = context.SaveChanges();
+                    //rt.result = -1;
+                }
+                else
+                {
+                    rt.result = (int)errors_base.cancel_save_changes;
+                }
+                return rt;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "DeleteUpdateUsageFeePeriod(list_delete={0}, user={1})",list_delete, user);
+                rt.result = (int)errors_base.global;
+                return rt;
+            }
+        }
         /// <summary>
         /// Добавить или править детали доп условия
         /// </summary>
