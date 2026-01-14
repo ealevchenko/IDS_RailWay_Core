@@ -5069,7 +5069,7 @@ namespace IDS_
                     }
                     //List<OutgoingCar> cars = out_sostav.OutgoingCars.ToList();
                     List<long> lost_id_wir = new List<long>();
-                    foreach (OutgoingCar car in out_sostav.OutgoingCars.Where(c => c.Num == 63311708)) //.Where(c => c.Num == 63323984))  .Where(c=>c.Num == 64169279)
+                    foreach (OutgoingCar car in out_sostav.OutgoingCars) //.Where(c => c.Num == 63311708)).Where(c => c.Num == 63323984))  .Where(c=>c.Num == 64169279)
                     {
                         lost_id_wir.Add(car.WagonInternalRoutes.FirstOrDefault().Id);
                     }
