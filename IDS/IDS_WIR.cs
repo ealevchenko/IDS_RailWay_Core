@@ -126,7 +126,7 @@ namespace IDS_
         public int? IdCargoGroupOut { get; set; }
         public int? CodeStnFrom { get; set; }
         public int? CodeStnTo { get; set; }
-        public bool? Derailment { get; set; }
+        public bool Derailment { get; set; }
         // 
         public int? CountStage { get; set; }
         public string? IdUFP { get; set; }
@@ -4068,6 +4068,7 @@ namespace IDS_
             public decimal rate { get; set; } = 0;                   // Выбранная ставка
             public decimal rate_currency { get; set; } = 0;          // ставка для расчета (с учетом схода) 
             public decimal exchange_rate { get; set; } = 1;          // Обменный курс (если валюта) если гривна 1
+            public int error { get; set; } = 0;                      // Ошибка, при определении курса
         }
         /// <summary>
         /// Получить ставку, курс и валюту (с учетом схода)
@@ -4077,28 +4078,113 @@ namespace IDS_
         /// <param name="wufp"></param>
         /// <param name="list_bank"></param>
         /// <returns></returns>
-        public SettlementRate GetExchangeRate(EFDbContext context, bool derailment, Wagon_Usage_Fee_Period wufp, List<DirectoryBankRate> list_bank)
+        //public SettlementRate GetExchangeRate(EFDbContext context, bool derailment, Wagon_Usage_Fee_Period wufp, List<DirectoryBankRate> list_bank)
+        //{
+        //    SettlementRate srate = new SettlementRate();
+        //    // Ставка, курс и валюта (с учетом схода)
+        //    // Проверим на сход
+        //    if (!derailment)
+        //    {
+        //        // Несход
+        //        if (wufp.id_currency != null)
+        //        {
+        //            srate.id_currency = (int)wufp.id_currency;
+        //            srate.rate = wufp.rate != null ? (decimal)wufp.rate : 0;
+        //            srate.rate_currency = wufp.rate != null ? (decimal)wufp.rate : 0;
+        //            if (wufp.id_currency > 1)
+        //            {
+        //                // отправимся за курсом
+        //                DirectoryCurrency? curr = context.DirectoryCurrencies
+        //                    .AsNoTracking().Where(c => c.Id == wufp.id_currency).FirstOrDefault();
+        //                if (curr != null)
+        //                {
+        //                    DirectoryBankRate? res_er = list_bank.Where(e => e.Code == curr.Code).FirstOrDefault();
+        //                    srate.exchange_rate = res_er != null ? (decimal)res_er.Rate : 0;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        // сход
+        //        if (wufp.id_currency_derailment != null)
+        //        {
+        //            srate.id_currency = (int)wufp.id_currency_derailment;
+        //            srate.rate = wufp.rate_derailment != null ? (decimal)wufp.rate_derailment : 0;
+        //            srate.rate_currency = wufp.rate_derailment != null ? (decimal)wufp.rate_derailment : 0;
+        //            if (wufp.id_currency_derailment > 1)
+        //            {
+        //                // отправимся за курсом
+        //                DirectoryCurrency? curr = context.DirectoryCurrencies
+        //                                            .AsNoTracking()
+        //                                            .Where(c => c.Id == wufp.id_currency_derailment)
+        //                                            .FirstOrDefault();
+
+        //                if (curr != null)
+        //                {
+        //                    DirectoryBankRate res_er = list_bank.Where(e => e.Code == curr.Code).FirstOrDefault();
+        //                    srate.exchange_rate = res_er != null ? (decimal)res_er.Rate : 0;
+        //                }
+
+        //            }
+        //        }
+        //    }
+        //    return srate;
+        //}
+
+
+
+        public SettlementRate GetExchangeRate(EFDbContext context, CalcWagonUsageFee cwuf, Wagon_Usage_Fee_Period wufp, UsageFeePeriodDetali? curr_ufpd)
         {
             SettlementRate srate = new SettlementRate();
+            DateTime date = ((DateTime)cwuf.DateOutgoing).Date; // уточнять дату от доп ставки
+            List<DirectoryBankRate> list_bank = context.DirectoryBankRates.Where(b => b.Date == date).ToList();
             // Ставка, курс и валюта (с учетом схода)
             // Проверим на сход
-            if (!derailment)
+            if (!(bool)cwuf.Derailment)
             {
-                // Несход
-                if (wufp.id_currency != null)
+                // Несход.
+                // Есть ставка по доп условию
+                if (curr_ufpd != null && curr_ufpd.IdCurrency != null)
                 {
-                    srate.id_currency = (int)wufp.id_currency;
-                    srate.rate = wufp.rate != null ? (decimal)wufp.rate : 0;
-                    srate.rate_currency = wufp.rate != null ? (decimal)wufp.rate : 0;
-                    if (wufp.id_currency > 1)
+                    // Да, есть ставка по доп условию
+                    srate.id_currency = (int)curr_ufpd.IdCurrency;
+                    srate.rate = curr_ufpd.Rate != null ? (decimal)curr_ufpd.Rate : 0;
+                    srate.rate_currency = curr_ufpd.Rate != null ? (decimal)curr_ufpd.Rate : 0;
+                    if (curr_ufpd.IdCurrency > 1)
                     {
+                        // Проверим наличие курса
+                        if (list_bank == null || list_bank.Count() < 2) { srate.error = (int)errors_base.not_list_exchange_rate; return srate; }
                         // отправимся за курсом
                         DirectoryCurrency? curr = context.DirectoryCurrencies
-                            .AsNoTracking().Where(c => c.Id == wufp.id_currency).FirstOrDefault();
+                            .AsNoTracking().Where(c => c.Id == curr_ufpd.IdCurrency).FirstOrDefault();
                         if (curr != null)
                         {
                             DirectoryBankRate? res_er = list_bank.Where(e => e.Code == curr.Code).FirstOrDefault();
                             srate.exchange_rate = res_er != null ? (decimal)res_er.Rate : 0;
+                        }
+                    }
+                }
+                else
+                {
+                    // нет, проверим основную ставку
+                    if (wufp.id_currency != null)
+                    {
+                        srate.id_currency = (int)wufp.id_currency;
+                        srate.rate = wufp.rate != null ? (decimal)wufp.rate : 0;
+                        srate.rate_currency = wufp.rate != null ? (decimal)wufp.rate : 0;
+                        if (wufp.id_currency > 1)
+                        {
+                            // Проверим наличие курса
+                            if (list_bank == null || list_bank.Count() < 2) { srate.error = (int)errors_base.not_list_exchange_rate; return srate; }
+                            // отправимся за курсом
+                            DirectoryCurrency? curr = context.DirectoryCurrencies
+                                .AsNoTracking().Where(c => c.Id == wufp.id_currency).FirstOrDefault();
+                            if (curr != null)
+                            {
+                                DirectoryBankRate? res_er = list_bank.Where(e => e.Code == curr.Code).FirstOrDefault();
+                                srate.exchange_rate = res_er != null ? (decimal)res_er.Rate : 0;
+                            }
                         }
                     }
                 }
@@ -4113,18 +4199,18 @@ namespace IDS_
                     srate.rate_currency = wufp.rate_derailment != null ? (decimal)wufp.rate_derailment : 0;
                     if (wufp.id_currency_derailment > 1)
                     {
+                        // Проверим наличие курса
+                        if (list_bank == null || list_bank.Count() < 2) { srate.error = (int)errors_base.not_list_exchange_rate; return srate; }
                         // отправимся за курсом
                         DirectoryCurrency? curr = context.DirectoryCurrencies
                                                     .AsNoTracking()
                                                     .Where(c => c.Id == wufp.id_currency_derailment)
                                                     .FirstOrDefault();
-
                         if (curr != null)
                         {
                             DirectoryBankRate res_er = list_bank.Where(e => e.Code == curr.Code).FirstOrDefault();
                             srate.exchange_rate = res_er != null ? (decimal)res_er.Rate : 0;
                         }
-
                     }
                 }
             }
@@ -4138,9 +4224,6 @@ namespace IDS_
         /// <returns></returns>
         public CalcWagonUsageFee CalcUsageFeeOfWIR(long id_wir)
         {
-            //if (id_wir == 821933) { 
-
-            //}
             CalcWagonUsageFee cwuf = new CalcWagonUsageFee()
             {
                 IdWir = id_wir,
@@ -4358,14 +4441,15 @@ namespace IDS_
                     // Определим курс валюты на день расчета
                     //DateTime date = DateTime.Now.Date;
                     // Определим дату для определения курса из даты сдачи вагонов на УЗ
-                    DateTime date = ((DateTime)cwuf.DateOutgoing).Date;
-                    List<DirectoryBankRate> list_bank = context.DirectoryBankRates.Where(b => b.Date == date).ToList();
+                    //DateTime date = ((DateTime)cwuf.DateOutgoing).Date;
+                    //List<DirectoryBankRate> list_bank = context.DirectoryBankRates.Where(b => b.Date == date).ToList();
                     //if (list_bank == null || list_bank.Count() < 2) { cwuf.error = (int)errors_base.not_list_exchange_rate; return cwuf; }
                     List<Wagon_Usage_Fee_Period> list_period_setup = new List<Wagon_Usage_Fee_Period>();
 
                     foreach (UsageFeePeriod ufp in list_period_where)
                     {
                         cwuf.UzWagon = (ufp.HourAfter30 != null && ufp.HourAfter30 == true ? true : false); // Определим вагоны ЦТЛ
+                        cwuf.IdUFP = !String.IsNullOrWhiteSpace(cwuf.IdUFP) ? (cwuf.IdUFP + ";" + ufp.Id.ToString()) : (ufp.Id.ToString());
                         list_period_setup.Add(new Wagon_Usage_Fee_Period()
                         {
                             date_adoption = cwuf.DateAdoption >= ufp.Start && cwuf.DateAdoption <= ufp.Stop ? (DateTime?)cwuf.DateAdoption : null,
@@ -4392,10 +4476,8 @@ namespace IDS_
                     int remaining_minutes_period = 0;                   // Остаток минут
                     int sum_remaining_minutes_period = 0;               // Остаток минут (суммируемый)
                     int grace_time = 0;                                 // Льготное время
+                    //int grace_time_detali = 0;                          // Льготное время (доп. условие)
                     SettlementRate curr_rate = new SettlementRate();    // Ставка, курс и валюта (с учетом схода)
-
-                    int grace_time_detali = 0;                          // Льготное время (доп. условие)
-                    SettlementRate detali_rate = new SettlementRate();  // Ставка (доп. условие)
                     DateTime? dt_end_detali = null;                     // По окончанию выгрузки (доп. условие)                    
                     DateTime? dt_start_detali = null;                   // С начала погрузки (доп. условие)
 
@@ -4411,10 +4493,11 @@ namespace IDS_
                         // Берем последний интервал основного условия для расчета доп. условий
                         UsageFeePeriod ufp_last = list_period_where.Last();
                         // Проверим дополнительное условие
-                        UsageFeePeriodDetali curr_ufpd = null;
+                        UsageFeePeriodDetali? curr_ufpd = null; // Текущее дополнительное условие
                         List<UsageFeePeriodDetali> ufpds = ufp_last.UsageFeePeriodDetalis.ToList();
                         if (ufpds != null && ufpds.Count() > 0)
                         {
+                            // Выбор доп. условий
                             List<UsageFeePeriodDetali> select_ufod = ufpds.Where(d =>
                             (d.IdCargoOutgoing == cwuf.IdCargoOut || d.IdCargoOutgoing == null) &&
                             (d.IdCargoGroupOutgoing == cwuf.IdCargoGroupOut || d.IdCargoGroupOutgoing == null) &&
@@ -4438,6 +4521,7 @@ namespace IDS_
                                 cwuf.error = (int)errors_base.not_usage_fee_period_detali_error_data;
                                 return cwuf;
                             }
+
                             // Определим доп условия
                             if (curr_ufpd != null)
                             {
@@ -4453,28 +4537,7 @@ namespace IDS_
                                     dt_start_detali = cwuf.DateStartLoad;
                                     dt_end_detali = null;
                                 }
-                                if (curr_ufpd.IdCurrency != null)
-                                {
-                                    detali_rate.id_currency = (int)curr_ufpd.IdCurrency;
-                                    detali_rate.rate = curr_ufpd.Rate != null ? (decimal)curr_ufpd.Rate : 0;
-                                    detali_rate.rate_currency = curr_ufpd.Rate != null ? (decimal)curr_ufpd.Rate : 0;
-                                    if (curr_ufpd.IdCurrency > 1)
-                                    {
-                                        // отправимся за курсом
-                                        DirectoryCurrency? curr = context.DirectoryCurrencies
-                                            .AsNoTracking().Where(c => c.Id == curr_ufpd.IdCurrency).FirstOrDefault();
-                                        if (curr != null)
-                                        {
-                                            DirectoryBankRate? res_er = list_bank.Where(e => e.Code == curr.Code).FirstOrDefault();
-                                            detali_rate.exchange_rate = res_er != null ? (decimal)res_er.Rate : 0;
-                                        }
-                                    }
-                                }
-                                if (curr_ufpd.GraceTime != null)
-                                {
-                                    grace_time_detali = (int)curr_ufpd.GraceTime;
-                                }
-
+                                cwuf.IdUFPD = curr_ufpd.Id;
                             }
                         }
                         // Опредеим расчет ЦТЛ или собственники
@@ -4484,12 +4547,10 @@ namespace IDS_
                             // определим время с учетом доп условия если нет схода
                             DateTime? dt_start = dt_start_detali != null && !(bool)cwuf.Derailment ? dt_start_detali : list_period_setup.First().date_adoption;
                             DateTime? dt_end = dt_end_detali != null && !(bool)cwuf.Derailment ? dt_end_detali : list_period_setup.Last().date_outgoing;
+                            cwuf.CalcDateStart = dt_start;
+                            cwuf.CalcDateEnd = dt_end;
                             Wagon_Usage_Fee_Period wufp = list_period_setup.Last();
-                            if (dt_start == null || dt_end == null)
-                            {
-                                cwuf.error = (int)errors_base.not_dt_calc_usage_fee; return cwuf;
-                            }
-                            ;
+                            if (dt_start == null || dt_end == null) { cwuf.error = (int)errors_base.not_dt_calc_usage_fee; return cwuf; }             
                             // просчитаем временной интервал
                             tm_period = (DateTime)dt_end - (DateTime)dt_start; // первый и последний период
                             hour_period = (int)Math.Truncate(tm_period.TotalHours);
@@ -4500,39 +4561,41 @@ namespace IDS_
                                 hour_period++;
                                 remaining_minutes_period = 0;
                             }
-                            // определим льготный период
-                            if (curr_ufpd != null)
+                            // определим льготный период (если не сход)
+                            if (!cwuf.Derailment)
                             {
-                                grace_time = grace_time_detali;
-                            }
-                            else
-                            {
-                                if ((bool)cwuf.InpCargo && (bool)cwuf.OutCargo)
+                                if (curr_ufpd != null)
                                 {
-                                    grace_time = wufp.grace_time_2 != null ? (int)wufp.grace_time_2 : 0;
+                                    // есть доп условие поэтом льготный период берем из него
+                                    grace_time = curr_ufpd.GraceTime != null ? (int)curr_ufpd.GraceTime : 0;
                                 }
                                 else
                                 {
-                                    grace_time = wufp.grace_time_1 != null ? (int)wufp.grace_time_1 : 0;
+                                    // нет доп условия, определим льготный период из основного условия
+                                    if ((bool)cwuf.InpCargo && (bool)cwuf.OutCargo)
+                                    {
+                                        grace_time = wufp.grace_time_2 != null ? (int)wufp.grace_time_2 : 0;
+                                    }
+                                    else
+                                    {
+                                        grace_time = wufp.grace_time_1 != null ? (int)wufp.grace_time_1 : 0;
+                                    }
                                 }
-                            }
-                            // Получим ставку, курс если нет схода с учетом доп условия
-                            if (detali_rate.id_currency > 0 && !(bool)cwuf.Derailment)
-                            {
-                                curr_rate = detali_rate;
                             }
                             else
                             {
-                                curr_rate = GetExchangeRate(context, (bool)cwuf.Derailment, wufp, list_bank);
+                                grace_time = 0;
                             }
-
-
+                            // Получим ставку, курс если нет схода с учетом доп условия
+                            curr_rate = GetExchangeRate(context, cwuf, wufp, curr_ufpd);
+                            // проверим на ошибку определения курса (если применялась валюта)
+                            if (curr_rate.error < 0) { cwuf.error = curr_rate.error; return cwuf; }
                             // Определим коэффициент маршрута если нет схода
-                            if (!(bool)cwuf.Derailment && wufp.coefficient_route != null && cwuf.Route != null && cwuf.Route == true)
+                            if (!cwuf.Derailment && wufp.coefficient_route != null && cwuf.Route != null && cwuf.Route == true)
                             {
                                 coefficient_route = (float)wufp.coefficient_route;
                             }
-                            if (!(bool)cwuf.Derailment && wufp.coefficient_not_route != null && cwuf.Route != null && cwuf.Route == false)
+                            if (!cwuf.Derailment && wufp.coefficient_not_route != null && cwuf.Route != null && cwuf.Route == false)
                             {
                                 coefficient_route = (float)wufp.coefficient_not_route;
                             }
@@ -4560,49 +4623,89 @@ namespace IDS_
                                                                 // Пройдемся по активным периодам
                             foreach (Wagon_Usage_Fee_Period wufp in list_period_setup)
                             {
-                                grace_time = 0;                 // сбросим льготный период
-                                                                //grace_time_detali = 0;          // сбросим льготный период
+                                //grace_time = 0;                 // сбросим льготный период
+                                //grace_time_detali = 0;          // сбросим льготный период
                                 curr_rate.exchange_rate = 1;    // сбросим курс
                                 curr_rate.rate_currency = 0;    // сбросим ставку
                                 coefficient_route = 1;          // сбросим коэффициент
 
-                                if (wufp.date_adoption != null)
+                                if (curr_ufpd != null)
                                 {
-                                    // Первый период
-                                    if (wufp.date_outgoing != null)
-                                    {
-                                        tm_period = (DateTime)wufp.date_outgoing - (DateTime)wufp.date_adoption; // первый и последний период
-                                        stage = 0;
-                                    }
-                                    else
-                                    {
-                                        tm_period = (DateTime)wufp.stop.AddSeconds(1) - (DateTime)wufp.date_adoption; // за первый период
-                                        stage = 1;
-                                    }
-                                    // определим льготный период
-                                    if ((bool)cwuf.InpCargo && (bool)cwuf.OutCargo)
-                                    {
-                                        grace_time = wufp.grace_time_2 != null ? (int)wufp.grace_time_2 : 0;
-                                    }
-                                    else
-                                    {
-                                        grace_time = wufp.grace_time_1 != null ? (int)wufp.grace_time_1 : 0;
-                                    }
+                                    // есть доп условие.
+                                    // определим время с учетом доп условия если нет схода
+                                    DateTime? dt_start = dt_start_detali != null && !(bool)cwuf.Derailment ? dt_start_detali : list_period_setup.First().date_adoption;
+                                    DateTime? dt_end = dt_end_detali != null && !(bool)cwuf.Derailment ? dt_end_detali : list_period_setup.Last().date_outgoing;
+                                    cwuf.CalcDateStart = dt_start;
+                                    cwuf.CalcDateEnd = dt_end;
+                                    if (dt_start == null || dt_end == null) { cwuf.error = (int)errors_base.not_dt_calc_usage_fee; return cwuf; }
+                                    tm_period = (DateTime)dt_end - (DateTime)dt_start; // первый и последний период
+                                    
+                                    stage = 4;
                                 }
                                 else
                                 {
-                                    if (wufp.date_outgoing != null)
+                                    // Доп. условия -нет, считаем как обычно
+                                    if (wufp.date_adoption != null)
                                     {
-                                        tm_period = ((DateTime)wufp.date_outgoing) - (DateTime)wufp.start; // за последний период
-                                        stage = 3;
+                                        // Первый период
+                                        if (wufp.date_outgoing != null)
+                                        {
+                                            tm_period = (DateTime)wufp.date_outgoing - (DateTime)wufp.date_adoption; // первый и последний период
+                                            cwuf.CalcDateStart = wufp.date_adoption;
+                                            cwuf.CalcDateEnd = wufp.date_outgoing;
+                                            stage = 0;
+                                        }
+                                        else
+                                        {
+                                            tm_period = (DateTime)wufp.stop.AddSeconds(1) - (DateTime)wufp.date_adoption; // за первый период
+                                            cwuf.CalcDateStart = wufp.date_adoption;
+                                            stage = 1;
+                                        }
+                                        // определим льготный период
+                                        // определим льготный период (если не сход)
+                                        if (!cwuf.Derailment)
+                                        {
+                                            if (curr_ufpd != null)
+                                            {
+                                                // есть доп условие поэтом льготный период берем из него
+                                                grace_time = curr_ufpd.GraceTime != null ? (int)curr_ufpd.GraceTime : 0;
+                                            }
+                                            else
+                                            {
+                                                // нет доп условия, определим льготный период из основного условия
+                                                if ((bool)cwuf.InpCargo && (bool)cwuf.OutCargo)
+                                                {
+                                                    grace_time = wufp.grace_time_2 != null ? (int)wufp.grace_time_2 : 0;
+                                                }
+                                                else
+                                                {
+                                                    grace_time = wufp.grace_time_1 != null ? (int)wufp.grace_time_1 : 0;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            grace_time = 0;
+                                        }
                                     }
                                     else
                                     {
-                                        tm_period = (DateTime)wufp.stop.AddSeconds(1).AddMinutes(1) - (DateTime)wufp.start; // за промежуточный период период
-                                        stage = 2;
+                                        if (wufp.date_outgoing != null)
+                                        {
+                                            tm_period = ((DateTime)wufp.date_outgoing) - (DateTime)wufp.start; // за последний период
+                                            cwuf.CalcDateEnd = wufp.date_outgoing;
+                                            stage = 3;
+                                        }
+                                        else
+                                        {
+                                            tm_period = (DateTime)wufp.stop.AddSeconds(1).AddMinutes(1) - (DateTime)wufp.start; // за промежуточный период период
+                                            stage = 2;
+                                        }
+                                        // Льготное время 
                                     }
-                                    // Льготное время 
                                 }
+
+
                                 // просчитаем интервал
                                 hour_period = (int)Math.Truncate(tm_period.TotalHours);
                                 remaining_minutes_period = (int)Math.Truncate(tm_period.TotalMinutes - (hour_period * 60));
@@ -4617,13 +4720,18 @@ namespace IDS_
                                 remaining_minutes_period = 0;
 
                                 // Ставка, курс и валюта (с учетом схода)
-                                curr_rate = GetExchangeRate(context, (bool)cwuf.Derailment, wufp, list_bank);
+                                //curr_rate = GetExchangeRate(context, (bool)cwuf.Derailment, wufp, list_bank);
+                                // Получим ставку, курс если нет схода с учетом доп условия
+                                curr_rate = GetExchangeRate(context, cwuf, wufp, curr_ufpd);
+                                // проверим на ошибку определения курса (если применялась валюта)
+                                if (curr_rate.error < 0) { cwuf.error = curr_rate.error; return cwuf; }
+
                                 // Определим коэффициент маршрута если нет схода
-                                if (!(bool)cwuf.Derailment && wufp.coefficient_route != null && cwuf.Route != null && cwuf.Route == true)
+                                if (!cwuf.Derailment && wufp.coefficient_route != null && cwuf.Route != null && cwuf.Route == true)
                                 {
                                     coefficient_route = (float)wufp.coefficient_route;
                                 }
-                                if (!(bool)cwuf.Derailment && wufp.coefficient_not_route != null && cwuf.Route != null && cwuf.Route == false)
+                                if (!cwuf.Derailment && wufp.coefficient_not_route != null && cwuf.Route != null && cwuf.Route == false)
                                 {
                                     coefficient_route = (float)wufp.coefficient_not_route;
                                 }
@@ -4646,7 +4754,6 @@ namespace IDS_
                                             calc_fee_amount = (rate_currency_hour * calc_time * (decimal)coefficient_route) * curr_rate.exchange_rate;
                                             break;
                                         }
-                                        ;
                                     case 1:
                                         {
                                             // Первый период
@@ -4656,7 +4763,6 @@ namespace IDS_
                                             calc_fee_amount = (rate_currency_hour * hour_calc * (decimal)coefficient_route) * curr_rate.exchange_rate;
                                             break;
                                         }
-                                        ;
                                     case 2:
                                         {
                                             // промежуточный период
@@ -4681,6 +4787,17 @@ namespace IDS_
                                             calc_hour_period += hour_calc;
                                             calc_time += hour_calc;
                                             calc_fee_amount += (rate_currency_hour * hour_calc * (decimal)coefficient_route) * curr_rate.exchange_rate;
+                                            break;
+                                        }
+                                    case 4:
+                                        {
+                                            // доп условие
+                                            calc_hour_period = hour_period;
+                                            int hour_calc = (hour_period - grace_time);
+                                            if (hour_calc < 0) hour_calc = 0;
+                                            // пересчет времени с учетом uz_wagon
+                                            calc_time = hour_calc; // округлим до целых суток
+                                            calc_fee_amount = (rate_currency_hour * calc_time * (decimal)coefficient_route) * curr_rate.exchange_rate;
                                             break;
                                         }
                                 }
@@ -4821,7 +4938,23 @@ namespace IDS_
                                     wuf.Downtime = res.Downtime;
                                     wuf.Change = DateTime.Now;
                                     wuf.ChangeUser = user;
-                                }
+                                    //
+                                    wuf.DateStartUnload = res.DateStartUnload;
+                                    wuf.DateEndUnload = res.DateEndUnload;
+                                    wuf.DateStartLoad = res.DateStartLoad;
+                                    wuf.DateEndLoad = res.DateEndLoad;
+                                    wuf.IdCargoArr = res.IdCargoArr;
+                                    wuf.IdCargoGroupArr = res.IdCargoGroupArr;
+                                    wuf.IdCargoOut = res.IdCargoOut;
+                                    wuf.IdCargoGroupOut = res.IdCargoGroupOut;
+                                    wuf.CodeStnFrom = res.CodeStnFrom;
+                                    wuf.CodeStnTo = res.CodeStnTo;
+                                    wuf.IdUfp = res.IdUFP;
+                                    wuf.IdUpfpd = res.IdUFPD;
+                                    wuf.CalcDateStart = res.CalcDateStart;
+                                    wuf.CalcDateEnd = res.CalcDateEnd;
+                                    wuf.Error = res.error;
+    }
                                 else
                                 {
                                     // Добавим
@@ -4851,6 +4984,22 @@ namespace IDS_
                                         Note = null,
                                         Create = DateTime.Now,
                                         CreateUser = user,
+                                        //
+                                        DateStartUnload = res.DateStartUnload,
+                                        DateEndUnload = res.DateEndUnload,
+                                        DateStartLoad = res.DateStartLoad,
+                                        DateEndLoad = res.DateEndLoad,
+                                        IdCargoArr = res.IdCargoArr,
+                                        IdCargoGroupArr = res.IdCargoGroupArr,
+                                        IdCargoOut = res.IdCargoOut,
+                                        IdCargoGroupOut = res.IdCargoGroupOut,
+                                        CodeStnFrom = res.CodeStnFrom,
+                                        CodeStnTo = res.CodeStnTo,
+                                        IdUfp = res.IdUFP,
+                                        IdUpfpd = res.IdUFPD,
+                                        CalcDateStart = res.CalcDateStart,
+                                        CalcDateEnd = res.CalcDateEnd,
+                                        Error = res.error,
                                     };
                                     wir.IdUsageFeeNavigation = wuf;
                                     //context.WagonUsageFees.Add(wuf);
@@ -4920,7 +5069,7 @@ namespace IDS_
                     }
                     //List<OutgoingCar> cars = out_sostav.OutgoingCars.ToList();
                     List<long> lost_id_wir = new List<long>();
-                    foreach (OutgoingCar car in out_sostav.OutgoingCars.Where(c => c.Num == 64169279)) // .Where(c=>c.Num == 64169279)
+                    foreach (OutgoingCar car in out_sostav.OutgoingCars.Where(c => c.Num == 63311708)) //.Where(c => c.Num == 63323984))  .Where(c=>c.Num == 64169279)
                     {
                         lost_id_wir.Add(car.WagonInternalRoutes.FirstOrDefault().Id);
                     }
@@ -5176,7 +5325,7 @@ namespace IDS_
             }
             catch (Exception e)
             {
-                _logger.LogError(_eventId, e, "DeleteUpdateUsageFeePeriod(list_delete={0}, user={1})",list_delete, user);
+                _logger.LogError(_eventId, e, "DeleteUpdateUsageFeePeriod(list_delete={0}, user={1})", list_delete, user);
                 rt.result = (int)errors_base.global;
                 return rt;
             }
