@@ -42,7 +42,9 @@ namespace Test.TestModele
         /// </summary>
         public void CalcUsageFeeOfOutgoingSostav()
         {
-            ids_wir.CalcUsageFeeOfOutgoingSostav(397725);
+            //ids_wir.CalcUsageFeeOfOutgoingSostav(397725);
+            //ids_wir.CalcUsageFeeOfOutgoingSostav(397848);
+            ids_wir.CalcUsageFeeOfOutgoingSostav(398023);
         }
         /// <summary>
         /// Расчет платы за пользование по сданным составам за выбранный период
