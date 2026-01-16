@@ -1614,6 +1614,28 @@ namespace WebAPI.Controllers.Directory
 
         #region ПЛАТА ЗА ПОЛЬЗОВАНИЕ
         /// <summary>
+        /// Получить расчитаные платы за пользование по номеру вагона
+        /// </summary>
+        /// <param name="num"></param>
+        /// <returns></returns>
+        // GET: WSD/view/usage_fee/wagon/56291040
+        [HttpGet("view/usage_fee/wagon/{num}")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_PAY")]
+        public async Task<ActionResult<IEnumerable<ViewUsageFeeWagon>>> GetViewUsageFeeWagonOfNum(int num)
+        {
+            try
+            {
+                List<ViewUsageFeeWagon> result = await db.getViewUsageFeeWagonOfNum(num).ToListAsync(); ;
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        /// <summary>
         /// Получить список периодов по оператору и типу вагона
         /// </summary>
         /// <param name="id_operator"></param>
