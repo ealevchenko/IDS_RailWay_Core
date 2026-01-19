@@ -286,6 +286,9 @@ public class ViewUsageFeeWagon
     [StringLength(50)]
     public string? OutgoingUzDocumentStationToNameEn { get; set; }
 
+    [Column("usage_fee_id")]
+    public int? UsageFeeId { get; set; }
+
     [Column("usage_fee_date_adoption", TypeName = "datetime")]
     public DateTime? UsageFeeDateAdoption { get; set; }
 
