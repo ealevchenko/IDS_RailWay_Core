@@ -270,6 +270,14 @@ namespace WebAPI.Controllers.Directory
         public List<ListUsageFeeEdit> list_period_edit { get; set; }
 
     }
+    public class OperationUpdateUsageFee
+    {
+        public int id { get; set; }
+        public int? manual_time { get; set; }
+        public decimal? manual_fee_amount { get; set; }
+        public string? note { get; set; }
+    }
+
     #endregion
 
 
@@ -1682,6 +1690,34 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        /// <summary>
+        /// Обновить строку платы за пользование по вагону
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        // POST: WSD/operation/usage_fee/update
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/usage_fee/update")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_PAY")]
+        public async Task<ActionResult<int>> PostUpdateUsageFee([FromBody] OperationUpdateUsageFee value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                int result = ids_wir.UpdateUpdateUsageFee(value.id, value.manual_time, value.manual_fee_amount, value.note, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         // POST: WSD/operation/usage_fee_period/update
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/usage_fee_period/update")]

@@ -4550,7 +4550,7 @@ namespace IDS_
                             cwuf.CalcDateStart = dt_start;
                             cwuf.CalcDateEnd = dt_end;
                             Wagon_Usage_Fee_Period wufp = list_period_setup.Last();
-                            if (dt_start == null || dt_end == null) { cwuf.error = (int)errors_base.not_dt_calc_usage_fee; return cwuf; }             
+                            if (dt_start == null || dt_end == null) { cwuf.error = (int)errors_base.not_dt_calc_usage_fee; return cwuf; }
                             // просчитаем временной интервал
                             tm_period = (DateTime)dt_end - (DateTime)dt_start; // первый и последний период
                             hour_period = (int)Math.Truncate(tm_period.TotalHours);
@@ -4639,7 +4639,7 @@ namespace IDS_
                                     cwuf.CalcDateEnd = dt_end;
                                     if (dt_start == null || dt_end == null) { cwuf.error = (int)errors_base.not_dt_calc_usage_fee; return cwuf; }
                                     tm_period = (DateTime)dt_end - (DateTime)dt_start; // первый и последний период
-                                    
+
                                     stage = 4;
                                 }
                                 else
@@ -4791,6 +4791,8 @@ namespace IDS_
                                         }
                                     case 4:
                                         {
+                                            // !в доп условии округляю до 2 знака
+                                            rate_currency_hour = Math.Round((decimal)(curr_rate.rate_currency / 24), 2, MidpointRounding.AwayFromZero);
                                             // доп условие
                                             calc_hour_period = hour_period;
                                             int hour_calc = (hour_period - grace_time);
@@ -4954,7 +4956,7 @@ namespace IDS_
                                     wuf.CalcDateStart = res.CalcDateStart;
                                     wuf.CalcDateEnd = res.CalcDateEnd;
                                     wuf.Error = res.error;
-    }
+                                }
                                 else
                                 {
                                     // Добавим
@@ -5117,6 +5119,37 @@ namespace IDS_
             {
                 _logger.LogError(_eventId, e, "CalcUsageFeeOfOutgoingSostav(start={0}, stop={1})", start, stop);
                 return result;
+            }
+        }
+        /// <summary>
+        /// Обновить строку рачета платы за пользование по вагону
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="manual_time"></param>
+        /// <param name="manual_fee_amount"></param>
+        /// <param name="note"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public int UpdateUpdateUsageFee(int id, int? manual_time, decimal? manual_fee_amount, string? note, string user)
+        {
+            try
+            {
+                EFDbContext context = new EFDbContext(this.options);
+                WagonUsageFee? wuf = context.WagonUsageFees.Where(w => w.Id == id).FirstOrDefault();
+                if (wuf == null) return (int)errors_base.not_usage_fee_of_db; // нет строки
+                wuf.ManualTime = manual_time;
+                wuf.ManualFeeAmount = manual_fee_amount;
+                wuf.Note = note;
+                wuf.Change = DateTime.Now;
+                wuf.ChangeUser = user;
+                context.WagonUsageFees.Update(wuf);
+                return context.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "UpdateUpdateUsageFee(id={0}, manual_time={1}, manual_fee_amount={2}, note={3}, user={4})",
+                    id, manual_time, manual_fee_amount, note, user);
+                return (int)errors_base.global;
             }
         }
         /// <summary>
@@ -5844,8 +5877,6 @@ namespace IDS_
                                 }
                             }
                         }
-
-
                     }
                     // перепишем вагоны в прибытии на новый ЭПД 
                     foreach (ArrivalCar vag in cars)
