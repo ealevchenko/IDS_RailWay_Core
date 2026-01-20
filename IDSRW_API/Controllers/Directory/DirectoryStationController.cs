@@ -57,11 +57,11 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
-                //db.Database.CommandTimeout = 100;
+                db.Database.SetCommandTimeout(300);
                 List<ViewStatusStation> result = await db.getViewStatusAllStation().ToListAsync();//   .FromSql($"select * from [IDS].[get_view_status_all_station]()").ToListAsync();
                 if (result == null)
                     return NotFound();
-                //db.Database.CommandTimeout = null;               
+                db.Database.SetCommandTimeout(0);
                 return Ok(result.OrderBy(s=>s.Position));
             }
             catch (Exception e)
