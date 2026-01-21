@@ -1112,15 +1112,23 @@ namespace IDS_
                     //Удаляем
                     result.count = il.InstructionalLettersWagons.Count();
                     int close = il.InstructionalLettersWagons.Count(w => w.Close != null);
-                    if (result.count > 0 && close == 0)
+                    int del = il.InstructionalLettersWagons.Count(w => w.Status == 5);
+                    if (result.count > 0 && (close == 0 || (del > 0)))
                     {
                         foreach (InstructionalLettersWagon wag in il.InstructionalLettersWagons.ToList())
                         {
                             // Проверим предыдущее письмо
-                            int res_del = DeleteInstructionalLettersWagon(ref context, il, wag, user);
-                            result.SetUpdateResult(res_del, wag.Num);
+                            if (wag.Close == null || wag.Status == 5)
+                            {
+                                int res_del = DeleteInstructionalLettersWagon(ref context, il, wag, user);
+                                result.SetUpdateResult(res_del, wag.Num);
+                            }
                         }
-                        context.InstructionalLetters.Remove(il);
+                        var count = il.InstructionalLettersWagons.Count();
+                        if (count == 0)
+                        {
+                            context.InstructionalLetters.Remove(il);
+                        }
                     }
                     else
                     {
