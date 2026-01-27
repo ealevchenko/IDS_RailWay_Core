@@ -999,14 +999,17 @@ namespace IDS_
                         }
                         if (il.InstructionalLettersWagons.Count() > 0)
                         {
-                            // Обновим письмо
-                            il.Num = num;
-                            il.Note = note;
-                            il.Owner = owner;
-                            il.DestinationStation = destination_station;
-                            il.Change = DateTime.Now;
-                            il.ChangeUser = user;
-                            context.InstructionalLetters.Update(il);
+                            // Обновим письмо, если были изменения
+                            if (il.Num != num || il.Note != note || il.Owner != owner || il.DestinationStation != destination_station)
+                            {
+                                il.Num = num;
+                                il.Note = note;
+                                il.Owner = owner;
+                                il.DestinationStation = destination_station;
+                                il.Change = DateTime.Now;
+                                il.ChangeUser = user;
+                                context.InstructionalLetters.Update(il);
+                            }
                         }
                         else
                         {
