@@ -270,6 +270,14 @@ namespace WebAPI.Controllers.Directory
         public List<ListUsageFeeEdit> list_period_edit { get; set; }
 
     }
+    public class OperationUpdateUsageFee
+    {
+        public int id { get; set; }
+        public int? manual_time { get; set; }
+        public decimal? manual_fee_amount { get; set; }
+        public string? note { get; set; }
+    }
+
     #endregion
 
 
@@ -1614,6 +1622,28 @@ namespace WebAPI.Controllers.Directory
 
         #region ПЛАТА ЗА ПОЛЬЗОВАНИЕ
         /// <summary>
+        /// Получить расчитаные платы за пользование по номеру вагона
+        /// </summary>
+        /// <param name="num"></param>
+        /// <returns></returns>
+        // GET: WSD/view/usage_fee/wagon/56291040
+        [HttpGet("view/usage_fee/wagon/{num}")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_PAY")]
+        public async Task<ActionResult<IEnumerable<ViewUsageFeeWagon>>> GetViewUsageFeeWagonOfNum(int num)
+        {
+            try
+            {
+                List<ViewUsageFeeWagon> result = await db.getViewUsageFeeWagonOfNum(num).ToListAsync(); ;
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        /// <summary>
         /// Получить список периодов по оператору и типу вагона
         /// </summary>
         /// <param name="id_operator"></param>
@@ -1660,6 +1690,34 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        /// <summary>
+        /// Обновить строку платы за пользование по вагону
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        // POST: WSD/operation/usage_fee/update
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/usage_fee/update")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_PAY")]
+        public async Task<ActionResult<int>> PostUpdateUsageFee([FromBody] OperationUpdateUsageFee value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                int result = ids_wir.UpdateUpdateUsageFee(value.id, value.manual_time, value.manual_fee_amount, value.note, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         // POST: WSD/operation/usage_fee_period/update
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/usage_fee_period/update")]
@@ -1677,6 +1735,30 @@ namespace WebAPI.Controllers.Directory
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
                 OperationResultID result = ids_wir.UpdateUpdateUsageFeePeriod(value.id, value.start, value.stop, value.hour_after_30, value.id_currency, value.rate, value.id_currency_derailment,
              value.rate_derailment, value.coefficient_route, value.coefficient_not_route, value.grace_time_1, value.grace_time_2, value.note, value.list_period_edit, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        // POST: WSD/operation/usage_fee_period/delete
+        // BODY: WSD (JSON, XML)
+        [HttpPost("operation/usage_fee_period/delete")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_PAY")]
+        public async Task<ActionResult<OperationResultID>> PostUpdateUsageFeePeriod([FromBody] List<int> value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                OperationResultID result = ids_wir.DeleteUpdateUsageFeePeriod(value, user);
                 return Ok(result);
             }
             catch (Exception e)

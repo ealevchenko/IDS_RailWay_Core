@@ -93,7 +93,7 @@ namespace HelloApp
                 Test_IDS_WIR twir = new Test_IDS_WIR(logger, config);
                 //twir.CalcUsageFeeOfCar(); // Тест расчет платы по вагону
                 //twir.CalcUsageFeeCarsOfWay(); // Тест расчет платы по вагонам на пути
-                //twir.CalcUsageFeeOfOutgoingSostav(); // Тест расчет платы по отправленому составу
+                twir.CalcUsageFeeOfOutgoingSostav(); // Тест расчет платы по отправленому составу
                 //twir.IDS_WIR_CalcUsageFeeOfOutgoingSostavOfPeriod(); // Расчет платы за пользование по сданным составам за выбранный период
                 //twir.ChangeDivisionOutgoingWagons(); // 
                 //twir.ChangeVesgOutgoingWagons(); // 

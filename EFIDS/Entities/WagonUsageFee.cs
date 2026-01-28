@@ -97,6 +97,52 @@ public partial class WagonUsageFee
     [Column("downtime")]
     public int? Downtime { get; set; }
 
+    [Column("date_start_unload", TypeName = "datetime")]
+    public DateTime? DateStartUnload { get; set; }
+
+    [Column("date_end_unload", TypeName = "datetime")]
+    public DateTime? DateEndUnload { get; set; }
+
+    [Column("date_start_load", TypeName = "datetime")]
+    public DateTime? DateStartLoad { get; set; }
+
+    [Column("date_end_load", TypeName = "datetime")]
+    public DateTime? DateEndLoad { get; set; }
+
+    [Column("id_cargo_arr")]
+    public int? IdCargoArr { get; set; }
+
+    [Column("id_cargo_group_arr")]
+    public int? IdCargoGroupArr { get; set; }
+
+    [Column("id_cargo_out")]
+    public int? IdCargoOut { get; set; }
+
+    [Column("id_cargo_group_out")]
+    public int? IdCargoGroupOut { get; set; }
+
+    [Column("code_stn_from")]
+    public int? CodeStnFrom { get; set; }
+
+    [Column("code_stn_to")]
+    public int? CodeStnTo { get; set; }
+
+    [Column("id_ufp")]
+    [StringLength(50)]
+    public string? IdUfp { get; set; }
+
+    [Column("id_upfpd")]
+    public int? IdUpfpd { get; set; }
+
+    [Column("calc_date_start", TypeName = "datetime")]
+    public DateTime? CalcDateStart { get; set; }
+
+    [Column("calc_date_end", TypeName = "datetime")]
+    public DateTime? CalcDateEnd { get; set; }
+
+    [Column("error")]
+    public int? Error { get; set; }
+
     [InverseProperty("IdUsageFeeNavigation")]
-    public virtual ICollection<WagonInternalRoute> WagonInternalRoutes { get; } = new List<WagonInternalRoute>();
+    public virtual ICollection<WagonInternalRoute> WagonInternalRoutes { get; set; } = new List<WagonInternalRoute>();
 }

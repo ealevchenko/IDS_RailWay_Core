@@ -14,15 +14,27 @@ namespace IDS.Helper
 {
     public static class wir_library
     {
+        // Операции
         public static int oper_load_uz = 15;
         public static int oper_load_vz = 16;
         public static int oper_unload_uz = 13;
         public static int oper_unload_vz = 14;
         public static int oper_cleaning = 17;
         //public static int oper_processing = 18;
+
+        // Статусы
+        public static int status_load_empty = 0;
+        public static int status_load_loaded_arr = 1;
+        public static int status_load_loaded_ip = 2;
+        public static int status_load_dirty = 3;
+        public static int status_load_frozen = 4;
+        public static int status_load_tech_malfunction = 5;
+        public static int status_load_loaded_uz = 6;
+        public static int status_load_re_edging = 7;
+        public static int status_load_empty_clean = 8;
         public static bool IsEmpty(this int? id_status_load)
         {
-            return (id_status_load == 0 || id_status_load == 3) ? true : false;
+            return (id_status_load == status_load_empty || id_status_load == status_load_dirty) ? true : false;
         }
 
         #region Методы работы с вагонами
@@ -859,6 +871,28 @@ namespace IDS.Helper
         {
             WagonInternalOperation? wio = context.WagonInternalOperations.Where(o => o.IdWagonInternalRoutes == id_wir && (o.IdCondition == 76 || o.IdCondition == 74)).FirstOrDefault();
             return wio != null;
+        }
+        /// <summary>
+        /// Вернуть первую операцию выгрузки УЗ (вагон прибыл с внешней сети)
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="id_wir"></param>
+        /// <returns></returns>
+        public static WagonInternalOperation? GetUnloadUzOperation(this EFDbContext context, long id_wir)
+        {
+            WagonInternalOperation? wio = context.WagonInternalOperations.Where(o => o.IdWagonInternalRoutes == id_wir && o.IdOperation == oper_unload_uz && (o.IdLoadingStatus == status_load_empty || o.IdLoadingStatus == status_load_dirty)).OrderBy(c => c.Id).FirstOrDefault();
+            return wio;
+        }
+        /// <summary>
+        /// Вернуть последнюю операцию погрузки УЗ (вагон убывает на внешнюю сеть)
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="id_wir"></param>
+        /// <returns></returns>
+        public static WagonInternalOperation? GetLoadUzOperation(this EFDbContext context, long id_wir)
+        {
+            WagonInternalOperation? wio = context.WagonInternalOperations.Where(o => o.IdWagonInternalRoutes == id_wir && o.IdOperation == oper_load_uz && o.IdLoadingStatus == status_load_loaded_uz).OrderByDescending(c => c.Id).FirstOrDefault();
+            return wio;
         }
         #endregion
         #endregion
