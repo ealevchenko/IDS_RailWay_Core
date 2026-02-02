@@ -44,7 +44,7 @@ namespace Test.TestModele
         {
             //ids_wir.CalcUsageFeeOfOutgoingSostav(397725);
             //ids_wir.CalcUsageFeeOfOutgoingSostav(397848);
-            ids_wir.CalcUsageFeeOfOutgoingSostav(398023);
+            ids_wir.CalcUsageFeeOfOutgoingSostav(398370);
         }
         /// <summary>
         /// Расчет платы за пользование по сданным составам за выбранный период
@@ -254,7 +254,7 @@ namespace Test.TestModele
         /// </summary>
         public void DeleteFilingOfID()
         {
-            int id_filing = 192879;
+            int id_filing = 198868;
             List<int> nums = new List<int> { 52984861 };
             ResultCorrect result = ids_wir.DeleteFilingOfID(id_filing, nums);
             Console.WriteLine($" result : {result.result} \n message :{result.message}");
