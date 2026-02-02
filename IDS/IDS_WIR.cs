@@ -4814,6 +4814,9 @@ namespace IDS_
                                             break;
                                         }
                                 }
+                                if (stage == 4) { 
+                                break;
+                                }
                             }
                         }
                     }
