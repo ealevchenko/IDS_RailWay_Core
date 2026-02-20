@@ -451,11 +451,9 @@ namespace IDS.Helper
                 {
                     WagonInternalOperation? wio = wim.IdWioNavigation;
 
-                    WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.Close == null);
-                    if (wimc == null ||
-                        (wio != null && wimc.DocReceived == null && wio.IdLoadingStatus != 0) //|| 
-                                                                                              //(wio != null && wimc.DocReceived != null && wio.IdLoadingStatus == 0 )
-                        )
+                    //WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.Close == null);
+                    WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.IdWimLoad == wim.Id);
+                    if (wimc == null || (wio != null && wimc.DocReceived == null && wio.IdLoadingStatus != 0))
                     {
                         document = false; break;
                     }
@@ -530,10 +528,40 @@ namespace IDS.Helper
         {
             long result = wf.IsFreeFiling(wim);
             if (result <= 0) return result;
+            WagonInternalOperation? wio = wim.IdWioNavigation;
             // Если wim не пренадлежит подаче, тогда добавим в подачу
-            if (wf.Id != wim.IdFiling) return (int)errors_base.wim_lock_wf;                                 // вагон пренадлежит другой подаче
-            if (wf.Id == wim.IdFiling && (wim.FilingStart != null)) return (int)errors_base.wim_open_wf;    // Вагон заблокирован, операция в подаче уже открыта
-            wf.WagonInternalMovements.Remove(wim);
+            if (wf.Id != wim.IdFiling) return (int)errors_base.wim_lock_wf;                                                             // вагон пренадлежит другой подаче
+            if (wio != null && wio.OperationStart != null && wio.OperationEnd != null) return (int)errors_base.wagon_close_operation;   // Операция закрыта
+            if (wim.FilingStart != null && wim.FilingEnd != null) return (int)errors_base.wim_close_wf;                                 // Вагон заблокирован, операция в подаче по вагону закрыта
+
+            // Погрузка текущая
+            if (wim != null)
+            {
+                WagonInternalMoveCargo? wimc = context.WagonInternalMoveCargos.Where(w => w.IdWimLoad == wim.Id).FirstOrDefault();
+                // Проверим есть погрузка текущая
+                if (wimc != null && wimc.Close == null)
+                {
+                    WagonInternalMoveCargo? wimc_parent = wimc.ParentId != null ? context.WagonInternalMoveCargos.Where(w => w.Id == wimc.ParentId).FirstOrDefault() : null;
+                    if (wimc_parent != null)
+                    {
+                        wimc_parent.Close = null;
+                        wimc_parent.CloseUser = null;
+                        context.WagonInternalMoveCargos.Update(wimc_parent);
+                    }
+                    context.WagonInternalMoveCargos.Remove(wimc);
+                }
+                // удалим ссылку на подачу
+                wim.IdWio = null;
+                wim.IdFiling = null;
+                wim.FilingStart = null;
+                wim.FilingEnd = null;
+                //wim.IdFilingNavigation = null;
+                context.WagonInternalMovements.Update(wim);
+                wf.WagonInternalMovements.Remove(wim);
+                context.WagonFilings.Update(wf);
+                // удалим операцию подачи
+                if (wio != null) context.WagonInternalOperations.Remove(wio);
+            }
             // Проверка на пустую подачу
             if (wf.WagonInternalMovements == null || wf.WagonInternalMovements.Count() == 0)
             {
@@ -624,8 +652,8 @@ namespace IDS.Helper
                 else return (int)errors_base.error_value_operation;  // Ошибка, неверный код операции
             }
             // Получим последнюю запись груза перемещаемого на предприятии
-            WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
-
+            //WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
+            WagonInternalMoveCargo? wimc = context.WagonInternalMoveCargos.Where(w => w.IdWimLoad == wim.Id).FirstOrDefault();
 
             if (wimc == null || wimc != null && wimc.IdWimLoad != wim.Id && wimc.Empty == true && !wagon.id_status_load.IsEmpty())
             {
@@ -662,7 +690,7 @@ namespace IDS.Helper
             }
             else
             {
-                if (wimc != null && wimc.IdWimLoad != null && wimc.IdWimLoad == wim.Id && wimc.IdWimRedirection == null && wimc.DocReceived == null)
+                if (wimc != null && wimc.IdWimLoad != null && wimc.IdWimLoad == wim.Id && wimc.IdWimRedirection == null && wimc.DocReceived == null && wimc.Close == null)
                 {
                     // Перемещение груза есть, и операция погрузки совподает
                     wimc.InternalDocNum = String.IsNullOrWhiteSpace(wf.NumFiling) ? wagon.num_nakl : null;
