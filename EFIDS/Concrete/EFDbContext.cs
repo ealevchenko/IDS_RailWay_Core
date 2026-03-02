@@ -266,7 +266,8 @@ public partial class EFDbContext : DbContext
     public IQueryable<ViewUsageFeePeriodDetali> getViewUsageFeePeriodDetaliOfIdPeriod(int id_usage_fee_period) => FromExpression(() => getViewUsageFeePeriodDetaliOfIdPeriod(id_usage_fee_period));
     // Получить список расчтаных плат за пользование по указаному номеру вагона
     public IQueryable<ViewUsageFeeWagon> getViewUsageFeeWagonOfNum(int num) => FromExpression(() => getViewUsageFeeWagonOfNum(num));
-
+    // Получить список операций предыдущей и следующей по id_wim
+    public IQueryable<ViewHistoryOperations> getViewHistoryOperationsOfIdWim(long id_wim) => FromExpression(() => getViewHistoryOperationsOfIdWim(id_wim));
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDbFunction(() => getViewStatusAllStation()).HasSchema("IDS").HasName("get_view_status_all_station");
@@ -298,6 +299,7 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewUsageFeePeriodDetaliOfIdPeriod), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_usage_fee_period_detali_of_id_period");
 
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewUsageFeeWagonOfNum), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_usage_fee_wagon_of_num");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewHistoryOperationsOfIdWim), new[] { typeof(long) })).HasSchema("IDS").HasName("get_view_operation_parent_next");
 
         modelBuilder.Entity<ArrivalCar>(entity =>
         {
