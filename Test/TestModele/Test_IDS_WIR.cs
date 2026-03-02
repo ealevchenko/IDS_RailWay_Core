@@ -212,24 +212,8 @@ namespace Test.TestModele
             
             vagons.Add(new OutgoingCorrectVagonDocument() { Num = 65000929, IdCargo = 114, Vesg = 68000 });
 
-
-
             ResultCorrect result = ids_wir.CorrectOutgoingDocument(id_sostav, nums, doc, vagons);
             Console.WriteLine($" result : {result.result} \n message :{result.message}");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         }
         /// <summary>
