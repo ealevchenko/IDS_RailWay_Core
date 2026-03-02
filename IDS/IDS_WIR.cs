@@ -3545,6 +3545,189 @@ namespace IDS_
                 return rt;  // Возвращаем id=-1 , Ошибка
             }
         }
+        /// <summary>
+        /// Править информацию время подачи (начало или окончания) по указанной подаче
+        /// </summary>
+        /// <param name="id_filing"></param>
+        /// <param name="start"></param>
+        /// <param name="stop"></param>
+        /// <param name="wagons"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public ResultUpdateIDWagon UpdateDateFiling(int id_filing, DateTime? start, DateTime? stop, List<long> wagons, string user)
+        {
+            ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, wagons.Count());
+            DateTime start_operation = DateTime.Now;
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                EFDbContext context = new EFDbContext(this.options);
+                {
+                    if (start != null || stop != null)
+                    {
+                        WagonFiling? wf = context.WagonFilings
+                                .Where(f => f.Id == id_filing)
+                                .Include(wim => wim.WagonInternalMovements)
+                                    .ThenInclude(wio => wio.IdWioNavigation)
+                                .Include(wim => wim.WagonInternalMovements)
+                                    .ThenInclude(wir => wir.IdWagonInternalRoutesNavigation)
+                                .FirstOrDefault();
+                        if (wf != null)
+                        {
+                            // проверим на ошибки
+                            // оперделим мак начало по всем вагонам
+                            DateTime? max_start_all = wf.WagonInternalMovements.Max(w => w.FilingStart);
+                            // оперделим мин окончание по всем вагонам
+                            DateTime? min_stop_all = wf.WagonInternalMovements.Min(w => w.FilingEnd);
+
+                            List<WagonInternalMovement> list_select_wim = context.WagonInternalMovements
+                                .Include(wir => wir.IdWagonInternalRoutesNavigation)
+                                .Include(wio => wio.IdWioNavigation)
+                                .Where(m => wagons.Contains(m.Id)).ToList();
+
+                            List<long> list_id = list_select_wim.Select(w => w.IdWioNavigation).ToList().Select(o => o.Id).ToList();
+                            List<long?> list_parent_id = list_select_wim.Select(w => w.IdWioNavigation).ToList().Where(c => c.ParentId != null).Select(o => o.ParentId).ToList();
+
+                            List<WagonInternalOperation> list_old_wio = context.WagonInternalOperations.Where(o => list_parent_id.Contains(o.Id)).ToList();
+                            List<WagonInternalOperation> list_next_wio = context.WagonInternalOperations.Where(o => o.ParentId != null && list_id.Contains((long)o.ParentId)).ToList();
+
+                            DateTime? max_old_start = list_old_wio.Count() > 0 ? list_old_wio.Max(w => w.OperationEnd) : null;
+                            DateTime? min_next_stop = list_next_wio.Count() > 0 ? list_next_wio.Min(w => w.OperationStart) : null;
+
+                            if (start != null && stop != null)
+                            {
+
+                            }
+                            else
+                            {
+                                // Правим начало
+                                if (start != null)
+                                {
+                                    if (start <= max_old_start || start >= min_stop_all)
+                                    {
+                                        foreach (WagonInternalMovement wim in list_select_wim)
+                                        {
+                                            rt.SetErrorResult(wim.Id, (int)errors_base.err_data_operation, wim.IdWagonInternalRoutesNavigation.Num);
+                                        }
+                                    }
+
+
+                                }
+                                // Правим окончание
+                                if (stop != null)
+                                {
+                                    if (stop <= max_start_all || (min_next_stop != null && stop >= min_next_stop))
+                                    {
+                                        foreach (WagonInternalMovement wim in list_select_wim)
+                                        {
+                                            rt.SetErrorResult(wim.Id, (int)errors_base.err_data_operation, wim.IdWagonInternalRoutesNavigation.Num);
+                                        }
+                                    }
+                                }
+                            }
+
+                            //проверим на ошибки
+                            if (rt.error == 0)
+                            {
+                                foreach (WagonInternalMovement wim in list_select_wim)
+                                {
+                                    wim.FilingStart = start != null ? start : wim.FilingStart;
+                                    wim.FilingEnd = stop != null ? stop : wim.FilingEnd;
+                                    context.WagonInternalMovements.Update(wim);
+                                    WagonInternalOperation wio = wim.IdWioNavigation;
+                                    if (wio != null)
+                                    {
+                                        wio.OperationStart = start != null ? (DateTime)start : wio.OperationStart;
+                                        wio.OperationEnd = stop != null ? stop : wio.OperationEnd;
+                                        context.WagonInternalOperations.Update(wio);
+                                    }
+                                    else
+                                    {
+                                        rt.SetErrorResult(wim.Id, (int)errors_base.not_wio_db, wim.IdWagonInternalRoutesNavigation.Num); // нет wim
+                                    }
+                                }
+                                // оперделим мак начало по всем вагонам
+                                //context.WagonFilings.Update(wf);
+                                DateTime? min_start = wf.WagonInternalMovements.Min(w => w.FilingStart);
+                                // оперделим мин окончание по всем вагонам
+                                DateTime? max_stop = wf.WagonInternalMovements.Max(w => w.FilingEnd);
+                                wf.StartFiling = start != null ? min_start : wf.StartFiling;
+                                wf.EndFiling = stop != null ? max_stop : wf.EndFiling;
+                                wf.Change = DateTime.Now;
+                                wf.ChangeUser = user;
+                                context.WagonFilings.Update(wf);
+                                // Сохраним изменения
+                                if (rt.error == 0)
+                                {
+                                    rt.SetResult(context.SaveChanges());
+                                }
+                                else
+                                {
+                                    rt.SetResult((int)errors_base.cancel_save_changes);
+                                }
+                                // Проверим списки wim и wio
+                                //if (list_wio.Count() > 0 && list_wim.Count() > 0 && list_wio.Count() == list_wim.Count())
+                                //{
+                                //    foreach (WagonInternalMovement wimu in list_wim)
+                                //    {
+                                //        wimu.FilingStart = start != null ? start : wimu.FilingStart;
+                                //        wimu.FilingEnd = stop != null ? stop : wimu.FilingEnd;
+                                //        context.WagonInternalMovements.Update(wimu);
+                                //    }
+                                //    foreach (WagonInternalOperation wiou in list_wio)
+                                //    {
+                                //        wiou.OperationStart = start != null ? (DateTime)start : wiou.OperationStart;
+                                //        wiou.OperationEnd = stop != null ? stop : wiou.OperationEnd;
+                                //        context.WagonInternalOperations.Update(wiou);
+                                //    }
+                                //    wf.StartFiling = start != null && wf.StartFiling > start ? start : wf.StartFiling;
+                                //    wf.EndFiling = stop != null && wf.EndFiling != null && wf.EndFiling < stop ? stop : wf.EndFiling;
+                                //    wf.Change = DateTime.Now;
+                                //    wf.ChangeUser = user;
+                                //    context.WagonFilings.Update(wf);
+                                //    rt.SetResult(context.SaveChanges());
+                                //}
+                                //else
+                                //{
+                                //    rt.SetResult((int)errors_base.cancel_save_changes);
+                                //}
+                            }
+                            else
+                            {
+                                rt.SetResult((int)errors_base.cancel_save_changes);
+                            }
+                        }
+                        else
+                        {
+                            rt.SetResult((int)errors_base.not_wf_db); // В базе данных нет записи по WagonFiling (Подача вагонов)
+                        }
+                    }
+                    else
+                    {
+                        rt.SetResult((int)errors_base.error_input_value); // Ошибка входных данных
+                    }
+
+                    string mess = String.Format("Операция обновления даты выполнения в подаче id={0}, выполнена - код выполнения {1}. Определено {2} вагонов, обновлено :{3} (ваг.).",
+                    id_filing, rt.result, rt.count, rt.update);
+                    _logger.LogWarning(mess);
+                    DateTime stop_operation = DateTime.Now;
+                    _logger.LogDebug(String.Format("Операция обновления даты выполнения подачи."), start_operation, stop_operation, rt.result);
+                    return rt;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("UpdateDateFiling(id_filing={0}, start={1}, stop={2}, wagons={3}, user={4})",
+                    id_filing, start, stop, wagons, user));
+                rt.SetResult((int)errors_base.global);
+                return rt;  // Возвращаем id=-1 , Ошибка
+            }
+        }
+
         #endregion
 
         #region  ОПЕРАЦИЯ С ГРУППОЙ ВАГОНОВ
@@ -4291,7 +4474,7 @@ namespace IDS_
                         .Where(r => r.Id == id_wir).FirstOrDefault();
                     if (wir == null) { cwuf.error = (int)errors_base.not_wir_db; return cwuf; }
                     cwuf.Derailment = context.isDerailmentOperation(id_wir); // проверим признак схода
-                    // Определим прибытие                                                                             // Получить id_wir прибытия с учетом (если был возврат)
+                                                                             // Определим прибытие                                                                             // Получить id_wir прибытия с учетом (если был возврат)
                     long id_wir_arrival = context.GetIDWIR(wir.Id);
                     WagonInternalRoute? wir_arrival = context.WagonInternalRoutes
                         .AsNoTracking()
@@ -4323,8 +4506,8 @@ namespace IDS_
                     // уставки времени
                     cwuf.DateAdoption = arr_sostav.DateAdoptionAct != null ? (DateTime)arr_sostav.DateAdoptionAct : (arr_car.DateAdoptionAct != null ? (DateTime)arr_car.DateAdoptionAct : (DateTime)arr_sostav.DateAdoption);    // Зашел
                     cwuf.DateOutgoing = DateTime.Now; // Установим текущую дату если вагон не сдан (расчет на пути)
-                    // признак гружен по прибытию
-                    //cwuf.InpCargo = (arr_uz_vag.IdCargoNavigation != null ? list_groups_cargo.Find(x => x == arr_uz_vag.IdCargoNavigation.IdGroup) == 0 : false);
+                                                      // признак гружен по прибытию
+                                                      //cwuf.InpCargo = (arr_uz_vag.IdCargoNavigation != null ? list_groups_cargo.Find(x => x == arr_uz_vag.IdCargoNavigation.IdGroup) == 0 : false);
                     cwuf.InpCargo = (arr_uz_vag.IdCargoNavigation != null && arr_uz_vag.IdCargoNavigation.EmptyWeight == true ? false : true);
                     // Определим выгрузку УЗ
                     cwuf.DateStartUnload = null;
@@ -4396,7 +4579,7 @@ namespace IDS_
                         {
                             // Уточним дату сдачи
                             cwuf.DateOutgoing = out_sostav.DateOutgoingAct != null ? (DateTime)out_sostav.DateOutgoingAct : (out_car.DateOutgoingAct != null ? (DateTime)out_car.DateOutgoingAct : (out_sostav.DateOutgoing != null ? (DateTime)out_sostav.DateOutgoing : DateTime.Now));//   Вышел (согласно всех актов) или еще нет тогда текущее время
-                            // Определим маршрут
+                                                                                                                                                                                                                                                                                         // Определим маршрут
                             cwuf.Route = out_sostav.RouteSign;
                         }
                     }
@@ -4487,7 +4670,7 @@ namespace IDS_
                     int remaining_minutes_period = 0;                   // Остаток минут
                     int sum_remaining_minutes_period = 0;               // Остаток минут (суммируемый)
                     int grace_time = 0;                                 // Льготное время
-                    //int grace_time_detali = 0;                          // Льготное время (доп. условие)
+                                                                        //int grace_time_detali = 0;                          // Льготное время (доп. условие)
                     SettlementRate curr_rate = new SettlementRate();    // Ставка, курс и валюта (с учетом схода)
                     DateTime? dt_end_detali = null;                     // По окончанию выгрузки (доп. условие)                    
                     DateTime? dt_start_detali = null;                   // С начала погрузки (доп. условие)
@@ -4814,8 +4997,9 @@ namespace IDS_
                                             break;
                                         }
                                 }
-                                if (stage == 4) { 
-                                break;
+                                if (stage == 4)
+                                {
+                                    break;
                                 }
                             }
                         }
@@ -6180,7 +6364,7 @@ namespace IDS_
                                 OutgoingUzVagon out_uz_vag = out_car.IdOutgoingUzVagonNavigation;
                                 out_car.IdOutgoingUzVagon = null; // Удалим ссылку на документ по вагону (для удаления out_car)
                                 wir.IdOutgoingCar = null;         // Удалим ссылку на вагон вотправках (out_car)
-                                // Есть общий документ документ на вагон
+                                                                  // Есть общий документ документ на вагон
                                 if (out_car.IdOutgoingUzVagonNavigation.IdDocumentNavigation != null)
                                 {
                                     OutgoingUzDocument doc_uz_out = out_car.IdOutgoingUzVagonNavigation.IdDocumentNavigation;

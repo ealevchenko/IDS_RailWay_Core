@@ -194,6 +194,14 @@ namespace WebAPI.Controllers.Directory
         public int mode { get; set; }
         public int id_division { get; set; }
     }
+
+    public class OperationUpdateDateFiling
+    {
+        public int id_filing { get; set; }
+        public DateTime? start { get; set; }
+        public DateTime? stop { get; set; }
+        public List<long> wagons { get; set; }
+    }
     #endregion
 
     #region ОПЕРАЦИЯ С ГРУППОЙ ВАГОНОВ
@@ -697,6 +705,29 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        /// <summary>
+        /// Получить список операций предыдущей и следующей по id_wim
+        /// </summary>
+        /// <param name="id_wim"></param>
+        /// <returns></returns>
+        // GET: WSD/view/operation/history/wim/12691510
+        [HttpGet("view/operation/history/wim/{id_wim}")]
+        public async Task<ActionResult<ViewHistoryOperations>> GetViewHistoryOperationsOfIdWim(long id_wim)
+        {
+            try
+            {
+                ViewHistoryOperations? result = await db.getViewHistoryOperationsOfIdWim(id_wim).FirstOrDefaultAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
 
         #region РАСЧЕТ ПЛАТЫ ЗА ПОЛЬЗОВАНИЕ (АРМ)
 
@@ -1315,6 +1346,32 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // POST: WSD/update/date/filing
+        // BODY: WSD (JSON, XML)
+        [HttpPost("update/date/filing")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_CORREECT, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateDateFiling([FromBody] OperationUpdateDateFiling value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateIDWagon result = ids_wir.UpdateDateFiling(value.id_filing, value.start, value.stop,  value.wagons, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         #endregion
 
         #region ОПЕРАЦИЯ С ГРУППОЙ ВАГОНОВ
