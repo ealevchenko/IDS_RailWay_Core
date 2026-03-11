@@ -3113,24 +3113,64 @@ namespace IDS_
                     WagonFiling? wf = context.WagonFilings
                             .Where(f => f.Id == id_filing)
                             .Include(wim => wim.WagonInternalMovements)
+                                .ThenInclude(wio => wio.IdWioNavigation)
                             .FirstOrDefault();
 
+                    WagonInternalMovement? wim_oper_load_uz = wf.WagonInternalMovements.Where(m => m.IdWio != null).ToList().Find(o => o.IdWioNavigation.IdOperation == oper_load_uz);
+                    bool err_ban_add = false;
                     foreach (long id_wim in vagons)
                     {
                         WagonInternalMovement? wim = context.WagonInternalMovements
                             .Include(wir => wir.IdWagonInternalRoutesNavigation)
+                                .ThenInclude(arr_car => arr_car.IdArrivalCarNavigation)
+                                    .ThenInclude(arr_uz_wag => arr_uz_wag.IdArrivalUzVagonNavigation)
+                                        .ThenInclude(wr => wr.IdWagonsRentArrivalNavigation)
                             .Include(wio => wio.IdWioNavigation)
                             .Where(m => m.Id == id_wim).FirstOrDefault();
+
+
                         // Определим номер вагона
                         int num = wim != null && wim.IdWagonInternalRoutesNavigation != null ? wim.IdWagonInternalRoutesNavigation.Num : 0;
-                        long res = wf.SetAddWagonFiling(wim, user);
-                        if (res >= 0)
+                        // Определим если подача погрузка проверим на исключение (добавить кмк вз в операции погрузка уз)
+                        if (wf.TypeFiling == 2 && wim_oper_load_uz != null)
                         {
-                            result.SetInsertResult(id_wim, 1, num); // Отметим операцию.
+                            WagonInternalRoute? wir = wim.IdWagonInternalRoutesNavigation;
+                            if (wir != null)
+                            {
+                                ArrivalCar? arr_car = wir.IdArrivalCarNavigation;
+                                if (arr_car != null)
+                                {
+                                    ArrivalUzVagon arr_uz_wag = arr_car.IdArrivalUzVagonNavigation;
+                                    if (arr_uz_wag != null)
+                                    {
+                                        DirectoryWagonsRent? wr = arr_uz_wag.IdWagonsRentArrivalNavigation;
+                                        if (wr != null)
+                                        {
+                                            DirectoryOperatorsWagonsGroup? dowg = context.DirectoryOperatorsWagonsGroups.Where(w => w.IdOperator == wr.IdOperator).FirstOrDefault();
+                                            if (dowg != null)
+                                            {
+                                                if (dowg.Group == "amkr_vz")
+                                                {
+                                                    err_ban_add = true;
+                                                    result.SetErrorResult(wim.Id, (int)errors_base.err_wf_add_wagon, num); // Отметим операцию.
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        else
+                        if (!err_ban_add)
                         {
-                            result.SetErrorResult(id_wim, (int)res, num); // Ошибка
+                            long res = wf.SetAddWagonFiling(wim, user);
+                            if (res >= 0)
+                            {
+                                result.SetInsertResult(id_wim, 1, num); // Отметим операцию.
+                            }
+                            else
+                            {
+                                result.SetErrorResult(id_wim, (int)res, num); // Ошибка
+                            }
                         }
                     }
                     // Проверка на ошибки и сохранение результата
@@ -3440,7 +3480,7 @@ namespace IDS_
         /// <param name="id_division"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public ResultUpdateIDWagon UpdateFiling(int id_filing, int mode, int id_division, string user)
+        public ResultUpdateIDWagon UpdateFiling(int id_filing, int mode, int id_division, int? id_wagon_operations, string user)
         {
             ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, 0);
             DateTime start = DateTime.Now;
@@ -3456,7 +3496,9 @@ namespace IDS_
                     WagonFiling? wf = context.WagonFilings
                             .Where(f => f.Id == id_filing)
                             .Include(wim => wim.WagonInternalMovements)
-                            .ThenInclude(wimcL => wimcL.WagonInternalMoveCargoIdWimLoadNavigations)
+                                .ThenInclude(wimcL => wimcL.WagonInternalMoveCargoIdWimLoadNavigations)
+                            .Include(wim => wim.WagonInternalMovements)
+                                .ThenInclude(wio => wio.IdWioNavigation)
                             .FirstOrDefault();
                     if (wf != null)
                     {
@@ -3476,12 +3518,61 @@ namespace IDS_
                                     // Погрузка
                                     if (wf.TypeFiling == 2)
                                     {
-                                        WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.Close == null);
+                                        // определим груз текущий
+                                        WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.IdWimLoad == wim.Id);
+                                        // Проверим на смену типа погрузки
+                                        if (id_wagon_operations != null)
+                                        {
+                                            WagonInternalOperation? wio = wim.IdWioNavigation;
+                                            if (wio != null)
+                                            {
+                                                if (wio.OperationEnd == null)
+                                                {
+                                                    // Проверка меняем операцию
+                                                    if (wio.IdOperation != id_wagon_operations)
+                                                    {
+                                                        bool b_clean = ((int?)wio.IdLoadingStatus).IsEmpty();
+                                                        bool b_ip = wio.IdLoadingStatus == wir_library.status_load_loaded_ip;
+                                                        bool b_uz = wio.IdLoadingStatus == wir_library.status_load_loaded_uz;
+                                                        wio.IdOperation = (int)id_wagon_operations;
+                                                        wio.IdLoadingStatus = !b_clean ? (id_wagon_operations == wir_library.oper_load_uz ? wir_library.status_load_loaded_uz : wir_library.status_load_loaded_ip) : wio.IdLoadingStatus;
+                                                        context.WagonInternalOperations.Update(wio);
+                                                        if (wimc != null)
+                                                        {
+                                                            if (id_wagon_operations == wir_library.oper_load_uz)
+                                                            {
+                                                                wimc.IdInternalCargo = null;
+                                                            }
+                                                            if (id_wagon_operations == wir_library.oper_load_vz)
+                                                            {
+                                                                wimc.IdCargo = null;
+                                                                wimc.CodeExternalStation = null;
+                                                            }
+                                                            //wimc.IdDivisionFrom = id_division;
+                                                            //wimc.Change = DateTime.Now;
+                                                            //wimc.ChangeUser = user;
+                                                            //context.WagonInternalMoveCargos.Update(wimc);
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    rt.SetErrorResult(wim.Id, (int)errors_base.wagon_close_operation, wir.Num); // операция закрыта
+                                                }
+                                            }
+                                            else
+                                            {
+                                                rt.SetErrorResult(wim.Id, (int)errors_base.not_wio_db, wir.Num); // нет операции
+                                            }
+                                        }
+                                        //WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.Close == null);
                                         if (wimc != null)
                                         {
                                             wimc.IdDivisionFrom = id_division;
                                             wimc.Change = DateTime.Now;
                                             wimc.ChangeUser = user;
+                                            context.WagonInternalMoveCargos.Update(wimc);
+                                            rt.SetUpdateResult(wim.Id, 1, wir.Num); // Отметим операцию.
                                         }
                                     }
 
