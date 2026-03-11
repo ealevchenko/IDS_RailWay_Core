@@ -193,6 +193,7 @@ namespace WebAPI.Controllers.Directory
         public int id_filing { get; set; }
         public int mode { get; set; }
         public int id_division { get; set; }
+        public int? id_wagon_operations { get; set; }
     }
 
     public class OperationUpdateDateFiling
@@ -330,22 +331,6 @@ namespace WebAPI.Controllers.Directory
         private readonly IConfiguration _configuration;
         EventId _eventId = new EventId(0);
         EventId _eventId_ids_wir = new EventId(0);
-        //string _Role_ACCEPT_RW = "";
-        //string _Role_SEND_RW = "";
-        //string _Role_TRF_ACCEPT_RW = "";
-        //string _Role_TRF_SEND_RW = "";
-        //string _Role_DOK_ACCEPT_RW = "";
-        //string _Role_DOK_SEND_RW = "";
-        //string _Role_DOK_RO = "";
-        //string _Role_LET_WORK_RO = "";
-        //public string _Role_ADMIN = "";
-        //string _Role_PAY_RW = "";
-        //string _Role_LETTERS = "";
-        //string _Role_DIRECTORY_RW = "";
-        //string _Role_ADDRESS_RW = "";
-        //string _Role_COM_STAT_RW = "";
-        //string _Role_COND_ARR_RW = "";
-        //string _Role_COND_SEND_RW = "";
 
         public WSDController(EFDbContext db, ILogger<WSDController> logger, IConfiguration configuration)
         {
@@ -1086,6 +1071,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/add/filing/operation/unloading
         // BODY: WSD (JSON, XML)
         [HttpPost("add/filing/operation/unloading")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostAddFilingUnloading([FromBody] OperationAddFilingUnloading value)
         {
             try
@@ -1110,6 +1096,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/add/filing/operation/loading
         // BODY: WSD (JSON, XML)
         [HttpPost("add/filing/operation/loading")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostAddFilingLoading([FromBody] OperationAddFilingLoading value)
         {
             try
@@ -1134,6 +1121,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/add/filing/operation/cleaning
         // BODY: WSD (JSON, XML)
         [HttpPost("add/filing/operation/cleaning")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostAddFilingCleaning([FromBody] OperationAddFilingCleaning value)
         {
             try
@@ -1182,6 +1170,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/add/wagon/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("add/wagon/filing")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostAddWagonFiling([FromBody] OperationADWagonFiling value)
         {
             try
@@ -1206,6 +1195,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/delete/wagon/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("delete/wagon/filing")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostDeleteWagonFiling([FromBody] OperationADWagonFiling value)
         {
             try
@@ -1230,6 +1220,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/update/filing/operation/unloading
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing/operation/unloading")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFilingOperationUnloading([FromBody] OperationUpdateFilingOperationUnloading value)
         {
             try
@@ -1254,6 +1245,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/update/filing/operation/loading
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing/operation/loading")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFilingOperationLoading([FromBody] OperationUpdateFilingOperationLoading value)
         {
             try
@@ -1278,6 +1270,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/update/filing/operation/cleaning
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing/operation/cleaning")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFilingOperationCleaning([FromBody] OperationUpdateFilingOperationCleaning value)
         {
             try
@@ -1326,6 +1319,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/update/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFiling([FromBody] OperationUpdateFiling value)
         {
             try
@@ -1338,7 +1332,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.UpdateFiling(value.id_filing, value.mode, value.id_division, user);
+                ResultUpdateIDWagon result = ids_wir.UpdateFiling(value.id_filing, value.mode, value.id_division, value.id_wagon_operations, user);
                 return Ok(result);
             }
             catch (Exception e)
