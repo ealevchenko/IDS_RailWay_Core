@@ -3630,8 +3630,178 @@ namespace IDS_
             }
             catch (Exception e)
             {
-                _logger.LogError(e, String.Format("UpdateFiling(id_filing={0}, mode={1}, id_division={2}, user={3})",
-                    id_filing, id_division, user));
+                _logger.LogError(e, String.Format("UpdateFiling(id_filing={0}, mode={1}, id_division={2}, id_wagon_operations={3}, user={4})",
+                    id_filing, mode, id_division, id_wagon_operations, user));
+                rt.SetResult((int)errors_base.global);
+                return rt;  // Возвращаем id=-1 , Ошибка
+            }
+        }
+        /// <summary>
+        /// Удалить вагоны или подачу с оконченой операцией (админка)
+        /// </summary>
+        /// <param name="id_filing"></param>
+        /// <param name="wagons"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public ResultUpdateIDWagon DeleteFiling(int id_filing, List<long> wagons, string user)
+        {
+            ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, wagons.Count());
+            DateTime start = DateTime.Now;
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                EFDbContext context = new EFDbContext(this.options);
+                {
+                    // Получить список следующих подач по вагонам
+                    List<ViewFilingNext> list_filing_next = context.getViewNextFilingOfIdFiling(id_filing).ToList();
+
+                    WagonFiling? wf = context.WagonFilings
+                            .Where(f => f.Id == id_filing)
+                            .Include(wim => wim.WagonInternalMovements)
+                                .ThenInclude(wir => wir.IdWagonInternalRoutesNavigation)
+                            .Include(wim => wim.WagonInternalMovements)
+                                .ThenInclude(wimcL => wimcL.WagonInternalMoveCargoIdWimLoadNavigations)
+                            .Include(wim => wim.WagonInternalMovements)
+                                .ThenInclude(wio => wio.IdWioNavigation)
+                            .FirstOrDefault();
+                    if (wf != null)
+                    {
+                        rt.count = wagons.Count();
+                        rt.skip = list_filing_next.Count() - wagons.Count();
+                        foreach (long id in wagons.ToList())
+                        {
+                            WagonInternalMovement? wim = wf.WagonInternalMovements.Where(m => m.Id == id).FirstOrDefault();
+                            ViewFilingNext? fn = list_filing_next.Where(n => n.IdWim == id).FirstOrDefault();
+                            if (wim != null && fn != null)
+                            {
+                                if (fn.IdWimNext == null)
+                                {
+                                    // Скорректируем груз
+                                    if (wf.TypeFiling != 3)
+                                    {
+                                        // Подача не очистка, правим груз
+                                        WagonInternalMoveCargo? wimc = context.WagonInternalMoveCargos.Where(o => o.IdWimLoad == wim.Id).FirstOrDefault();
+                                        // текущий груз
+                                        if (wimc != null)
+                                        {
+                                            // Проверим есть изменения по следующему грузу
+                                            WagonInternalMoveCargo? wimc_next = context.WagonInternalMoveCargos.Where(o => o.ParentId == wimc.Id).FirstOrDefault();
+                                            //if (wimc_next != null) { res.result = (int)errors_base.wimc_update_lock; return res; }
+                                            // проверка предыдущего груза
+                                            if (wimc.ParentId != null)
+                                            {
+                                                WagonInternalMoveCargo? wimc_old = context.WagonInternalMoveCargos.Where(o => o.Id == wimc.ParentId).FirstOrDefault();
+                                                if (wimc_next != null)
+                                                {
+                                                    wimc_next.ParentId = wimc_old != null ? wimc_old.Id : null;
+                                                    context.WagonInternalMoveCargos.Update(wimc_next);
+                                                }
+                                                else
+                                                {
+                                                    if (wimc_old != null)
+                                                    {
+                                                        wimc_old.Close = null;
+                                                        wimc_old.CloseUser = null;
+                                                        context.WagonInternalMoveCargos.Update(wimc_old);
+                                                    }
+                                                }
+                                            }
+                                            context.WagonInternalMoveCargos.Remove(wimc);
+                                        }
+                                    }
+                                    // Правим текущую операцию
+                                    WagonInternalOperation? wio = context.WagonInternalOperations.Where(o => o.Id == wim.IdWio).FirstOrDefault();
+                                    if (wio != null)
+                                    {
+                                        // смотрим на предыдущую операцию 
+                                        WagonInternalOperation? wio_old = context.WagonInternalOperations.Where(o => o.Id == wio.ParentId).FirstOrDefault();
+                                        if (wio_old != null)
+                                        {
+                                            // скорректируем статусы по операциям
+                                            WagonInternalOperation? wio_next = context.WagonInternalOperations.Where(o => o.ParentId == wio.Id).FirstOrDefault();
+                                            if (wio_next != null)
+                                            {
+                                                int ls_curr = wio.IdLoadingStatus;
+                                                int ls_old = wio_old.IdLoadingStatus;
+
+                                                // Скорректируем статусы
+                                                CorrectLoadingStatus(ref context, wio_next, ls_curr, ls_old);
+                                                wio_next.ParentId = wio_old.Id;
+                                                context.WagonInternalOperations.Update(wio_next);
+                                            }
+                                            // удалим ссылку на подачу
+                                            wim.IdFiling = null;
+                                            wim.FilingStart = null;
+                                            wim.FilingEnd = null;
+                                            wim.Note = null;
+                                            wim.IdWio = null; // сбросим если есть операция
+                                            context.WagonInternalMovements.Update(wim);
+                                            wf.WagonInternalMovements.Remove(wim);
+                                            context.WagonFilings.Update(wf);
+                                            context.WagonInternalOperations.Remove(wio);
+                                        }
+                                    }
+                                    rt.SetDeleteResult(id, 1, wim.IdWagonInternalRoutesNavigation.Num);
+                                }
+                                else
+                                {
+                                    rt.SetErrorResult(id, (int)errors_base.err_wf_del_wagon, wim.IdWagonInternalRoutesNavigation.Num); // Ошибка, запрет удаления вагона из подачи (по вагону открыта слежующая подача)
+                                }
+                            }
+                            else
+                            {
+                                rt.SetErrorResult(id, (int)errors_base.wf_not_wagon, 0); // В подаче нет вагона
+                            }
+
+                        }
+                        long res_close_wf = 0;
+                        // Проверка на пустую подачу
+                        if (wf.WagonInternalMovements == null || wf.WagonInternalMovements.Count() == 0)
+                        {
+                            context.WagonFilings.Remove(wf); // удалить
+                        }
+                        else
+                        {
+                            wf.Change = DateTime.Now;
+                            wf.ChangeUser = user;
+                            // если не закрыта, закрыть
+                            if (wf.Close == null)
+                            {
+                                res_close_wf = wf.SetCloseFiling(user);
+                            }
+
+                        }
+                        // Проверка на ошибки и сохранение результата
+                        if (rt.error == 0 && res_close_wf >= 0)
+                        {
+                            rt.SetResult(context.SaveChanges());
+                        }
+                        else
+                        {
+                            rt.SetResult((int)errors_base.cancel_save_changes);
+                        }
+                    }
+                    else
+                    {
+                        rt.SetResult((int)errors_base.not_wf_db); // В базе данных нет записи по WagonFiling (Подача вагонов)
+                    }
+
+                }
+                string mess = String.Format("Операция удаления вагонов (АДМ) в подаче id={0}, выполнена - код выполнения {1}. Определено {2} вагонов, удалено :{3} (ваг.), пропущенно {4} (ваг.).",
+                id_filing, rt.result, rt.count, rt.delete, rt.skip);
+                _logger.LogWarning(mess);
+                DateTime stop = DateTime.Now;
+                _logger.LogDebug(String.Format("Операция удаления подачи (АДМ)."), start, stop, rt.result);
+                return rt;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("DeleteFiling(id_filing={0}, wagons={1}, user={2})",
+                    id_filing, wagons, user));
                 rt.SetResult((int)errors_base.global);
                 return rt;  // Возвращаем id=-1 , Ошибка
             }

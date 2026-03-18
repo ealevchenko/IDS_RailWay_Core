@@ -268,6 +268,8 @@ public partial class EFDbContext : DbContext
     public IQueryable<ViewUsageFeeWagon> getViewUsageFeeWagonOfNum(int num) => FromExpression(() => getViewUsageFeeWagonOfNum(num));
     // Получить список операций предыдущей и следующей по id_wim
     public IQueryable<ViewHistoryOperations> getViewHistoryOperationsOfIdWim(long id_wim) => FromExpression(() => getViewHistoryOperationsOfIdWim(id_wim));
+    // Получить список следующих подач по вагонам подачи по id_filing
+    public IQueryable<ViewFilingNext> getViewNextFilingOfIdFiling(long id_filing) => FromExpression(() => getViewNextFilingOfIdFiling(id_filing));
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDbFunction(() => getViewStatusAllStation()).HasSchema("IDS").HasName("get_view_status_all_station");
@@ -289,7 +291,6 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOutgoingSostavOfIdSostav), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_wagons_outgoing_sostav_of_id_sostav");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewDislocationAMKRWagonOfNum), new[] { typeof(int) })).HasSchema("IDS").HasName("get_dislocation_wagon_of_num");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsFilingOfPeriodIdStation), new[] { typeof(DateTime), typeof(DateTime), typeof(int) })).HasSchema("IDS").HasName("get_view_wagons_filing_of_period_id_station");
-
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewIncomingCarsOfIdSostav), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_incoming_cars_of_id_sostav");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewWagonsOfListNums), new[] { typeof(string) })).HasSchema("IDS").HasName("get_view_wagons_of_list_nums");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewArrivalDocumentsVagonsOfPeriod), new[] { typeof(DateTime), typeof(DateTime) })).HasSchema("IDS").HasName("get_view_arrival_documents_vagons_of_period");
@@ -297,9 +298,9 @@ public partial class EFDbContext : DbContext
         modelBuilder.HasDbFunction(() => getOperatorsAndGenus()).HasSchema("IDS").HasName("get_operators_and_genus");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewUsageFeePeriodOfOperatorGenus), new[] { typeof(int), typeof(int) })).HasSchema("IDS").HasName("get_view_usage_fee_period_of_operator_genus");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewUsageFeePeriodDetaliOfIdPeriod), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_usage_fee_period_detali_of_id_period");
-
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewUsageFeeWagonOfNum), new[] { typeof(int) })).HasSchema("IDS").HasName("get_view_usage_fee_wagon_of_num");
         modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewHistoryOperationsOfIdWim), new[] { typeof(long) })).HasSchema("IDS").HasName("get_view_operation_parent_next");
+        modelBuilder.HasDbFunction(typeof(EFDbContext).GetMethod(nameof(getViewNextFilingOfIdFiling), new[] { typeof(long) })).HasSchema("IDS").HasName("get_view_next_filing_of_id_filing");
 
         modelBuilder.Entity<ArrivalCar>(entity =>
         {

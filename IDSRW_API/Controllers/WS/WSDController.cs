@@ -156,7 +156,7 @@ namespace WebAPI.Controllers.Directory
     //    public int id_way { get; set; }
     //    public List<ProcessingWagons> wagons { get; set; }
     //}
-    public class OperationADWagonFiling
+    public class OperationEditWagonFiling
     {
         public int id_filing { get; set; }
         public List<long> wagons { get; set; }
@@ -244,6 +244,7 @@ namespace WebAPI.Controllers.Directory
         public List<IdNumStatusWagon> wagons { get; set; }
     }
     #endregion
+
     #region ОПЕРАЦИЯ ПЛАТА ПОЛЬЗОВАНИЯ
     public class OperationUpdateUsageFeePeriodDetali
     {
@@ -288,7 +289,6 @@ namespace WebAPI.Controllers.Directory
     }
 
     #endregion
-
 
     #region ОПЕРАЦИЯ АДМ
     public class AdmDivisionOutgoingWagons
@@ -713,7 +713,6 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-
         #region РАСЧЕТ ПЛАТЫ ЗА ПОЛЬЗОВАНИЕ (АРМ)
 
         // GET: WSD/view/calc_wagon/way/215
@@ -1068,6 +1067,28 @@ namespace WebAPI.Controllers.Directory
 
         #region ОПЕРАЦИЯ ФОРМИРОВАНИЯ ПОДАЧ (ВЫГРУЗКА, ПОГРУЗКА...)
 
+        /// <summary>
+        /// Получить список следующих подач по вагонам подачи по id_filing
+        /// </summary>
+        /// <param name="id_filing"></param>
+        /// <returns></returns>
+        // GET: WSD/view/filing_next/filing/203485
+        [HttpGet("view/filing_next/filing/{id_filing}")]
+        public async Task<ActionResult<IEnumerable<ViewFilingNext>>> GetViewNextFilingOfIdFiling(long id_filing)
+        {
+            try
+            {
+                List<ViewFilingNext> result = await db.getViewNextFilingOfIdFiling(id_filing).ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         // POST: WSD/add/filing/operation/unloading
         // BODY: WSD (JSON, XML)
         [HttpPost("add/filing/operation/unloading")]
@@ -1171,7 +1192,7 @@ namespace WebAPI.Controllers.Directory
         // BODY: WSD (JSON, XML)
         [HttpPost("add/wagon/filing")]
         [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
-        public async Task<ActionResult<ResultUpdateIDWagon>> PostAddWagonFiling([FromBody] OperationADWagonFiling value)
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostAddWagonFiling([FromBody] OperationEditWagonFiling value)
         {
             try
             {
@@ -1196,7 +1217,7 @@ namespace WebAPI.Controllers.Directory
         // BODY: WSD (JSON, XML)
         [HttpPost("delete/wagon/filing")]
         [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
-        public async Task<ActionResult<ResultUpdateIDWagon>> PostDeleteWagonFiling([FromBody] OperationADWagonFiling value)
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostDeleteWagonFiling([FromBody] OperationEditWagonFiling value)
         {
             try
             {
@@ -1333,6 +1354,36 @@ namespace WebAPI.Controllers.Directory
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
                 ResultUpdateIDWagon result = ids_wir.UpdateFiling(value.id_filing, value.mode, value.id_division, value.id_wagon_operations, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Удалить подачу или вагоны с закрытой операцией в подаче (Админка)
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        // POST: WSD/delete/filing
+        // BODY: WSD (JSON, XML)
+        [HttpPost("delete/filing")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostDeleteFiling([FromBody] OperationEditWagonFiling value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateIDWagon result = ids_wir.DeleteFiling(value.id_filing, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
