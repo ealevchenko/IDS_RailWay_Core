@@ -681,9 +681,10 @@ namespace IDS.Helper
                 }
                 else return (int)errors_base.error_value_operation;  // Ошибка, неверный код операции
             }
-            // Получим последнюю запись груза перемещаемого на предприятии
-            //WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);
+            // Получим запись груза по IdWimLoad == wim.Id
             WagonInternalMoveCargo? wimc = context.WagonInternalMoveCargos.Where(w => w.IdWimLoad == wim.Id).FirstOrDefault();
+            // Если записи нет получим последнюю запись груза перемещаемого на предприятии
+            if (wimc == null) wimc = wir.GetLastMoveCargo(ref context);
 
             if (wimc == null || wimc != null && wimc.IdWimLoad != wim.Id && wimc.Empty == true && !wagon.id_status_load.IsEmpty())
             {
