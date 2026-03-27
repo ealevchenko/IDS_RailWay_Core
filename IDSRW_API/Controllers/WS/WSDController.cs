@@ -672,7 +672,7 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-        // GET: WSD/view/wagons/filing/period/start/2024-10-15T00:00:00/stop/2024-12-30T00:00:00/station/id/7
+        // GET: WSD/view/wagons/filing/period/start/2026-03-01T00:01/stop/2026-03-24T23:59/station/id/36
         [HttpGet("view/wagons/filing/period/start/{start:DateTime}/stop/{stop:DateTime}/station/id/{id_station}")]
         public async Task<ActionResult<IEnumerable<ViewWagonsFiling>>> GetViewWagonsFilingOfPeriodIdStation(DateTime start, DateTime stop, int id_station)
         {
@@ -1408,7 +1408,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.UpdateDateFiling(value.id_filing, value.start, value.stop,  value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.UpdateDateFiling(value.id_filing, value.start, value.stop, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
