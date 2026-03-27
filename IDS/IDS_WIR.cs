@@ -3733,18 +3733,28 @@ namespace IDS_
                                                 wio_next.ParentId = wio_old.Id;
                                                 context.WagonInternalOperations.Update(wio_next);
                                             }
-                                            // удалим ссылку на подачу
-                                            wim.IdFiling = null;
-                                            wim.FilingStart = null;
-                                            wim.FilingEnd = null;
-                                            wim.Note = null;
-                                            wim.IdWio = null; // сбросим если есть операция
-                                            context.WagonInternalMovements.Update(wim);
-                                            wf.WagonInternalMovements.Remove(wim);
-                                            context.WagonFilings.Update(wf);
-                                            context.WagonInternalOperations.Remove(wio);
+                                            //// удалим ссылку на подачу
+                                            //wim.IdFiling = null;
+                                            //wim.FilingStart = null;
+                                            //wim.FilingEnd = null;
+                                            //wim.Note = null;
+                                            //wim.IdWio = null; // сбросим если есть операция
+                                            //context.WagonInternalMovements.Update(wim);
+                                            //wf.WagonInternalMovements.Remove(wim);
+                                            //context.WagonFilings.Update(wf);
+                                            //context.WagonInternalOperations.Remove(wio);
                                         }
                                     }
+                                    // удалим ссылку на подачу
+                                    wim.IdFiling = null;
+                                    wim.FilingStart = null;
+                                    wim.FilingEnd = null;
+                                    wim.Note = null;
+                                    wim.IdWio = null; // сбросим если есть операция
+                                    context.WagonInternalMovements.Update(wim);
+                                    wf.WagonInternalMovements.Remove(wim);
+                                    context.WagonFilings.Update(wf);
+                                    if (wio != null) context.WagonInternalOperations.Remove(wio);
                                     rt.SetDeleteResult(id, 1, wim.IdWagonInternalRoutesNavigation.Num);
                                 }
                                 else
