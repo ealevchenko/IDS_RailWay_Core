@@ -195,10 +195,14 @@
         not_dir_station_of_db = -2301,                      // В базе данных нет указаной станции
 
         // Directory_Wagons -2400..
-        not_dir_wagon_of_db = -2401,                        // В базе данных нет записи указанной строки вагона
+        not_dir_wagon_of_db = -2401,                       // В базе данных нет записи указанной строки вагона
         error_sys_numeration_wagon = -2402,                // Ошибка системной нумерации вагона
         error_numeration_wagon = -2403,                    // Ошибка нумерации вагона (- или =0)
-        exists_dir_wagon_of_db = -2404,                     // В базе данных уже есть запись по указаному вагону
+        exists_dir_wagon_of_db = -2404,                    // В базе данных уже есть запись по указаному вагону
+
+        // Directory_OperatorsWagons -2450..
+
+        // Directory_OperatorsWagonsGroup
 
         // Directory_OuterWays -2500..
         not_dir_outerways_of_db = -2501,                    // В базе данных нет записи указаного перегона
