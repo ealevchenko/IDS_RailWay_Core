@@ -3473,6 +3473,408 @@ namespace IDS_
             }
         }
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id_filing"></param>
+        /// <param name="num_filing"></param>
+        /// <param name="vesg"></param>
+        /// <param name="doc_received"></param>
+        /// <param name="mode"></param>
+        /// <param name="vagons"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public ResultUpdateIDWagon CorrectOperationFiling(int id_filing, string? num_filing, int? vesg, DateTime? doc_received, int mode, Object vagons, string user)
+        {
+            ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, 0);
+            DateTime start = DateTime.Now;
+            try
+            {
+                // Проверим и скорректируем пользователя
+                if (String.IsNullOrWhiteSpace(user))
+                {
+                    user = System.Environment.UserDomainName + @"\" + System.Environment.UserName;
+                }
+                EFDbContext context = new EFDbContext(this.options);
+                {
+                    WagonFiling? wf = context.WagonFilings
+                            .Where(f => f.Id == id_filing)
+                            .Include(wim => wim.WagonInternalMovements)
+                                .ThenInclude(wimcL => wimcL.WagonInternalMoveCargoIdWimLoadNavigations)
+                            .Include(wim => wim.WagonInternalMovements)
+                                .ThenInclude(wir => wir.IdWagonInternalRoutesNavigation)
+                                    .ThenInclude(arr_car => arr_car.IdArrivalCarNavigation)
+                                        .ThenInclude(arr_uz_wag => arr_uz_wag.IdArrivalUzVagonNavigation)
+                                            .ThenInclude(wr => wr.IdWagonsRentArrivalNavigation)
+                            .Include(wim1 => wim1.WagonInternalMovements)
+                                .ThenInclude(wim_wio => wim_wio.IdWioNavigation)
+                            .FirstOrDefault();
+                    if (wf != null)
+                    {
+                        // Операция "ПОГРУЗКА"
+                        if (vagons is List<LoadingWagons>)
+                        {
+                            rt.count = ((List<LoadingWagons>)vagons).Count();
+
+                            // Обновить общие документы
+                            if (mode == 10)
+                            {
+                                WagonInternalMovement? wim = wf.WagonInternalMovements.FirstOrDefault();
+                                WagonInternalOperation? wio = wim != null ? wim.IdWioNavigation : null;
+                                if (wio != null)
+                                {
+                                    if (doc_received != null)
+                                    {
+                                        wf.DocReceived = doc_received;
+                                        if (wio.IdOperation == oper_load_vz)
+                                        {
+                                            if (vesg != null && vesg >= 0 && num_filing != null)
+                                            {
+                                                wf.NumFiling = num_filing != null ? num_filing : "";
+                                                wf.Vesg = vesg;
+                                            }
+                                            else
+                                            {
+                                                rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.error_input_value, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                            }
+                                        }
+                                        wf.Change = DateTime.Now;
+                                        wf.ChangeUser = user;
+                                        context.WagonFilings.Update(wf);
+                                        //rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                    }
+                                    else
+                                    {
+                                        rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.error_input_value, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                    }
+                                }
+                                else
+                                {
+                                    rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wio_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
+                                }
+                            }
+                            // Обновить документ
+                            if (mode == 11)
+                            {
+                                foreach (WagonInternalMovement wim in wf.WagonInternalMovements.ToList())
+                                {
+                                    // Проверим по этому вагону нужна правка?
+                                    LoadingWagons? lw = ((List<LoadingWagons>)vagons).Find(x => x.id_wim == wim.Id);
+                                    if (lw != null)
+                                    {
+                                        // Да, в списке вагн есть правим
+                                        WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.Where(w => w.IdWimLoad == wim.Id).FirstOrDefault();
+                                        if (wimc != null)
+                                        {
+                                            WagonInternalOperation? wio = wim.IdWioNavigation;
+                                            if (wio != null)
+                                            {
+                                                if (lw.doc_received != null)
+                                                {
+                                                    wimc.DocReceived = lw.doc_received;
+                                                    if (wio.IdOperation == oper_load_vz)
+                                                    {
+                                                        if (lw.vesg != null && lw.vesg >= 0 && lw.num_nakl != null)
+                                                        {
+                                                            wimc.InternalDocNum = lw.num_nakl;
+                                                            wimc.Vesg = lw.vesg;
+                                                        }
+                                                        else
+                                                        {
+                                                            rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.error_input_value, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                        }
+                                                    }
+                                                    wimc.Change = DateTime.Now;
+                                                    wimc.ChangeUser = user;
+                                                    context.WagonInternalMoveCargos.Update(wimc);
+                                                    rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                }
+                                                else
+                                                {
+                                                    rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.error_input_value, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                }
+                                            }
+                                            else
+                                            {
+                                                rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wio_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
+
+                                            }
+
+                                        }
+                                        else
+                                        {
+                                            rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wimc_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                        }
+                                    }
+                                }
+                            }
+                            // Обновить станцию и цех получатель
+                            if (mode == 12)
+                            {
+                                foreach (WagonInternalMovement wim in wf.WagonInternalMovements.ToList())
+                                {
+                                    // Проверим по этому вагону нужна правка?
+                                    LoadingWagons? lw = ((List<LoadingWagons>)vagons).Find(x => x.id_wim == wim.Id);
+                                    if (lw != null)
+                                    {
+                                        //int? IdOperator = wim.IdWagonInternalRoutesNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperator;
+                                        //DirectoryOperatorsWagonsGroup? dowg = context.DirectoryOperatorsWagonsGroups.Where(w => w.IdOperator == IdOperator).FirstOrDefault();
+                                        // Да, в списке вагн есть правим
+                                        WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.Where(w => w.IdWimLoad == wim.Id).FirstOrDefault();
+                                        if (wimc != null)
+                                        {
+                                            if (lw.id_station_amkr_on != null && lw.id_devision_on != null) // && dowg != null && dowg.Group == "amkr_vz"
+                                            {
+                                                wimc.IdStationOnAmkr = lw.id_station_amkr_on;
+                                                wimc.IdDivisionOn = lw.id_devision_on;
+                                                wimc.Change = DateTime.Now;
+                                                wimc.ChangeUser = user;
+                                                context.WagonInternalMoveCargos.Update(wimc);
+                                                rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                            }
+                                            else
+                                            {
+                                                rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.error_input_value, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                            }
+                                        }
+                                        else
+                                        {
+                                            rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wimc_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                        }
+                                    }
+                                }
+                            }
+                            // Обновить Груз ВЗ, статус
+                            if (mode == 13)
+                            {
+                                // Получить список следующих подач по вагонам
+                                List<ViewFilingNext> list_filing_next = context.getViewNextFilingOfIdFiling(id_filing).ToList();
+                                foreach (WagonInternalMovement wim in wf.WagonInternalMovements.ToList())
+                                {
+                                    // Проверим по этому вагону нужна правка?
+                                    LoadingWagons? lw = ((List<LoadingWagons>)vagons).Find(x => x.id_wim == wim.Id);
+
+                                    if (lw != null)
+                                    {
+                                        // Да правим вагон
+                                        // Статус нужно править?
+                                        if (lw.id_status_load != null)
+                                        {
+                                            // Да, правка статуса
+                                            // Получим следующую подачу по указанному вангону
+                                            ViewFilingNext? fn = list_filing_next.Where(n => n.IdWim == wim.Id).FirstOrDefault();
+
+                                            if (fn != null && fn.IdWimNext == null)
+                                            {
+                                                // По вагону нет следующей подачи, правим статус
+                                                WagonInternalOperation? wio = wim.IdWioNavigation;
+                                                if (wio != null)
+                                                {
+                                                    CorrectLoadingStatus(ref context, wio, wio.IdLoadingStatus, (int)lw.id_status_load);// Скорректируем статусы
+
+                                                }
+                                                else
+                                                {
+                                                    rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wio_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
+                                                }
+                                            }
+                                            else
+                                            {
+                                                rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.err_wf_del_wagon, wim.IdWagonInternalRoutesNavigation.Num); // Ошибка, запрет удаления вагона из подачи (по вагону открыта слежующая подача)
+                                            }
+                                        }
+                                        // Правим груз
+                                        //int? IdOperator = wim.IdWagonInternalRoutesNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperator;
+                                        //DirectoryOperatorsWagonsGroup? dowg = context.DirectoryOperatorsWagonsGroups.Where(w => w.IdOperator == IdOperator).FirstOrDefault();
+                                        // Да, в списке вагн есть правим
+                                        WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.Where(w => w.IdWimLoad == wim.Id).FirstOrDefault();
+                                        if (wimc != null)
+                                        {
+                                            if (lw.id_internal_cargo != null) // && dowg != null && dowg.Group == "amkr_vz"
+                                            {
+                                                wimc.IdInternalCargo = lw.id_internal_cargo;
+                                                if (lw.id_status_load != null)
+                                                {
+                                                    wimc.Vesg = lw.id_status_load.IsEmpty() ? null : (lw.vesg != null ? lw.vesg : wimc.Vesg);
+                                                    wimc.Empty = lw.id_status_load.IsEmpty() ? true : null;
+                                                    wimc.DocReceived = lw.id_status_load.IsEmpty() ? null : (lw.doc_received != null ? lw.doc_received : wimc.DocReceived);
+                                                    wimc.IdDivisionOn = lw.id_devision_on != null ? lw.id_devision_on : wimc.IdDivisionOn;
+                                                    wimc.IdStationOnAmkr = lw.id_station_amkr_on != null ? lw.id_station_amkr_on : wimc.IdStationOnAmkr;
+                                                    wimc.InternalDocNum = lw.id_status_load.IsEmpty() ? null : (lw.num_nakl != null ? lw.num_nakl : wimc.InternalDocNum);
+                                                }
+                                                wimc.Change = DateTime.Now;
+                                                wimc.ChangeUser = user;
+                                                context.WagonInternalMoveCargos.Update(wimc);
+                                                rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                            }
+                                            else
+                                            {
+                                                rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.error_input_value, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                            }
+                                        }
+                                        else
+                                        {
+                                            rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wimc_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                        }
+                                    }
+                                }
+                            }
+                            // Обновить станцию УЗ
+                            if (mode == 14)
+                            {
+                                foreach (WagonInternalMovement wim in wf.WagonInternalMovements.ToList())
+                                {
+                                    // Проверим по этому вагону нужна правка?
+                                    LoadingWagons? lw = ((List<LoadingWagons>)vagons).Find(x => x.id_wim == wim.Id);
+                                    if (lw != null)
+                                    {
+                                        int? IdOperator = wim.IdWagonInternalRoutesNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperator;
+                                        DirectoryOperatorsWagonsGroup? dowg = context.DirectoryOperatorsWagonsGroups.Where(w => w.IdOperator == IdOperator).FirstOrDefault();
+                                        // Да, в списке вагн есть правим
+                                        WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.Where(w => w.IdWimLoad == wim.Id).FirstOrDefault();
+                                        if (wimc != null)
+                                        {
+                                            if (dowg == null || (dowg != null && dowg.Group != "amkr_vz")) // 
+                                            {
+                                                if (lw.code_station_uz != null) // 
+                                                {
+                                                    wimc.CodeExternalStation = lw.code_station_uz;
+                                                    wimc.Change = DateTime.Now;
+                                                    wimc.ChangeUser = user;
+                                                    context.WagonInternalMoveCargos.Update(wimc);
+                                                    rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                }
+                                                else
+                                                {
+                                                    rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.error_input_value, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                }
+                                            }
+                                            else
+                                            {
+                                                rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.error_value_load_uz, wim.IdWagonInternalRoutesNavigation.Num); // Ошибка, неверный формат или не все праметры заданы для создания загрузки УЗ (Вагон amkr_vz)
+                                            }
+                                        }
+                                        else
+                                        {
+                                            rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wimc_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                        }
+                                    }
+                                }
+                            }
+                            // Обновить груз ЕТСНГ
+                            if (mode == 15)
+                            {
+                                // Получить список следующих подач по вагонам
+                                List<ViewFilingNext> list_filing_next = context.getViewNextFilingOfIdFiling(id_filing).ToList();
+                                foreach (WagonInternalMovement wim in wf.WagonInternalMovements.ToList())
+                                {
+                                    // Проверим по этому вагону нужна правка?
+                                    LoadingWagons? lw = ((List<LoadingWagons>)vagons).Find(x => x.id_wim == wim.Id);
+
+                                    if (lw != null)
+                                    {
+                                        // Да правим вагон
+                                        // Статус нужно править?
+                                        if (lw.id_status_load != null)
+                                        {
+                                            // Да, правка статуса
+                                            // Получим следующую подачу по указанному вангону
+                                            ViewFilingNext? fn = list_filing_next.Where(n => n.IdWim == wim.Id).FirstOrDefault();
+
+                                            if (fn != null && fn.IdWimNext == null)
+                                            {
+                                                // По вагону нет следующей подачи, правим статус
+                                                WagonInternalOperation? wio = wim.IdWioNavigation;
+                                                if (wio != null)
+                                                {
+                                                    CorrectLoadingStatus(ref context, wio, wio.IdLoadingStatus, (int)lw.id_status_load);// Скорректируем статусы
+
+                                                }
+                                                else
+                                                {
+                                                    rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wio_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
+                                                }
+                                            }
+                                            else
+                                            {
+                                                rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.err_wf_del_wagon, wim.IdWagonInternalRoutesNavigation.Num); // Ошибка, запрет удаления вагона из подачи (по вагону открыта слежующая подача)
+                                            }
+                                        }
+                                        // Правим груз
+                                        int? IdOperator = wim.IdWagonInternalRoutesNavigation.IdArrivalCarNavigation.IdArrivalUzVagonNavigation.IdWagonsRentArrivalNavigation.IdOperator;
+                                        DirectoryOperatorsWagonsGroup? dowg = context.DirectoryOperatorsWagonsGroups.Where(w => w.IdOperator == IdOperator).FirstOrDefault();
+                                        // Да, в списке вагн есть правим
+                                        WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.Where(w => w.IdWimLoad == wim.Id).FirstOrDefault();
+                                        if (wimc != null)
+                                        {
+                                            if (dowg == null || (dowg != null && dowg.Group != "amkr_vz")) // 
+                                            {
+                                                if (lw.id_cargo != null) // 
+                                                {
+                                                    wimc.IdCargo = lw.id_cargo;
+                                                    if (lw.id_status_load != null)
+                                                    {
+                                                        wimc.Vesg = lw.id_status_load.IsEmpty() ? null : (lw.vesg != null ? lw.vesg : wimc.Vesg);
+                                                        wimc.Empty = lw.id_status_load.IsEmpty() ? true : null;
+                                                        wimc.DocReceived = lw.id_status_load.IsEmpty() ? null : (lw.doc_received != null ? lw.doc_received : wimc.DocReceived);
+                                                        wimc.CodeExternalStation = lw.code_station_uz;
+                                                        wimc.InternalDocNum = lw.id_status_load.IsEmpty() ? null : (lw.num_nakl != null ? lw.num_nakl : wimc.InternalDocNum);
+                                                    }
+                                                    wimc.Change = DateTime.Now;
+                                                    wimc.ChangeUser = user;
+                                                    context.WagonInternalMoveCargos.Update(wimc);
+                                                    rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                }
+                                                else
+                                                {
+                                                    rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.error_input_value, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                }
+                                            }
+                                            else
+                                            {
+                                                rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.error_value_load_uz, wim.IdWagonInternalRoutesNavigation.Num); // Ошибка, неверный формат или не все праметры заданы для создания загрузки УЗ (Вагон amkr_vz)
+                                            }
+                                        }
+                                        else
+                                        {
+                                            rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wimc_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // Проверка на ошибки и сохранение результата
+                        if (rt.error == 0)
+                        {
+                            rt.SetResult(context.SaveChanges());
+                        }
+                        else
+                        {
+                            rt.SetResult((int)errors_base.cancel_save_changes);
+                        }
+                    }
+                    else
+                    {
+                        rt.SetResult((int)errors_base.not_wf_db);
+                    }
+
+
+                }
+                string mess = String.Format("Админ-операция обновления информации по вагонам в подаче id={0}, выполнена - код выполнения {1}. Определено {2} вагонов, обновлено :{3} (ваг.).",
+                id_filing, rt.result, rt.count, rt.update);
+                _logger.LogWarning(mess);
+                DateTime stop = DateTime.Now;
+                _logger.LogDebug(String.Format("Админ-операция обновления информации по вагонами в подаче {0}.", id_filing), start, stop, rt.result);
+                return rt;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, String.Format("CorrectOperationFiling(id_filing = {0}, num_filing = {1}, vesg = {2}, doc_received = {3}, mode = {4}, vagons = {5}, user = {6})",
+                    id_filing, num_filing, vesg, doc_received, mode, vagons, user));
+                rt.SetResult((int)errors_base.global);
+                return rt;  // Возвращаем id=-1 , Ошибка
+            }
+        }
+        /// <summary>
         /// Править информацию по указаной подаче
         /// </summary>
         /// <param name="id_filing"></param>
