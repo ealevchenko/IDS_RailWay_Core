@@ -1291,7 +1291,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/correct/filing/operation/loading
         // BODY: WSD (JSON, XML)
         [HttpPost("correct/filing/operation/loading")]
-        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS_CORREECT_RW")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_CORREECT")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostCorrectFilingOperationLoading([FromBody] OperationUpdateFilingOperationLoading value)
         {
             try
