@@ -195,13 +195,48 @@ namespace WebAPI.Controllers.Directory
         public int id_division { get; set; }
         public int? id_wagon_operations { get; set; }
     }
-
+    /// <summary>
+    /// 
+    /// </summary>
     public class OperationUpdateDateFiling
     {
         public int id_filing { get; set; }
         public DateTime? start { get; set; }
         public DateTime? stop { get; set; }
         public List<long> wagons { get; set; }
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    public class OperationCorrectFilingUnloading
+    {
+        public int id_filing { get; set; }
+        //public string? num_filing { get; set; }
+        //public int? vesg { get; set; }
+        //public DateTime? doc_received { get; set; }
+        public int? id_division { get; set; }
+        public int mode { get; set; }
+        public List<UnloadingWagons>? wagons { get; set; }
+    }
+    public class OperationCorrectFilingLoading
+    {
+        public int id_filing { get; set; }
+        public string? num_filing { get; set; }
+        public int? vesg { get; set; }
+        public DateTime? doc_received { get; set; }
+        public int? id_division { get; set; }
+        public int mode { get; set; }
+        public List<LoadingWagons>? wagons { get; set; }
+    }
+    public class OperationCorrectFilingCleaning
+    {
+        public int id_filing { get; set; }
+        //public string? num_filing { get; set; }
+        //public int? vesg { get; set; }
+        //public DateTime? doc_received { get; set; }
+        public int? id_division { get; set; }
+        public int mode { get; set; }
+        public List<CleaningWagons>? wagons { get; set; }
     }
     #endregion
 
@@ -1292,7 +1327,7 @@ namespace WebAPI.Controllers.Directory
         // BODY: WSD (JSON, XML)
         [HttpPost("correct/filing/operation/loading")]
         [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_CORREECT")]
-        public async Task<ActionResult<ResultUpdateIDWagon>> PostCorrectFilingOperationLoading([FromBody] OperationUpdateFilingOperationLoading value)
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostCorrectFilingOperationLoading([FromBody] OperationCorrectFilingLoading value)
         {
             try
             {
@@ -1304,7 +1339,32 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.CorrectOperationFiling(value.id_filing, value.num_filing, value.vesg, value.doc_received, value.mode, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.CorrectOperationFiling(value.id_filing, value.num_filing, value.vesg, value.doc_received, value.id_division, value.mode, value.wagons, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+        
+        // POST: WSD/correct/filing/operation/unloading
+        // BODY: WSD (JSON, XML)
+        [HttpPost("correct/filing/operation/unloading")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_CORREECT")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostCorrectFilingOperationUnloading([FromBody] OperationCorrectFilingUnloading value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateIDWagon result = ids_wir.CorrectOperationFiling(value.id_filing, null, null, null, value.id_division, value.mode, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
@@ -1313,6 +1373,30 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
+        // POST: WSD/correct/filing/operation/cleaning
+        // BODY: WSD (JSON, XML)
+        [HttpPost("correct/filing/operation/cleaning")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_CORREECT")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostCorrectFilingOperationCleaning([FromBody] OperationCorrectFilingCleaning value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateIDWagon result = ids_wir.CorrectOperationFiling(value.id_filing, null, null, null, value.id_division, value.mode, value.wagons, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
         // POST: WSD/update/filing/operation/cleaning
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing/operation/cleaning")]
