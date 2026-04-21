@@ -1,12 +1,13 @@
 USE [KRR-PA-CNT-Railway-Test]
 GO
 
-/****** Object:  UserDefinedFunction [IDS].[get_view_wagons_of_id_way]    Script Date: 13.03.2026 8:49:52 ******/
+/****** Object:  UserDefinedFunction [IDS].[get_view_next_filing_of_id_filing]    Script Date: 16.04.2026 9:39:27 ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 
 CREATE FUNCTION [IDS].[get_view_next_filing_of_id_filing]
@@ -50,7 +51,9 @@ CREATE FUNCTION [IDS].[get_view_next_filing_of_id_filing]
 	[filing_next_station_name_ru] [nvarchar](50) NULL,
 	[filing_next_station_name_en] [nvarchar](50) NULL,
 	[filing_next_station_abbr_ru] [nvarchar](50) NULL,
-	[filing_next_station_abbr_en] [nvarchar](50) NULL
+	[filing_next_station_abbr_en] [nvarchar](50) NULL,
+	[wio_old_id_operation] [int] NULL,
+	[wio_old_loading_status] [int] NULL
 	)
     AS
     BEGIN
@@ -92,11 +95,16 @@ CREATE FUNCTION [IDS].[get_view_next_filing_of_id_filing]
 	  ,dir_station_next.station_name_en as filing_next_station_name_en
 	  ,dir_station_next.station_abbr_ru as filing_next_station_abbr_ru
       ,dir_station_next.station_abbr_en as filing_next_station_abbr_en
+	  ,wio_old.id_operation as wio_old_id_operation
+	  ,wio_old.id_loading_status as wio_old_loading_status
   FROM [IDS].[WagonInternalMovement] as wim
   Left JOIN [IDS].[WagonInternalRoutes] as wir ON wir.id = wim.id_wagon_internal_routes
   Left JOIN [IDS].[WagonFiling] as wf ON wf.id = wim.id_filing
   Left JOIN IDS.WagonInternalMovement as wim_next_wf ON wim_next_wf.id = (SELECT top(1) [id] FROM [IDS].[WagonInternalMovement] where [id_wagon_internal_routes] = wim.id_wagon_internal_routes and [id_filing] is not null and id > wim.id order by [id_filing] )
   Left JOIN [IDS].[WagonFiling] as wf_next ON wf_next.id = wim_next_wf.id_filing
+  Left JOIN IDS.WagonInternalMovement as wim_old_wf ON wim_old_wf.id = (SELECT top(1) [id] FROM [IDS].[WagonInternalMovement] where [id_wagon_internal_routes] = wim.id_wagon_internal_routes and [id_filing] is not null and id < wim.id order by [id_filing] desc)
+  --Left JOIN [IDS].[WagonFiling] as wf_old ON wf_old.id = wim_old_wf.id_filing
+  Left JOIN [IDS].[WagonInternalOperation] as wio_old ON wio_old.id = wim_old_wf.id_wio
   Left JOIN [IDS].[Directory_Divisions] as dir_div ON dir_div.id = wf.id_division
   Left JOIN [IDS].[Directory_Divisions] as dir_div_next ON dir_div_next.id = wf_next.id_division
   Left JOIN [IDS].[WagonInternalMoveCargo] as wimc ON wimc.id_wim_load = wim.id
