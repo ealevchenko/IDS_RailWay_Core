@@ -762,7 +762,12 @@ namespace IDS.Helper
             //if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingStart != null) return (int)errors_base.wagon_open_operation; // Вагон операция уже применена
             WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
             if (!wagon.id_status_load.IsEmpty()) return (int)errors_base.error_input_cargo; // Ошибка, неправильно задан груз
-            WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);// Получим последнюю запись груза перемещаемого на предприятии
+
+            WagonInternalMoveCargo? wimc = context.WagonInternalMoveCargos.Where(w => w.IdWimLoad == wim.Id).FirstOrDefault();
+            if (wimc == null) wimc = wir.GetLastMoveCargo(ref context); // Получим последнюю запись груза перемещаемого на предприятии
+
+            //WagonInternalMoveCargo? wimc = wir.GetLastMoveCargo(ref context);// Получим последнюю запись груза перемещаемого на предприятии
+
             if (wimc == null || wimc != null && wimc.Empty != true && wagon.id_status_load.IsEmpty())
             {
                 // Закроем груз с признаком не пустой  (Вагоны не порожние)
@@ -791,7 +796,7 @@ namespace IDS.Helper
                     IdDivisionOn = null,
                     Create = DateTime.Now,
                     CreateUser = user,
-                    ParentId = wimc != null ? wimc.Id : null,
+                    ParentId = wimc != null ? wimc.Id : null, 
                 };
                 context.WagonInternalMoveCargos.Add(new_wimc);
                 return wim.Id;
