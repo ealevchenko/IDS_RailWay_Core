@@ -204,6 +204,7 @@ namespace IDS_
         private String? connectionString;
 
         private List<int> list_groups_cargo = new List<int>() { 11, 16, 20, 24 }; // Список id групп груза с порожними вагонами
+        public int oper_arr_uz = 1;
         public int oper_load_uz = 15;
         public int oper_load_vz = 16;
         public int oper_unload_uz = 13;
@@ -3533,9 +3534,10 @@ namespace IDS_
                                                 wimc.Change = DateTime.Now;
                                                 wimc.ChangeUser = user;
                                                 context.WagonInternalMoveCargos.Update(wimc);
-                                                rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // Отметим обновление
                                             }
-                                            else {
+                                            else
+                                            {
                                                 rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wimc_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
                                             }
                                         }
@@ -3579,7 +3581,7 @@ namespace IDS_
                                             wf.Change = DateTime.Now;
                                             wf.ChangeUser = user;
                                             context.WagonFilings.Update(wf);
-                                            //rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                            //rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // Отметим обновление
                                         }
                                         else
                                         {
@@ -3625,7 +3627,7 @@ namespace IDS_
                                                         wimc.Change = DateTime.Now;
                                                         wimc.ChangeUser = user;
                                                         context.WagonInternalMoveCargos.Update(wimc);
-                                                        rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                        rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // Отметим обновление
                                                     }
                                                     else
                                                     {
@@ -3668,7 +3670,7 @@ namespace IDS_
                                                     wimc.Change = DateTime.Now;
                                                     wimc.ChangeUser = user;
                                                     context.WagonInternalMoveCargos.Update(wimc);
-                                                    rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                    rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // Отметим обновление
                                                 }
                                                 else
                                                 {
@@ -3743,7 +3745,7 @@ namespace IDS_
                                                     wimc.Change = DateTime.Now;
                                                     wimc.ChangeUser = user;
                                                     context.WagonInternalMoveCargos.Update(wimc);
-                                                    rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                    rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // Отметим обновление
                                                 }
                                                 else
                                                 {
@@ -3780,7 +3782,7 @@ namespace IDS_
                                                         wimc.Change = DateTime.Now;
                                                         wimc.ChangeUser = user;
                                                         context.WagonInternalMoveCargos.Update(wimc);
-                                                        rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                        rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // Отметим обновление
                                                     }
                                                     else
                                                     {
@@ -3861,7 +3863,7 @@ namespace IDS_
                                                         wimc.Change = DateTime.Now;
                                                         wimc.ChangeUser = user;
                                                         context.WagonInternalMoveCargos.Update(wimc);
-                                                        rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                                        rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // Отметим обновление
                                                     }
                                                     else
                                                     {
@@ -3876,6 +3878,174 @@ namespace IDS_
                                             else
                                             {
                                                 rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wimc_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // Операция "ВЫГРУЗКА"
+                            if (vagons is List<UnloadingWagons>)
+                            {
+                                rt.count = ((List<UnloadingWagons>)vagons).Count();
+                                // Обновить груз ЕТСНГ
+                                if (mode == 20)
+                                {
+                                    // Получить список следующих подач по вагонам
+                                    List<ViewFilingNext> list_filing_next = context.getViewNextFilingOfIdFiling(id_filing).ToList();
+                                    foreach (WagonInternalMovement wim in wf.WagonInternalMovements.ToList())
+                                    {
+                                        // Проверим по этому вагону нужна правка?
+                                        UnloadingWagons? lw = ((List<UnloadingWagons>)vagons).Find(x => x.id_wim == wim.Id);
+
+                                        if (lw != null)
+                                        {
+                                            // Да правим вагон
+                                            // Статус нужно править?
+                                            if (lw.id_status_load != null)
+                                            {
+                                                // Да, правка статуса
+                                                // Получим следующую подачу по указанному вангону
+                                                ViewFilingNext? fn = list_filing_next.Where(n => n.IdWim == wim.Id).FirstOrDefault();
+
+                                                if (fn != null && fn.IdWimNext == null)
+                                                {
+                                                    // По вагону нет следующей подачи, правим статус
+                                                    WagonInternalOperation? wio = wim.IdWioNavigation;
+                                                    if (wio != null)
+                                                    {
+                                                        // Проверим на изменение операции
+                                                        if (wio.IdLoadingStatus != lw.id_status_load)
+                                                        {
+                                                            WagonInternalOperation? wio_old = fn.WioOldId != null ? context.WagonInternalOperations.FirstOrDefault(w => w.Id == fn.WioOldId) : null;
+                                                            if (wio_old != null)
+                                                            {
+                                                                WagonInternalMovement? wim_old = context.WagonInternalMovements
+                                                                    .Include(wimcL => wimcL.WagonInternalMoveCargoIdWimLoadNavigations)
+                                                                    .FirstOrDefault(w => w.IdWio == wio_old.Id);
+                                                                // Пропускать если предыдущая операция не груж приб и перемещение есть или предыдущая опер груж приб
+                                                                if ((wim_old != null && wio_old.IdOperation != oper_arr_uz) || (wio_old.IdOperation == oper_arr_uz))
+                                                                {
+                                                                    WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.IdWimLoad == wim.Id);
+                                                                    WagonInternalMoveCargo? wimc_old = wim_old != null ? wim_old.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.IdWimLoad == wim_old.Id) : null;
+                                                                    bool cargo_empty = ((int?)wio.IdLoadingStatus).IsEmpty();
+                                                                    bool cargo_empty_new = (lw.id_status_load).IsEmpty();
+                                                                    if (cargo_empty != cargo_empty_new)
+                                                                    {
+                                                                        // правим груз
+                                                                        if (cargo_empty_new == false)
+                                                                        {
+                                                                            // новый статус груженный, текущий пустой
+                                                                            // Нет истории предыдущей погрузки но предыдущая операция "Гружонный прибытие", тогда удалим текущую погрузку
+                                                                            if (wimc != null && wimc_old == null && wio_old.IdLoadingStatus == oper_arr_uz)
+                                                                            {
+                                                                                if (wimc.Close == null)
+                                                                                {
+                                                                                    context.WagonInternalMoveCargos.Remove(wimc);
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    // Закрыта, есть следующая погрузка
+                                                                                    rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.wimc_cargo_close, wim.IdWagonInternalRoutesNavigation.Num); // Операция невозможна, строка груза закрыта
+                                                                                }
+                                                                            }
+                                                                            // Есть текущая и предыдущая погрузка, убрать выгрузку из текущей погрузки
+                                                                            if (wimc != null && wimc_old != null)
+                                                                            {
+                                                                                if (wimc.Close == null)
+                                                                                {
+                                                                                    context.WagonInternalMoveCargos.Remove(wimc);
+                                                                                    wimc_old.Close = null;
+                                                                                    wimc_old.CloseUser = null;
+                                                                                    context.WagonInternalMoveCargos.Update(wimc_old);
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    // Закрыта, есть следующая погрузка
+                                                                                    rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.wimc_cargo_close, wim.IdWagonInternalRoutesNavigation.Num); // Операция невозможна, строка груза закрыта
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            // новый статус порожний, текущий груженный
+                                                                            if (wimc != null)
+                                                                            {
+                                                                                if (wimc.Close == null)
+                                                                                {
+                                                                                    if (wimc.Empty != true)
+                                                                                    {
+                                                                                        // груженный 
+                                                                                        rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.error_update_load, wim.IdWagonInternalRoutesNavigation.Num); // Операция невозможна, текущий груз гружен (при выгрузке со статусом гружен последний текущий груз предыдущий)
+                                                                                    }
+                                                                                    //context.WagonInternalMoveCargos.Remove(wimc);
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    // Закрыта, есть следующая погрузка
+                                                                                    rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.wimc_cargo_close, wim.IdWagonInternalRoutesNavigation.Num); // Операция невозможна, строка груза закрыта
+                                                                                }
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                wimc = new WagonInternalMoveCargo()
+                                                                                {
+                                                                                    Id = 0,
+                                                                                    IdWagonInternalRoutes = wim.IdWagonInternalRoutes,
+                                                                                    InternalDocNum = null,
+                                                                                    IdWeighingNum = null,
+                                                                                    DocReceived = null,
+                                                                                    IdCargo = wio.IdOperation == oper_unload_uz || wio.IdOperation == oper_arr_uz ? 1 : null,
+                                                                                    IdInternalCargo = wio.IdOperation == oper_unload_vz ? 0 : null,
+                                                                                    Empty = true,
+                                                                                    Vesg = null,
+                                                                                    IdStationFromAmkr = wim.IdStation,
+                                                                                    IdDivisionFrom = wf.IdDivision,
+                                                                                    IdWimLoad = wim.Id,
+                                                                                    CodeExternalStation = null,
+                                                                                    IdStationOnAmkr = null,
+                                                                                    IdDivisionOn = null,
+                                                                                    Create = DateTime.Now,
+                                                                                    CreateUser = user,
+                                                                                    ParentId = wimc_old != null ? wimc_old.Id : null,
+                                                                                };
+                                                                                context.WagonInternalMoveCargos.Add(wimc);
+                                                                                if (wimc_old != null)
+                                                                                {
+                                                                                    wimc_old.Close = DateTime.Now;
+                                                                                    wimc_old.CloseUser = user;
+                                                                                    context.WagonInternalMoveCargos.Update(wimc_old);
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    // Скорректируем статусы
+                                                                    CorrectLoadingStatus(ref context, wio, wio.IdLoadingStatus, (int)lw.id_status_load);// Скорректируем статусы
+                                                                    rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // Отметим обновление
+                                                                }
+                                                                else
+                                                                {
+                                                                    rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wim_db, wim.IdWagonInternalRoutesNavigation.Num); // Предыдущая позиция вагона отсутсвует
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wio_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет предыдущей записи по WagonInternalOperation (Внутренняя операция по вагону)
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            rt.SetModeResult(mode_obj.update, wim.Id, 0, wim.IdWagonInternalRoutesNavigation.Num); // Операция по вагону не изменяется, правка не нужна
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wio_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.err_wf_del_wagon, wim.IdWagonInternalRoutesNavigation.Num); // Ошибка, запрет правки вагона из подачи (по вагону открыта слежующая подача)
+                                                }
                                             }
                                         }
                                     }

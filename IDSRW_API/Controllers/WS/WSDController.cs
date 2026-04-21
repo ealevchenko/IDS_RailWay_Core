@@ -211,9 +211,6 @@ namespace WebAPI.Controllers.Directory
     public class OperationCorrectFilingUnloading
     {
         public int id_filing { get; set; }
-        //public string? num_filing { get; set; }
-        //public int? vesg { get; set; }
-        //public DateTime? doc_received { get; set; }
         public int? id_division { get; set; }
         public int mode { get; set; }
         public List<UnloadingWagons>? wagons { get; set; }
@@ -231,9 +228,6 @@ namespace WebAPI.Controllers.Directory
     public class OperationCorrectFilingCleaning
     {
         public int id_filing { get; set; }
-        //public string? num_filing { get; set; }
-        //public int? vesg { get; set; }
-        //public DateTime? doc_received { get; set; }
         public int? id_division { get; set; }
         public int mode { get; set; }
         public List<CleaningWagons>? wagons { get; set; }
