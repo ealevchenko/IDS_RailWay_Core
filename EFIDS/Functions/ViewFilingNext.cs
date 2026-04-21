@@ -17,6 +17,16 @@ public class ViewFilingNext
     [Column("num")]
     public int? Num { get; set; }
 
+    [Column("id_outgoing_car")]
+    public long? IdOutgoingCar { get; set; }
+
+    [Column("wir_close", TypeName = "datetime")]
+    public DateTime? WirClose { get; set; }
+
+    [Column("wir_close_user")]
+    [StringLength(50)]
+    public string? WirCloseUser { get; set; }
+
     [Column("id_filing")]
     public long? IdFiling { get; set; }
 
@@ -135,4 +145,13 @@ public class ViewFilingNext
     [Column("filing_next_station_abbr_en")]
     [StringLength(50)]
     public string? FilingNextStationAbbrEn { get; set; }
+
+    [Column("wio_old_id")]
+    public long? WioOldId { get; set; }
+
+    [Column("wio_old_id_operation")]
+    public int? WioOldIdOperation { get; set; }
+
+    [Column("wio_old_loading_status")]
+    public int? WioOldLoadingStatus { get; set; }
 }
