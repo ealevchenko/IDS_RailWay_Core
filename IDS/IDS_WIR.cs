@@ -3484,7 +3484,7 @@ namespace IDS_
         /// <param name="vagons"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public ResultUpdateIDWagon CorrectOperationFiling(int id_filing, string? num_filing, int? vesg, DateTime? doc_received, int? id_division, int mode, Object? vagons, string user)
+        public ResultUpdateIDWagon CorrectOperationFiling(int id_filing, string? num_filing, int? vesg, DateTime? doc_received, int? id_division, int? id_organization_service, int mode, Object? vagons, string user)
         {
             ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, 0);
             DateTime start = DateTime.Now;
@@ -3513,6 +3513,39 @@ namespace IDS_
                     {
                         if (vagons == null)
                         {
+                            // Обновить организацию (погрузки выгрузки очистки)
+                            if (mode == 8)
+                            {
+                                if (id_organization_service != null)
+                                {
+                                    wf.ChangeUser = user;
+                                    wf.Change = DateTime.Now;
+                                    context.WagonFilings.Update(wf);
+
+                                    foreach (WagonInternalMovement wim in wf.WagonInternalMovements)
+                                    {
+                                        WagonInternalOperation? wio = wim.IdWioNavigation;
+
+                                        if (wf.TypeFiling == 3 || wf.TypeFiling == 2 || wf.TypeFiling == 1)
+                                        {
+                                            if (wio != null)
+                                            {
+                                                wio.IdOrganizationService = (int)id_organization_service;
+                                                context.WagonInternalOperations.Update(wio);
+                                                rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // Отметим обновление
+                                            }
+                                            else
+                                            {
+                                                rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wio_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalOperation
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    rt.SetResult((int)errors_base.error_input_value); // Нет данных по цеху
+                                }
+                            }
                             // Обновить цех (погрузки выгрузки очистки)
                             if (mode == 9)
                             {
@@ -4031,6 +4064,62 @@ namespace IDS_
                                                             {
                                                                 rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wio_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет предыдущей записи по WagonInternalOperation (Внутренняя операция по вагону)
                                                             }
+                                                        }
+                                                        else
+                                                        {
+                                                            rt.SetModeResult(mode_obj.update, wim.Id, 0, wim.IdWagonInternalRoutesNavigation.Num); // Операция по вагону не изменяется, правка не нужна
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.not_wio_db, wim.IdWagonInternalRoutesNavigation.Num); // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    rt.SetModeResult(mode_obj.update, wim.Id, (int)errors_base.err_wf_del_wagon, wim.IdWagonInternalRoutesNavigation.Num); // Ошибка, запрет правки вагона из подачи (по вагону открыта слежующая подача)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // Операция "ОЧИСТКА"
+                            if (vagons is List<CleaningWagons>)
+                            {
+                                rt.count = ((List<CleaningWagons>)vagons).Count();
+                                // Обновить груз ЕТСНГ
+                                if (mode == 30)
+                                {
+                                    // Получить список следующих подач по вагонам
+                                    List<ViewFilingNext> list_filing_next = context.getViewNextFilingOfIdFiling(id_filing).ToList();
+                                    foreach (WagonInternalMovement wim in wf.WagonInternalMovements.ToList())
+                                    {
+                                        // Проверим по этому вагону нужна правка?
+                                        CleaningWagons? lw = ((List<CleaningWagons>)vagons).Find(x => x.id_wim == wim.Id);
+
+                                        if (lw != null)
+                                        {
+                                            // Да правим вагон
+                                            // Статус нужно править?
+                                            if (lw.id_status_load != null)
+                                            {
+                                                // Да, правка статуса
+                                                // Получим следующую подачу по указанному вангону
+                                                ViewFilingNext? fn = list_filing_next.Where(n => n.IdWim == wim.Id).FirstOrDefault();
+
+                                                if (fn != null && fn.IdWimNext == null)
+                                                {
+                                                    // По вагону нет следующей подачи, правим статус
+                                                    WagonInternalOperation? wio = wim.IdWioNavigation;
+                                                    if (wio != null)
+                                                    {
+                                                        // Проверим на изменение операции
+                                                        if (wio.IdLoadingStatus != lw.id_status_load)
+                                                        {
+                                                            // Скорректируем статусы
+                                                            CorrectLoadingStatus(ref context, wio, wio.IdLoadingStatus, (int)lw.id_status_load);// Скорректируем статусы
+                                                            rt.SetModeResult(mode_obj.update, wim.Id, 1, wim.IdWagonInternalRoutesNavigation.Num); // Отметим обновление
                                                         }
                                                         else
                                                         {

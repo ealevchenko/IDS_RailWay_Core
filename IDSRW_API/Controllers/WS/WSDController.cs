@@ -212,6 +212,7 @@ namespace WebAPI.Controllers.Directory
     {
         public int id_filing { get; set; }
         public int? id_division { get; set; }
+        public int? id_organization_service { get; set; }
         public int mode { get; set; }
         public List<UnloadingWagons>? wagons { get; set; }
     }
@@ -222,6 +223,7 @@ namespace WebAPI.Controllers.Directory
         public int? vesg { get; set; }
         public DateTime? doc_received { get; set; }
         public int? id_division { get; set; }
+        public int? id_organization_service { get; set; }
         public int mode { get; set; }
         public List<LoadingWagons>? wagons { get; set; }
     }
@@ -229,6 +231,7 @@ namespace WebAPI.Controllers.Directory
     {
         public int id_filing { get; set; }
         public int? id_division { get; set; }
+        public int? id_organization_service { get; set; }
         public int mode { get; set; }
         public List<CleaningWagons>? wagons { get; set; }
     }
@@ -1333,7 +1336,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.CorrectOperationFiling(value.id_filing, value.num_filing, value.vesg, value.doc_received, value.id_division, value.mode, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.CorrectOperationFiling(value.id_filing, value.num_filing, value.vesg, value.doc_received, value.id_division, null, value.mode, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
@@ -1341,7 +1344,7 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        
+
         // POST: WSD/correct/filing/operation/unloading
         // BODY: WSD (JSON, XML)
         [HttpPost("correct/filing/operation/unloading")]
@@ -1358,7 +1361,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.CorrectOperationFiling(value.id_filing, null, null, null, value.id_division, value.mode, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.CorrectOperationFiling(value.id_filing, null, null, null, value.id_division, null, value.mode, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
@@ -1383,7 +1386,7 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.CorrectOperationFiling(value.id_filing, null, null, null, value.id_division, value.mode, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.CorrectOperationFiling(value.id_filing, null, null, null, value.id_division, value.id_organization_service, value.mode, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
