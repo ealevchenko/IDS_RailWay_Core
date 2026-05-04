@@ -3222,6 +3222,7 @@ namespace IDS_
                     WagonFiling? wf = context.WagonFilings
                             .Where(f => f.Id == id_filing)
                             .Include(wim => wim.WagonInternalMovements)
+                            .ThenInclude(wio => wio.IdWioNavigation)
                             .FirstOrDefault();
                     foreach (long id_wim in vagons)
                     {
@@ -4478,6 +4479,10 @@ namespace IDS_
                         }
                         else
                         {
+                            // проверим на открытые операции (если нет удалим начало подачи)
+                            int count_open_operation = wf.IsCountOpenOperationFiling();
+                            wf.StartFiling = count_open_operation == 0 ? null : wf.StartFiling;
+                            wf.EndFiling = count_open_operation == 0 ? null : wf.EndFiling;
                             wf.Change = DateTime.Now;
                             wf.ChangeUser = user;
                             // если не закрыта, закрыть
@@ -4580,7 +4585,14 @@ namespace IDS_
                                 // Правим начало
                                 if (start != null)
                                 {
-                                    if (start <= max_old_start || start >= min_stop_all)
+                                    //if (start <= max_old_start || start >= min_stop_all)
+                                    //{
+                                    //    foreach (WagonInternalMovement wim in list_select_wim)
+                                    //    {
+                                    //        rt.SetErrorResult(wim.Id, (int)errors_base.err_data_operation, wim.IdWagonInternalRoutesNavigation.Num);
+                                    //    }
+                                    //}
+                                    if (start <= max_old_start || (wf.Close != null && start >= min_stop_all))
                                     {
                                         foreach (WagonInternalMovement wim in list_select_wim)
                                         {
@@ -4588,12 +4600,18 @@ namespace IDS_
                                         }
                                     }
 
-
                                 }
                                 // Правим окончание
                                 if (stop != null)
                                 {
-                                    if (stop <= max_start_all || (min_next_stop != null && stop >= min_next_stop))
+                                    //if (stop <= max_start_all || (min_next_stop != null && stop >= min_next_stop))
+                                    //{
+                                    //    foreach (WagonInternalMovement wim in list_select_wim)
+                                    //    {
+                                    //        rt.SetErrorResult(wim.Id, (int)errors_base.err_data_operation, wim.IdWagonInternalRoutesNavigation.Num);
+                                    //    }
+                                    //}
+                                    if (stop <= max_old_start || (min_next_stop != null && stop >= min_next_stop))
                                     {
                                         foreach (WagonInternalMovement wim in list_select_wim)
                                         {
@@ -4626,10 +4644,14 @@ namespace IDS_
                                 // оперделим мак начало по всем вагонам
                                 //context.WagonFilings.Update(wf);
                                 DateTime? min_start = wf.WagonInternalMovements.Min(w => w.FilingStart);
-                                // оперделим мин окончание по всем вагонам
-                                DateTime? max_stop = wf.WagonInternalMovements.Max(w => w.FilingEnd);
                                 wf.StartFiling = start != null ? min_start : wf.StartFiling;
-                                wf.EndFiling = stop != null ? max_stop : wf.EndFiling;
+                                //int count_open_operation = wf.IsCountOpenOperationFiling();
+                                if (wf.Close != null)
+                                {
+                                    // оперделим макс. окончание по всем вагонам
+                                    DateTime? max_stop = wf.WagonInternalMovements.Max(w => w.FilingEnd);
+                                    wf.EndFiling = stop != null ? max_stop : wf.EndFiling;
+                                }
                                 wf.Change = DateTime.Now;
                                 wf.ChangeUser = user;
                                 context.WagonFilings.Update(wf);

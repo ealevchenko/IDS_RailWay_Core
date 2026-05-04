@@ -258,6 +258,16 @@ namespace IDS.Helper
             if (wir.Close != null) return (int)errors_base.close_wir; // wir закрыт
             return wim.Id; // 
         }
+        // Проверка есть открытые операции
+        public static int IsCountOpenOperationFiling(this WagonFiling wf)
+        {
+            int result = 0;
+            if (wf == null) return (int)errors_base.not_wf_db; // Подачи нет
+            if (wf.WagonInternalMovements != null && wf.WagonInternalMovements.Count() > 0) {
+                result = wf.WagonInternalMovements.Count(w => w.IdWioNavigation != null);
+            }
+            return result;
+        }
         /// <summary>
         /// Открыть операцию в подаче
         /// </summary>
@@ -458,8 +468,6 @@ namespace IDS.Helper
                     wf.CloseUser = user;
                     return wf.Id;
                 }
-
-
             }
 
 
@@ -600,6 +608,10 @@ namespace IDS.Helper
             }
             else
             {
+                // проверим на открытые операции (если нет удалим начало подачи)
+                int count_open_operation = wf.IsCountOpenOperationFiling();
+                wf.StartFiling = count_open_operation == 0 ? null : wf.StartFiling;
+                wf.EndFiling = count_open_operation == 0 ? null : wf.EndFiling;
                 wf.Change = DateTime.Now;
                 wf.ChangeUser = user;
                 long res = wf.SetCloseFiling(user);
