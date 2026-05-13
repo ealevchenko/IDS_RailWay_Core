@@ -2865,6 +2865,15 @@ namespace IDS_
                         if (res_close < 0) return (int)res_close;           // Ошибка                                                              
 
                     }
+                    // Смена статуса (выгрузке операция не закрыта)
+                    if (vag.start == null && vag.stop == null && vag.id_status_load != null && vag is UnloadingWagons)
+                    {
+                        if (mode == 4)
+                        {
+                            // Обновить (закрытые операции) 
+                            res_close = wim.SetUpdateOperationFiling(ref context, wf, vag.start, vag.stop, vag.id_status_load, vag.id_organization_service, wf.Note, user);
+                        }
+                    }
                     // Обновляю если опреация по вагону выгрузки закрыта
                     if (res_close > 0 && vag is UnloadingWagons)
                     {
@@ -4183,7 +4192,7 @@ namespace IDS_
         /// <param name="id_division"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public ResultUpdateIDWagon UpdateFiling(int id_filing, int mode, int id_division, int? id_wagon_operations, string user)
+        public ResultUpdateIDWagon UpdateFiling(int id_filing, int mode, int? id_division, int? id_wagon_operations, int? id_organization_service, string user)
         {
             ResultUpdateIDWagon rt = new ResultUpdateIDWagon(id_filing, 0);
             DateTime start = DateTime.Now;
@@ -4207,9 +4216,9 @@ namespace IDS_
                     {
                         if (wf.Close == null || mode == 9)
                         {
-                            wf.IdDivision = id_division;
-                            wf.Change = DateTime.Now;
-                            wf.ChangeUser = user;
+                            wf.IdDivision = id_division != null ? (int)id_division : wf.IdDivision;
+                            wf.Change = id_division != null ? DateTime.Now : wf.Change;
+                            wf.ChangeUser = id_division != null ? user : wf.ChangeUser;
 
                             rt.count = wf.WagonInternalMovements.Count();
                             foreach (WagonInternalMovement wim in wf.WagonInternalMovements.Where(m => m.FilingStart != null).ToList())
@@ -4217,7 +4226,24 @@ namespace IDS_
                                 WagonInternalRoute? wir = context.WagonInternalRoutes.Where(r => r.Id == wim.IdWagonInternalRoutes).FirstOrDefault();
                                 if (wir != null)
                                 {
+                                    // Обновим организацию
+                                    if (id_organization_service != null)
+                                    {
+                                        WagonInternalOperation? wio = wim.IdWioNavigation;
+                                        // Операия есть
+                                        if (wio != null)
+                                        {
+                                            wio.IdOrganizationService = id_organization_service;
+                                            context.WagonInternalOperations.Update(wio);
+                                            rt.SetUpdateResult(wim.Id, 1, wir.Num); // Отметим операцию.
+                                        }
+                                    }
 
+                                    // Очистка
+                                    if (wf.TypeFiling == 3)
+                                    {
+
+                                    }
                                     // Погрузка
                                     if (wf.TypeFiling == 2)
                                     {
@@ -4271,14 +4297,13 @@ namespace IDS_
                                         //WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.Close == null);
                                         if (wimc != null)
                                         {
-                                            wimc.IdDivisionFrom = id_division;
-                                            wimc.Change = DateTime.Now;
-                                            wimc.ChangeUser = user;
+                                            wimc.IdDivisionFrom = id_division != null ? (int)id_division : wimc.IdDivisionFrom;
+                                            wimc.Change = id_division != null ? DateTime.Now : wimc.Change;
+                                            wimc.ChangeUser = id_division != null ? user : wimc.ChangeUser;
                                             context.WagonInternalMoveCargos.Update(wimc);
                                             rt.SetUpdateResult(wim.Id, 1, wir.Num); // Отметим операцию.
                                         }
                                     }
-
                                     // Выгрузка
                                     if (wf.TypeFiling == 1)
                                     {
