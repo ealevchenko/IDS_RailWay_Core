@@ -2769,7 +2769,7 @@ namespace IDS_
                     // Только добавить
                     if (vag.id_wagon_operations == null && vag.start == null && vag.stop == null && vag.id_status_load == null)
                     {
-                        long res_add = wf.SetAddWagonFiling(wim, user);
+                        wim = wf.SetAddWagonFiling(wim, user, out long res_add) ;
                         if (res_add > 0) mode_result = mode_obj.add;    // INSERT
                         if (res_add < 0) return (int)res_add;           // Ошибка
                     }
@@ -2798,6 +2798,9 @@ namespace IDS_
                     // Создать и закрыть
                     if (vag.start != null && vag.stop != null && vag.id_status_load != null)
                     {
+                        // Проверим вагон и подачу на открытость для операции, и добавим в подачу если небыл добавлен
+                        wim = wf.SetAddWagonFiling(wim, user, out long res_add);
+                        if (res_add < 0) return (int)res_add; // Ошибка
                         res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.id_organization_service, vag.start, wf.Note, user);
                         if (res_open < 0) return (int)res_open; // Ошибка
                         // Если погрузка создать строку перемещения внутрених грузов
@@ -2825,6 +2828,9 @@ namespace IDS_
                     // открыть операцию
                     if (vag.start != null && vag.stop == null)
                     {
+                        // Проверим вагон и подачу на открытость для операции, и добавим в подачу если небыл добавлен
+                        wim = wf.SetAddWagonFiling(wim, user, out long res_add);
+                        if (res_add < 0) return (int)res_add; // Ошибка
                         res_open = wim.SetOpenOperationFiling(ref context, wf, vag.id_wagon_operations, vag.id_organization_service, vag.start, wf.Note, user);
                         // Если погрузка создать строку перемещения внутрених грузов
                         if (vag is LoadingWagons)
@@ -3168,7 +3174,7 @@ namespace IDS_
                         }
                         if (!err_ban_add)
                         {
-                            long res = wf.SetAddWagonFiling(wim, user);
+                            wim = wf.SetAddWagonFiling(wim, user, out long res);
                             if (res >= 0)
                             {
                                 result.SetInsertResult(id_wim, 1, num); // Отметим операцию.

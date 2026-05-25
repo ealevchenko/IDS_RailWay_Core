@@ -263,7 +263,8 @@ namespace IDS.Helper
         {
             int result = 0;
             if (wf == null) return (int)errors_base.not_wf_db; // Подачи нет
-            if (wf.WagonInternalMovements != null && wf.WagonInternalMovements.Count() > 0) {
+            if (wf.WagonInternalMovements != null && wf.WagonInternalMovements.Count() > 0)
+            {
                 result = wf.WagonInternalMovements.Count(w => w.IdWioNavigation != null);
             }
             return result;
@@ -282,16 +283,10 @@ namespace IDS.Helper
         /// <returns></returns>
         public static long SetOpenOperationFiling(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, int? id_wagon_operations, int? id_organization_service, DateTime? date_start, string note, string user)
         {
-            // Проверим вагон и подачу на открытость для операции, и добавим в подачу если небыл добавлен
-            long res_add = wf.SetAddWagonFiling(wim, user);
-            if (res_add < 0) return res_add; // Ошибка
+
             if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingStart != null) return (int)errors_base.wagon_open_operation; // Вагон операция уже применена
             WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
-            //WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
-            //if (wim_last != null && wim_last.Id != wim.Id) return (int)errors_base.err_last_wim_db; // Ошибка позиция вагона несоответсвует последней позиции в базе
             WagonInternalOperation? wio = wim.IdWioNavigation; // Последняя операция над вагоном
-            //WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
-            //if (wio != null && wio_last.Id != wio.Id) return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует последней
             if (id_wagon_operations != null)
             {
                 if (wio == null || wio.Close != null)
@@ -499,54 +494,65 @@ namespace IDS.Helper
         /// <param name="wf"></param>
         /// <param name="wim"></param>
         /// <param name="user"></param>
+        /// <param name="result"></param>
         /// <returns></returns>
-        public static long SetAddWagonFiling(this WagonFiling wf, WagonInternalMovement wim, string user)
+        public static WagonInternalMovement SetAddWagonFiling(this WagonFiling wf, WagonInternalMovement wim, string user, out long result)
         {
-            long result = wf.IsFreeFiling(wim);
-            if (result <= 0) return result;
-            string note = "Подача:" + wf.Id.ToString() + "-" + wf.TypeFiling.ToString();
-            // Проверим если есть ссылка на операцию, тогда делаем копию wim для подачи
-            if (wim.IdWio != null)
+            result = wf.IsFreeFiling(wim);
+            if (result > 0)
             {
-                WagonInternalMovement wim_new = new WagonInternalMovement()
+                string note = "Подача:" + wf.Id.ToString() + "-" + wf.TypeFiling.ToString();
+                // Проверим если есть ссылка на операцию, тогда делаем копию wim для подачи
+                if (wim.IdWio != null)
                 {
-                    Id = 0,
-                    IdStation = wim.IdStation,
-                    IdWay = wim.IdWay,
-                    WayStart = wim.WayStart,
-                    WayEnd = null,
-                    Position = wim.Position,
-                    IdOuterWay = null,
-                    OuterWayStart = null,
-                    OuterWayEnd = null,
-                    NumSostav = null,
-                    Note = note,
-                    IdFiling = wf.Id,
-                    IdWio = null,
-                    FilingEnd = null,
-                    FilingStart = null,
-                    Create = DateTime.Now,
-                    CreateUser = user,
-                    Close = null,
-                    CloseUser = null,
-                    ParentId = wim.CloseMovement(wim.WayStart, null, user),
-                };
-                wim.IdWagonInternalRoutesNavigation.WagonInternalMovements.Add(wim_new);
-                wim_new.IdFilingNavigation = wf;
-                wf.WagonInternalMovements.Add(wim_new);
-                wf.Change = DateTime.Now;
-                wf.ChangeUser = user;
-                return wim.Id;
+                    WagonInternalMovement wim_new = new WagonInternalMovement()
+                    {
+                        Id = 0,
+                        IdStation = wim.IdStation,
+                        IdWay = wim.IdWay,
+                        WayStart = wim.WayStart,
+                        WayEnd = null,
+                        Position = wim.Position,
+                        IdOuterWay = null,
+                        OuterWayStart = null,
+                        OuterWayEnd = null,
+                        NumSostav = null,
+                        Note = note,
+                        IdFiling = wf.Id,
+                        IdWio = null,
+                        FilingEnd = null,
+                        FilingStart = null,
+                        Create = DateTime.Now,
+                        CreateUser = user,
+                        Close = null,
+                        CloseUser = null,
+                        ParentId = wim.CloseMovement(wim.WayStart, null, user),
+                    };
+                    wim_new.IdWagonInternalRoutes = wim.IdWagonInternalRoutes;
+                    wim.IdWagonInternalRoutesNavigation.WagonInternalMovements.Add(wim_new);
+                    wim_new.IdWagonInternalRoutesNavigation = wim.IdWagonInternalRoutesNavigation;
+                    wim_new.IdFilingNavigation = wf;
+                    wf.WagonInternalMovements.Add(wim_new);
+                    wf.Change = DateTime.Now;
+                    wf.ChangeUser = user;
+                    return wim_new;
+                }
+                else
+                {
+                    wim.Note = note;
+                    wim.IdFilingNavigation = wf;
+                    wf.WagonInternalMovements.Add(wim);
+                    wf.Change = DateTime.Now;
+                    wf.ChangeUser = user;
+                    return wim;
+                }
             }
             else
             {
-                wim.Note = note;
-                wim.IdFilingNavigation = wf;
-                wf.WagonInternalMovements.Add(wim);
-                wf.Change = DateTime.Now;
-                wf.ChangeUser = user;
-                return wim.Id;
+                return wim;
             }
+
+
         }
         /// <summary>
         /// Убрать вагон из подачи
@@ -698,7 +704,7 @@ namespace IDS.Helper
             // Если записи нет получим последнюю запись груза перемещаемого на предприятии
             if (wimc == null) wimc = wir.GetLastMoveCargo(ref context);
 
-            if (wimc == null || wimc != null && wimc.IdWimLoad != wim.Id && wimc.Empty == true && !wagon.id_status_load.IsEmpty())
+            if (wimc == null || wim.Id == 0 || (wimc != null && wimc.IdWimLoad != wim.Id && wimc.Empty == true && !wagon.id_status_load.IsEmpty()))
             {
                 // Закроем груз с признаком пустой груз (Вагоны порожние)
                 if (wimc != null && wimc.Empty == true)
@@ -728,6 +734,10 @@ namespace IDS.Helper
                     CreateUser = user,
                     ParentId = wimc != null ? wimc.Id : null,
                 };
+                if (wim.Id == 0)
+                {
+                    wim.WagonInternalMoveCargoIdWimLoadNavigations.Add(new_wimc);
+                }
                 context.WagonInternalMoveCargos.Add(new_wimc);
                 return wim.Id;
             }
@@ -808,7 +818,7 @@ namespace IDS.Helper
                     IdDivisionOn = null,
                     Create = DateTime.Now,
                     CreateUser = user,
-                    ParentId = wimc != null ? wimc.Id : null, 
+                    ParentId = wimc != null ? wimc.Id : null,
                 };
                 context.WagonInternalMoveCargos.Add(new_wimc);
                 return wim.Id;
