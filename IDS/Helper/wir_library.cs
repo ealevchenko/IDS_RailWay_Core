@@ -131,6 +131,7 @@ namespace IDS.Helper
             // Исключим попытку поставить дублирования записи постановки на путь
             if (wim == null || (wim != null && (wim.IdStation != id_station || wim.IdWay != id_way || wim.Position != position || wim.IdOuterWay != null || wim.IdFiling != null || wim.IdFilingNavigation != null)))
             {
+                long? ParentId = wim.CloseMovement(date_start, null, user);
                 wim_new = new WagonInternalMovement()
                 {
                     Id = 0,
@@ -146,8 +147,12 @@ namespace IDS.Helper
                     CreateUser = user,
                     NumSostav = null,
                     Note = note,
-                    ParentId = wim.CloseMovement(date_start, null, user),
+                    ParentId = ParentId != 0 ? ParentId : null,
                 };
+                if (ParentId == 0)
+                {
+                    wim_new.Parent = wim;
+                }
                 wim.IdWagonInternalRoutesNavigation.WagonInternalMovements.Add(wim_new);
             }
             return wim_new;
@@ -357,7 +362,7 @@ namespace IDS.Helper
         public static long SetCloseOperationFiling(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, DateTime date_stop, int? id_status_load, int? id_organization_service, string note, string user)
         {
             long result = wf.IsFreeFiling(wim);
-            if (result <= 0) return result;// Ошибка
+            if (result < 0) return result;// Ошибка
             if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingEnd != null) return (int)errors_base.wagon_close_operation; // Вагон операция закрыта
             WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
             //WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
@@ -371,7 +376,9 @@ namespace IDS.Helper
             wim.FilingEnd = date_stop;
             //wim.CloseMovement((DateTime)date_stop, note, user);
             // Создать новую позицию закрыв старую
-            WagonInternalMovement? wim_new = wir.SetStationWagon(ref context, wim.IdStation, wim.IdWay, (DateTime)date_stop, wim.Position, note, user, true);
+            //WagonInternalMovement? wim_new = wir.SetStationWagon(ref context, wim.IdStation, wim.IdWay, (DateTime)date_stop, wim.Position, note, user, true);
+            WagonInternalMovement? wim_new = wim.SetStationWagon(ref context, wim.IdStation, wim.IdWay, (DateTime)date_stop, wim.Position, note, user, true);
+
             wf.Change = DateTime.Now;
             wf.ChangeUser = user;
             if (wim_new != null)
@@ -499,7 +506,7 @@ namespace IDS.Helper
         public static WagonInternalMovement SetAddWagonFiling(this WagonFiling wf, WagonInternalMovement wim, string user, out long result)
         {
             result = wf.IsFreeFiling(wim);
-            if (result > 0)
+            if (result >= 0)
             {
                 string note = "Подача:" + wf.Id.ToString() + "-" + wf.TypeFiling.ToString();
                 // Проверим если есть ссылка на операцию, тогда делаем копию wim для подачи
@@ -564,7 +571,7 @@ namespace IDS.Helper
         public static long SetDeleteWagonFiling(this WagonFiling wf, ref EFDbContext context, WagonInternalMovement wim, string user)
         {
             long result = wf.IsFreeFiling(wim);
-            if (result <= 0) return result;
+            if (result < 0) return result;
             WagonInternalOperation? wio = null;
             // Если wim не пренадлежит подаче, тогда добавим в подачу
             if (wf.Id != wim.IdFiling) return (int)errors_base.wim_lock_wf;
