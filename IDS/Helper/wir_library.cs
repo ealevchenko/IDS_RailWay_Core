@@ -15,14 +15,25 @@ namespace IDS.Helper
     public static class wir_library
     {
         // Операции
-        public static int oper_load_uz = 15;
-        public static int oper_load_vz = 16;
+        public static int oper_arrival_from_uz = 1;
+        public static int oper_departure_to_uz = 2;
+        public static int oper_dislocation = 3;
+        public static int oper_dissolution = 4;
+        public static int oper_sending = 5;
+        public static int oper_arrival = 6;
+        public static int oper_transportation = 7;
+        public static int oper_manual_placement = 8;
+        public static int oper_presentation_for_uz = 9;
+        public static int oper_return_uz = 10;
+        public static int oper_return_outer_way = 11;
+        public static int oper_cancel = 12;
         public static int oper_unload_uz = 13;
         public static int oper_unload_vz = 14;
+        public static int oper_load_uz = 15;
+        public static int oper_load_vz = 16;
         public static int oper_cleaning = 17;
-        //public static int oper_processing = 18;
-
-        // Статусы
+        public static int oper_processing = 18;
+        // Статус груза
         public static int status_load_empty = 0;
         public static int status_load_loaded_arr = 1;
         public static int status_load_loaded_ip = 2;

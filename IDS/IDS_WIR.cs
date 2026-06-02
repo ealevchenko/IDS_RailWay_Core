@@ -202,13 +202,12 @@ namespace IDS_
         private readonly IConfiguration _configuration;
         EventId _eventId = new EventId(0);
         private String? connectionString;
-
-        private List<int> list_groups_cargo = new List<int>() { 11, 16, 20, 24 }; // Список id групп груза с порожними вагонами
-        public int oper_arr_uz = 1;
-        public int oper_load_uz = 15;
-        public int oper_load_vz = 16;
-        public int oper_unload_uz = 13;
-        public int oper_unload_vz = 14;
+        //private List<int> list_groups_cargo = new List<int>() { 11, 16, 20, 24 }; // Список id групп груза с порожними вагонами
+        //public int oper_arr_uz = 1;
+        //public int oper_load_uz = 15;
+        //public int oper_load_vz = 16;
+        //public int oper_unload_uz = 13;
+        //public int oper_unload_vz = 14;
 
         public int control_enter_letter = 30; // Дней ожидания появления вагона на АМКР, после ввода письма
         public int control_exit_letter = 30; // Дней ожидания выхода вагона из АМКР,
@@ -1514,7 +1513,7 @@ namespace IDS_
                 string note_sostav = "Состав:" + wim.NumSostav + "- принят";
 
                 // Установим и закроем операцию принять -6              
-                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, 6, lead_time.AddMinutes(-10), null, null, null, locomotive1, locomotive2, note_sostav, user).SetCloseOperation(lead_time, null, null, null, user);
+                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, wir_library.oper_arrival, lead_time.AddMinutes(-10), null, null, null, locomotive1, locomotive2, note_sostav, user).SetCloseOperation(lead_time, null, null, null, user);
                 if (new_operation == null) return (int)errors_base.err_create_wio_db;   // Ошибка создания новой операции над вагоном.
 
                 // Установим и вагон на путь станции
@@ -1657,7 +1656,7 @@ namespace IDS_
                                                                                                 // Вагон не стоит, переставим.
 
                 // Установим и закроем операцию отправления -5              
-                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, 5, lead_time.AddMinutes(-10), null, null, null, locomotive1, locomotive2, "Состав:" + num_sostav, user);
+                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, wir_library.oper_sending, lead_time.AddMinutes(-10), null, null, null, locomotive1, locomotive2, "Состав:" + num_sostav, user);
                 if (new_operation == null) return (int)errors_base.err_create_wio_db;   // Ошибка создания новой операции над вагоном.
                 long? id = new_operation.CloseOperation(lead_time, null, null, null, user);
 
@@ -1821,7 +1820,7 @@ namespace IDS_
                 }
 
                 // Установим и закроем операцию принять -11- возрат 12 - отмена              
-                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, (type_return ? 12 : 11), lead_time_start, null, null, null, locomotive1, locomotive2, note_sostav, user).SetCloseOperation(lead_time_stop, null, null, null, user);
+                WagonInternalOperation new_operation = wagon.SetOpenOperation(ref context, (type_return ? wir_library.oper_cancel : wir_library.oper_return_outer_way), lead_time_start, null, null, null, locomotive1, locomotive2, note_sostav, user).SetCloseOperation(lead_time_stop, null, null, null, user);
                 if (new_operation == null) return (int)errors_base.err_create_wio_db;   // Ошибка создания новой операции над вагоном.
 
                 // Установим и вагон на путь станции без проверки 
@@ -1951,7 +1950,7 @@ namespace IDS_
                 //wagon.SetStationWagon_old(ref context, id_station_on, id_way_on, date_stop, position_on, null, user);
                 wagon.SetStationWagon(ref context, id_station_on, id_way_on, date_stop, position_on, null, user, true);
                 // Установим и закроем операцию роспуск -4              
-                wagon.SetOpenOperation(ref context, 4, date_start, null, null, null, null, null, null, user).SetCloseOperation(date_stop, null, null, null, user);
+                wagon.SetOpenOperation(ref context, wir_library.oper_dissolution, date_start, null, null, null, null, null, null, user).SetCloseOperation(date_stop, null, null, null, user);
                 //context.Update(wagon); // Обновим контекст
                 return 1;
             }
@@ -2142,7 +2141,7 @@ namespace IDS_
                 if (wim.IdWay != id_way_from) return (int)errors_base.wagon_not_way;
                 wagon.SetStationWagon(ref context, wim.IdStation, id_way_on, lead_time, position_on, null, user, true);
                 // Установим и закроем операцию дислокация -3              
-                wagon.SetOpenOperation(ref context, wagon_outgoing ? 8 : 3, lead_time.AddMinutes(-10), null, null, null, null, null, null, user).SetCloseOperation(lead_time, null, null, null, user);
+                wagon.SetOpenOperation(ref context, wagon_outgoing ? wir_library.oper_manual_placement : wir_library.oper_dislocation, lead_time.AddMinutes(-10), null, null, null, null, null, null, user).SetCloseOperation(lead_time, null, null, null, user);
                 //context.Update(wagon); // Обновим контекст
                 return 1;
             }
@@ -2430,7 +2429,7 @@ namespace IDS_
                 string note = "Перенесен для формирования состава предъявления";
                 wagon.SetStationWagon(ref context, id_station, id_way_on, lead_time, position, note, user, true);
                 // Установим и закроем операцию ручная расстановка -3              
-                wagon.SetOpenOperation(ref context, 8, lead_time.AddMinutes(-1), null, null, null, null, null, null, user).SetCloseOperation(lead_time, null, null, null, user);
+                wagon.SetOpenOperation(ref context, wir_library.oper_manual_placement, lead_time.AddMinutes(-1), null, null, null, null, null, null, user).SetCloseOperation(lead_time, null, null, null, user);
                 //context.Update(wagon); // Обновим контекст
                 return 1;
             }
@@ -2583,7 +2582,7 @@ namespace IDS_
                     //ef_sap_os.Update(sap_os);
                 }
                 // Установим и закроем операцию отпрака на УЗ             
-                wir.SetOpenOperation(ref context, 2, lead_time.AddMinutes(-10), null, null, null, null, null, null, user).SetCloseOperation(lead_time, null, null, null, user);
+                wir.SetOpenOperation(ref context, wir_library.oper_departure_to_uz, lead_time.AddMinutes(-10), null, null, null, null, null, null, user).SetCloseOperation(lead_time, null, null, null, user);
                 wir.CloseWagon(context, lead_time, null, user);
                 //ef_wir.Update(wir);
                 return 1;
@@ -2769,7 +2768,7 @@ namespace IDS_
                     // Только добавить
                     if (vag.id_wagon_operations == null && vag.start == null && vag.stop == null && vag.id_status_load == null)
                     {
-                        wim = wf.SetAddWagonFiling(wim, user, out long res_add) ;
+                        wim = wf.SetAddWagonFiling(wim, user, out long res_add);
                         if (res_add > 0) mode_result = mode_obj.add;    // INSERT
                         if (res_add < 0) return (int)res_add;           // Ошибка
                     }
@@ -3128,7 +3127,7 @@ namespace IDS_
                                 .ThenInclude(wio => wio.IdWioNavigation)
                             .FirstOrDefault();
 
-                    WagonInternalMovement? wim_oper_load_uz = wf.WagonInternalMovements.Where(m => m.IdWio != null).ToList().Find(o => o.IdWioNavigation.IdOperation == oper_load_uz);
+                    WagonInternalMovement? wim_oper_load_uz = wf.WagonInternalMovements.Where(m => m.IdWio != null).ToList().Find(o => o.IdWioNavigation.IdOperation == wir_library.oper_load_uz);
                     bool err_ban_add = false;
                     foreach (long id_wim in vagons)
                     {
@@ -3613,7 +3612,7 @@ namespace IDS_
                                         if (doc_received != null)
                                         {
                                             wf.DocReceived = doc_received;
-                                            if (wio.IdOperation == oper_load_vz)
+                                            if (wio.IdOperation == wir_library.oper_load_vz)
                                             {
                                                 if (vesg != null && vesg >= 0 && num_filing != null)
                                                 {
@@ -3659,7 +3658,7 @@ namespace IDS_
                                                     if (lw.doc_received != null)
                                                     {
                                                         wimc.DocReceived = lw.doc_received;
-                                                        if (wio.IdOperation == oper_load_vz)
+                                                        if (wio.IdOperation == wir_library.oper_load_vz)
                                                         {
                                                             if (lw.vesg != null && lw.vesg >= 0 && lw.num_nakl != null)
                                                             {
@@ -3970,7 +3969,7 @@ namespace IDS_
                                                                     .Include(wimcL => wimcL.WagonInternalMoveCargoIdWimLoadNavigations)
                                                                     .FirstOrDefault(w => w.IdWio == wio_old.Id);
                                                                 // Пропускать если предыдущая операция не груж приб и перемещение есть или предыдущая опер груж приб
-                                                                if ((wim_old != null && wio_old.IdOperation != oper_arr_uz) || (wio_old.IdOperation == oper_arr_uz))
+                                                                if ((wim_old != null && wio_old.IdOperation != wir_library.oper_arrival_from_uz) || (wio_old.IdOperation == wir_library.oper_arrival_from_uz))
                                                                 {
                                                                     WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.IdWimLoad == wim.Id);
                                                                     WagonInternalMoveCargo? wimc_old = wimc != null ? context.WagonInternalMoveCargos.FirstOrDefault(w => w.Id == wimc.ParentId) : null;
@@ -3984,7 +3983,7 @@ namespace IDS_
                                                                         {
                                                                             // новый статус груженный, текущий пустой
                                                                             // Нет истории предыдущей погрузки но предыдущая операция "Гружонный прибытие", тогда удалим текущую погрузку
-                                                                            if (wimc != null && wimc_old == null && wio_old.IdLoadingStatus == oper_arr_uz)
+                                                                            if (wimc != null && wimc_old == null && wio_old.IdLoadingStatus == wir_library.oper_arrival_from_uz)
                                                                             {
                                                                                 if (wimc.Close == null)
                                                                                 {
@@ -4042,8 +4041,8 @@ namespace IDS_
                                                                                     InternalDocNum = null,
                                                                                     IdWeighingNum = null,
                                                                                     DocReceived = null,
-                                                                                    IdCargo = wio.IdOperation == oper_unload_uz || wio.IdOperation == oper_arr_uz ? 1 : null,
-                                                                                    IdInternalCargo = wio.IdOperation == oper_unload_vz ? 0 : null,
+                                                                                    IdCargo = wio.IdOperation == wir_library.oper_unload_uz || wio.IdOperation == wir_library.oper_arrival_from_uz ? 1 : null,
+                                                                                    IdInternalCargo = wio.IdOperation == wir_library.oper_unload_vz ? 0 : null,
                                                                                     Empty = true,
                                                                                     Vesg = null,
                                                                                     IdStationFromAmkr = wim.IdStation,
@@ -5070,7 +5069,7 @@ namespace IDS_
                 // Добавим сылку на выходной вагон
                 wagon.IdOutgoingCarNavigation = out_car;
                 // Откроем операцию предявить на уз 
-                wagon.SetOpenOperation(ref context, 9, lead_time, null, null, null, null, null, note, user);
+                wagon.SetOpenOperation(ref context, wir_library.oper_presentation_for_uz, lead_time, null, null, null, null, null, note, user);
                 //context.Update(wagon); // Обновим контекст
                 return 1;
             }
@@ -8015,7 +8014,7 @@ namespace IDS_
 
                         int IdLoadingStatus = wio.IdLoadingStatus;
                         int IdOperation = wio.IdOperation;
-                        if (IdLoadingStatus > 0 && (IdOperation == 16 || IdOperation == 15))
+                        if (IdLoadingStatus > 0 && (IdOperation == wir_library.oper_load_vz || IdOperation == wir_library.oper_load_uz))
                         {
                             // Очистим операции
                             List<WagonInternalOperation> list_wio = context.WagonInternalOperations.Where(o => o.IdWagonInternalRoutes == wir.Id && o.Id >= wio.Id).ToList();

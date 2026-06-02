@@ -10,6 +10,34 @@
         close = 5,
         clear = 6,
     }
+    /// <summary>
+    /// Список операций над вагонами
+    /// </summary>
+    //public enum wagon_operations
+    //{
+    //    not = 0,
+    //    arrival_from_uz = 1,
+    //    departure_to_uz = 2,
+    //    dislocation = 3,
+    //    dissolution = 4,
+    //    sending = 5,
+    //    arrival = 6,
+    //    transportation = 7,
+    //    manual_placement = 8,
+    //    presentation_for_uz = 9,
+    //    returns = 10,
+    //    return_outer_way = 11,
+    //    cancel = 12,
+    //    unloading_from_uz = 13,
+    //    unloading_if = 14,
+    //    loading_uz = 15,
+    //    loading_if = 16,
+    //    cleaning = 17,
+    //    processing = 18,
+    //}
+    /// <summary>
+    /// Список ошибок
+    /// </summary>
     public enum errors_base : int
     {
         global = -1,
@@ -209,7 +237,9 @@
 
 
     }
-
+    /// <summary>
+    /// 
+    /// </summary>
     public class ChangeID
     {
         public long id_old { get; set; }
