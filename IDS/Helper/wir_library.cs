@@ -135,6 +135,19 @@ namespace IDS.Helper
             }
             return wim_new;
         }
+        /// <summary>
+        /// Установить вагон на путь станции
+        /// </summary>
+        /// <param name="wim"></param>
+        /// <param name="context"></param>
+        /// <param name="id_station"></param>
+        /// <param name="id_way"></param>
+        /// <param name="date_start"></param>
+        /// <param name="position"></param>
+        /// <param name="note"></param>
+        /// <param name="user"></param>
+        /// <param name="check_replay"></param>
+        /// <returns></returns>
         public static WagonInternalMovement SetStationWagon(this WagonInternalMovement wim, ref EFDbContext context, int id_station, int id_way, DateTime date_start, int position, string note, string user, bool check_replay)
         {
             if (wim == null) return null;
@@ -168,7 +181,6 @@ namespace IDS.Helper
             }
             return wim_new;
         }
-
         /// <summary>
         /// Установить вагон на путь отправки
         /// </summary>
@@ -247,18 +259,11 @@ namespace IDS.Helper
             return wim.Id;
         }
         /// <summary>
-        /// Открыть операцию в подаче
+        /// Проверка подача закрыта
         /// </summary>
-        /// <param name="wim"></param>
-        /// <param name="context"></param>
         /// <param name="wf"></param>
-        /// <param name="id_wagon_operations"></param>
-        /// <param name="date_start"></param>
-        /// <param name="note"></param>
-        /// <param name="user"></param>
+        /// <param name="wim"></param>
         /// <returns></returns>
-
-        // Проверка подача закрыта
         public static long IsFreeFiling(this WagonFiling wf, WagonInternalMovement wim)
         {
             if (wf == null) return (int)errors_base.not_wf_db; // подача пуста            
@@ -653,7 +658,12 @@ namespace IDS.Helper
         #endregion
 
         #region WagonInternalMoveCargo
-        // Получить последнюю запись внутризаводского груза
+        /// <summary>
+        /// Получить последнюю запись внутризаводского груза 
+        /// </summary>
+        /// <param name="wir"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public static WagonInternalMoveCargo? GetLastMoveCargo(this WagonInternalRoute wir, ref EFDbContext context)
         {
             if (wir.WagonInternalMovements == null) return null;
@@ -1001,9 +1011,13 @@ namespace IDS.Helper
         #endregion
         #endregion
 
-
         #region Методы работы с позициями вагонов
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="id_way"></param>
+        /// <returns></returns>
         public static int GetNextPosition(this EFDbContext context, int id_way)
         {
             int Position = 1;
@@ -1056,11 +1070,22 @@ namespace IDS.Helper
         {
             return wims.Where(m => m.IdWay == id_way & m.IdOuterWay == null & m.WayEnd == null).OrderBy(p => p.Position).ToList();
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="id_way"></param>
+        /// <returns></returns>
         public static List<int> GetNumWagonsOfWay(this EFDbContext context, int id_way)
         {
             return context.GetMovementWagonsOfWay(id_way).Select(w => w.IdWagonInternalRoutesNavigation.Num).ToList();
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="wims"></param>
+        /// <param name="id_way"></param>
+        /// <returns></returns>
         public static List<int> GetNumWagonsOfWay(this List<WagonInternalMovement> wims, int id_way)
         {
             return wims.GetMovementWagonsOfWay(id_way).Select(w => w.IdWagonInternalRoutesNavigation.Num).ToList();
