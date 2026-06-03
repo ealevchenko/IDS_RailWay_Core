@@ -2769,7 +2769,7 @@ namespace IDS_
                     if (vag.id_wagon_operations == null && vag.start == null && vag.stop == null && vag.id_status_load == null)
                     {
                         wim = wf.SetAddWagonFiling(wim, user, out long res_add);
-                        if (res_add > 0) mode_result = mode_obj.add;    // INSERT
+                        if (res_add >= 0) mode_result = mode_obj.add;    // INSERT
                         if (res_add < 0) return (int)res_add;           // Ошибка
                     }
                     // Обновить операцию (только погрузка)
@@ -2809,9 +2809,9 @@ namespace IDS_
                             if (res_load < 0) return (int)res_load;                         // Ошибка
                         }
                         res_close = wim.SetCloseOperationFiling(ref context, wf, (DateTime)vag.stop, (int)vag.id_status_load, vag.id_organization_service, wf.Note, user);
-                        if (res_close > 0) mode_result = mode_obj.close; // open & close
+                        if (res_close >= 0) mode_result = mode_obj.close; // open & close
                         // если выгрузка  закрыта (и статус соответсвует выгрузке)
-                        if (vag is UnloadingWagons && res_close > 0 && ((UnloadingWagons)vag).id_status_load.IsEmpty())
+                        if (vag is UnloadingWagons && res_close >= 0 && ((UnloadingWagons)vag).id_status_load.IsEmpty())
                         {
                             res_unload = wim.SetUnloadInternalMoveCargo(ref context, wf, (UnloadingWagons)vag, user);
                             if (res_unload < 0) return (int)res_unload;                         // Ошибка
