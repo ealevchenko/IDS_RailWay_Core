@@ -236,13 +236,13 @@ namespace Test.TestModele
         /// <summary>
         /// Административная функция. Удалить подачу (или вагоны в подаче)
         /// </summary>
-        public void DeleteFilingOfID()
-        {
-            int id_filing = 198868;
-            List<int> nums = new List<int> { 52984861 };
-            ResultCorrect result = ids_wir.DeleteFilingOfID(id_filing, nums);
-            Console.WriteLine($" result : {result.result} \n message :{result.message}");
-        }
+        //public void DeleteFilingOfID()
+        //{
+        //    int id_filing = 198868;
+        //    List<int> nums = new List<int> { 52984861 };
+        //    ResultCorrect result = ids_wir.DeleteFilingOfID(id_filing, nums);
+        //    Console.WriteLine($" result : {result.result} \n message :{result.message}");
+        //}
         /// <summary>
         /// Административная функция. Очистить вагон в подаче
         /// </summary>

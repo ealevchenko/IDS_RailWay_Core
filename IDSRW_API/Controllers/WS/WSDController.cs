@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
 using WebAPI.Controllers.GIVC;
 using WebAPI.Repositories;
 using WebAPI.Repositories.Directory;
@@ -1261,8 +1262,9 @@ namespace WebAPI.Controllers.Directory
                 {
                     return BadRequest();
                 }
+                bool admin = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_ADMIN");
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.DeleteWagonOfFiling(value.id_filing, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.DeleteWagonOfFiling(value.id_filing, value.wagons, user, admin);
                 return Ok(result);
             }
             catch (Exception e)
@@ -1462,36 +1464,6 @@ namespace WebAPI.Controllers.Directory
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
                 ResultUpdateIDWagon result = ids_wir.UpdateFiling(value.id_filing, value.mode, value.id_division, value.id_wagon_operations, value.id_organization_service, user);
-                return Ok(result);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-
-        /// <summary>
-        /// Удалить подачу или вагоны с закрытой операцией в подаче (Админка)
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        // POST: WSD/delete/filing
-        // BODY: WSD (JSON, XML)
-        [HttpPost("delete/filing")]
-        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN")]
-        public async Task<ActionResult<ResultUpdateIDWagon>> PostDeleteFiling([FromBody] OperationEditWagonFiling value)
-        {
-            try
-            {
-                string user = HttpContext.User.Identity.Name;
-                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
-
-                if (value == null || !IsAuthenticated)
-                {
-                    return BadRequest();
-                }
-                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.DeleteFiling(value.id_filing, value.wagons, user);
                 return Ok(result);
             }
             catch (Exception e)
