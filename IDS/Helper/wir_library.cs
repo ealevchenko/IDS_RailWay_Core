@@ -49,7 +49,10 @@ namespace IDS.Helper
         {
             return (id_status_load == status_load_empty || id_status_load == status_load_dirty || id_status_load == status_load_empty_clean) ? true : false;
         }
-
+        public static bool IsEmpty(this int id_status_load)
+        {
+            return (id_status_load == status_load_empty || id_status_load == status_load_dirty || id_status_load == status_load_empty_clean) ? true : false;
+        }
         #region Методы работы с вагонами
 
         #region WIR
@@ -258,29 +261,29 @@ namespace IDS.Helper
             }
             return wim.Id;
         }
-        /// <summary>
-        /// Проверка подача закрыта
-        /// </summary>
-        /// <param name="wf"></param>
-        /// <param name="wim"></param>
-        /// <returns></returns>
-        public static long IsFreeFiling_old(this WagonFiling wf, WagonInternalMovement wim, bool admin = false)
-        {
-            long result = wf.IsOpenFiling(admin);
-            if (result < 0) return result;
-            //if (wf == null) return (int)errors_base.not_wf_db; // подача пуста            
-            if (wim == null) return (int)errors_base.not_wim_db; // запись пуста
-            if (wim.Close != null || wim.WayEnd != null) return (int)errors_base.close_wim; // запись закрыта
-            if (wim.IdOuterWay != null) return (int)errors_base.wagon_not_way; // Вагон не стоит на пути
-            if (wim.FilingEnd != null || wf.EndFiling != null) return (int)errors_base.close_wf; // подача закрыта
-            if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling != wf.Id) return (int)errors_base.wim_lock_wf; // Вагон пренадлежит другой подаче
-            // Проверим внутренее перемещение вагона, существует? открыто?
-            WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
-            if (wir == null) return (int)errors_base.not_wir_db; // нет wir
-            // Внутренее перемещение существует
-            if (wir.Close != null) return (int)errors_base.close_wir; // wir закрыт
-            return wim.Id; // 
-        }
+        ///// <summary>
+        ///// Проверка подача закрыта
+        ///// </summary>
+        ///// <param name="wf"></param>
+        ///// <param name="wim"></param>
+        ///// <returns></returns>
+        //public static long IsFreeFiling_old(this WagonFiling wf, WagonInternalMovement wim, bool admin = false)
+        //{
+        //    long result = wf.IsOpenFiling(admin);
+        //    if (result < 0) return result;
+        //    //if (wf == null) return (int)errors_base.not_wf_db; // подача пуста            
+        //    if (wim == null) return (int)errors_base.not_wim_db; // запись пуста
+        //    if (wim.Close != null || wim.WayEnd != null) return (int)errors_base.close_wim; // запись закрыта
+        //    if (wim.IdOuterWay != null) return (int)errors_base.wagon_not_way; // Вагон не стоит на пути
+        //    if (wim.FilingEnd != null || wf.EndFiling != null) return (int)errors_base.close_wf; // подача закрыта
+        //    if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling != wf.Id) return (int)errors_base.wim_lock_wf; // Вагон пренадлежит другой подаче
+        //    // Проверим внутренее перемещение вагона, существует? открыто?
+        //    WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
+        //    if (wir == null) return (int)errors_base.not_wir_db; // нет wir
+        //    // Внутренее перемещение существует
+        //    if (wir.Close != null) return (int)errors_base.close_wir; // wir закрыт
+        //    return wim.Id; // 
+        //}
         // Проверка есть открытые операции
         public static int IsCountOpenOperationFiling(this WagonFiling wf)
         {
@@ -292,150 +295,150 @@ namespace IDS.Helper
             }
             return result;
         }
-        /// <summary>
-        /// Открыть операцию в подаче
-        /// </summary>
-        /// <param name="wim"></param>
-        /// <param name="context"></param>
-        /// <param name="wf"></param>
-        /// <param name="id_wagon_operations"></param>
-        /// <param name="id_organization_service"></param>
-        /// <param name="date_start"></param>
-        /// <param name="note"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public static long SetOpenOperationFiling_old(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, int? id_wagon_operations, int? id_organization_service, DateTime? date_start, string note, string user)
-        {
-            if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingStart != null) return (int)errors_base.wagon_open_operation; // Вагон операция уже применена
-            WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
-            WagonInternalOperation? wio = wim.IdWioNavigation; // Последняя операция над вагоном
-            if (id_wagon_operations != null)
-            {
-                if (wio == null || wio.Close != null)
-                {
-                    if (date_start != null)
-                    {
-                        // Создать операцию
-                        WagonInternalOperation new_operation = wir.SetOpenOperation(ref context, (int)id_wagon_operations, (DateTime)date_start, null, null, id_organization_service, null, null, note, user, true); // id_wagon_operations != oper_processing
-                        wim.FilingStart = date_start;
-                        wim.IdWioNavigation = new_operation; // добавим новую операцию
-                        long res_of = wf.SetOpenFiling(user); // Обновим общее начало в подаче + обновим кто произвел обновление
-                        return res_of < 0 ? res_of : wim.Id;
-                    }
-                    else
-                    {
-                        return 0; // Указана операция но нет старта
-                    }
-                }
-                else
-                {
-                    if (wio.IdOperation == id_wagon_operations && wio.Close == null)
-                    {
-                        if (date_start != null && wio.OperationEnd == null)
-                        {
-                            wio.OperationStart = (DateTime)date_start;
-                            wim.FilingStart = date_start;
-                            long res_of = wf.SetOpenFiling(user); // Обновим общее начало в подаче + обновим кто произвел обновление
-                            return res_of < 0 ? res_of : wim.Id;
-                        }
-                        else
-                        {
-                            return 0; // Указана операция уже закрыта или нет данных начала
-                        }
-                    }
-                    else
-                    {
-                        return (int)errors_base.wagon_not_operation; // Операция вагона не соответсвует выбраной
-                    }
-                }
-            }
-            else
-            {
-                if (wio != null && wio.OperationEnd == null && date_start == null)
-                {
-                    // Удалим операцию если id_операции не указано wio есть
-                    wim.FilingStart = null;
-                    context.WagonInternalOperations.Remove(wio);
-                    long res_of = wf.SetOpenFiling(user); // Обновим общее начало в подаче + обновим кто произвел обновление
-                    return res_of < 0 ? res_of : wim.Id;
-                }
-                else
-                {
-                    return 0; // Указана операция уже закрыта или ее еще нет
-                }
-            }
-        }
-        /// <summary>
-        /// Закрыть операцию в подаче (проверить если все закрыты закрыть подачу и обновить время закрытия подачи)
-        /// </summary>
-        /// <param name="wim"></param>
-        /// <param name="context"></param>
-        /// <param name="wf"></param>
-        /// <param name="date_stop"></param>
-        /// <param name="id_status_load"></param>
-        /// <param name="note"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public static long SetCloseOperationFiling_old(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, DateTime date_stop, int? id_status_load, int? id_organization_service, string note, string user)
-        {
-            long result = wf.IsFreeFiling_old(wim);
-            if (result < 0) return result;// Ошибка
-            if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingEnd != null) return (int)errors_base.wagon_close_operation; // Вагон операция закрыта
-            WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
-            //WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
-            //if (wim_last != null && wim_last.Id != wim.Id) return (int)errors_base.err_last_wim_db; // Ошибка позиция вагона несоответсвует последней позиции в базе
-            WagonInternalOperation? wio = wim.IdWioNavigation;
-            if (wio == null) return (int)errors_base.not_wio_db; // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
-            //WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
-            //if (wio != null && wio.Id > 0 && wio_last.Id != wio.Id) return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует последней
-            // Закроем операцию и позицию создадим новую строку
-            wio.SetCloseOperation((DateTime)date_stop, null, id_status_load, id_organization_service, user);
-            wim.FilingEnd = date_stop;
-            //wim.CloseMovement((DateTime)date_stop, note, user);
-            // Создать новую позицию закрыв старую
-            //WagonInternalMovement? wim_new = wir.SetStationWagon(ref context, wim.IdStation, wim.IdWay, (DateTime)date_stop, wim.Position, note, user, true);
-            WagonInternalMovement? wim_new = wim.SetStationWagon(ref context, wim.IdStation, wim.IdWay, (DateTime)date_stop, wim.Position, note, user, true);
+        ///// <summary>
+        ///// Открыть операцию в подаче
+        ///// </summary>
+        ///// <param name="wim"></param>
+        ///// <param name="context"></param>
+        ///// <param name="wf"></param>
+        ///// <param name="id_wagon_operations"></param>
+        ///// <param name="id_organization_service"></param>
+        ///// <param name="date_start"></param>
+        ///// <param name="note"></param>
+        ///// <param name="user"></param>
+        ///// <returns></returns>
+        //public static long SetOpenOperationFiling_old(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, int? id_wagon_operations, int? id_organization_service, DateTime? date_start, string note, string user)
+        //{
+        //    if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingStart != null) return (int)errors_base.wagon_open_operation; // Вагон операция уже применена
+        //    WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
+        //    WagonInternalOperation? wio = wim.IdWioNavigation; // Последняя операция над вагоном
+        //    if (id_wagon_operations != null)
+        //    {
+        //        if (wio == null || wio.Close != null)
+        //        {
+        //            if (date_start != null)
+        //            {
+        //                // Создать операцию
+        //                WagonInternalOperation new_operation = wir.SetOpenOperation(ref context, (int)id_wagon_operations, (DateTime)date_start, null, null, id_organization_service, null, null, note, user, true); // id_wagon_operations != oper_processing
+        //                wim.FilingStart = date_start;
+        //                wim.IdWioNavigation = new_operation; // добавим новую операцию
+        //                long res_of = wf.SetOpenFiling(user); // Обновим общее начало в подаче + обновим кто произвел обновление
+        //                return res_of < 0 ? res_of : wim.Id;
+        //            }
+        //            else
+        //            {
+        //                return 0; // Указана операция но нет старта
+        //            }
+        //        }
+        //        else
+        //        {
+        //            if (wio.IdOperation == id_wagon_operations && wio.Close == null)
+        //            {
+        //                if (date_start != null && wio.OperationEnd == null)
+        //                {
+        //                    wio.OperationStart = (DateTime)date_start;
+        //                    wim.FilingStart = date_start;
+        //                    long res_of = wf.SetOpenFiling(user); // Обновим общее начало в подаче + обновим кто произвел обновление
+        //                    return res_of < 0 ? res_of : wim.Id;
+        //                }
+        //                else
+        //                {
+        //                    return 0; // Указана операция уже закрыта или нет данных начала
+        //                }
+        //            }
+        //            else
+        //            {
+        //                return (int)errors_base.wagon_not_operation; // Операция вагона не соответсвует выбраной
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (wio != null && wio.OperationEnd == null && date_start == null)
+        //        {
+        //            // Удалим операцию если id_операции не указано wio есть
+        //            wim.FilingStart = null;
+        //            context.WagonInternalOperations.Remove(wio);
+        //            long res_of = wf.SetOpenFiling(user); // Обновим общее начало в подаче + обновим кто произвел обновление
+        //            return res_of < 0 ? res_of : wim.Id;
+        //        }
+        //        else
+        //        {
+        //            return 0; // Указана операция уже закрыта или ее еще нет
+        //        }
+        //    }
+        //}
+        ///// <summary>
+        ///// Закрыть операцию в подаче (проверить если все закрыты закрыть подачу и обновить время закрытия подачи)
+        ///// </summary>
+        ///// <param name="wim"></param>
+        ///// <param name="context"></param>
+        ///// <param name="wf"></param>
+        ///// <param name="date_stop"></param>
+        ///// <param name="id_status_load"></param>
+        ///// <param name="note"></param>
+        ///// <param name="user"></param>
+        ///// <returns></returns>
+        //public static long SetCloseOperationFiling_old(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, DateTime date_stop, int? id_status_load, int? id_organization_service, string note, string user)
+        //{
+        //    long result = wf.IsFreeFiling_old(wim);
+        //    if (result < 0) return result;// Ошибка
+        //    if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && wim.FilingEnd != null) return (int)errors_base.wagon_close_operation; // Вагон операция закрыта
+        //    WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
+        //    //WagonInternalMovement wim_last = wir.GetLastMovement(ref context);
+        //    //if (wim_last != null && wim_last.Id != wim.Id) return (int)errors_base.err_last_wim_db; // Ошибка позиция вагона несоответсвует последней позиции в базе
+        //    WagonInternalOperation? wio = wim.IdWioNavigation;
+        //    if (wio == null) return (int)errors_base.not_wio_db; // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
+        //    //WagonInternalOperation wio_last = wir.GetLastOperation(ref context);
+        //    //if (wio != null && wio.Id > 0 && wio_last.Id != wio.Id) return (int)errors_base.wagon_not_operation; // Ошибка операция вагона не соответствует последней
+        //    // Закроем операцию и позицию создадим новую строку
+        //    wio.SetCloseOperation((DateTime)date_stop, null, id_status_load, id_organization_service, user);
+        //    wim.FilingEnd = date_stop;
+        //    //wim.CloseMovement((DateTime)date_stop, note, user);
+        //    // Создать новую позицию закрыв старую
+        //    //WagonInternalMovement? wim_new = wir.SetStationWagon(ref context, wim.IdStation, wim.IdWay, (DateTime)date_stop, wim.Position, note, user, true);
+        //    WagonInternalMovement? wim_new = wim.SetStationWagon(ref context, wim.IdStation, wim.IdWay, (DateTime)date_stop, wim.Position, note, user, true);
 
-            wf.Change = DateTime.Now;
-            wf.ChangeUser = user;
-            if (wim_new != null)
-            {
-                return wim.Id;
-            }
-            else
-            {
-                return (int)errors_base.err_create_wim_db; // Ошибка создания новой позиции вагона.
-            }
-        }
-        /// <summary>
-        /// Закрыть уже созданную операцию в подаче (проверить если подача закрыта или введен документ тогда запрет)
-        /// </summary>
-        /// <param name="wim"></param>
-        /// <param name="context"></param>
-        /// <param name="wf"></param>
-        /// <param name="date_start"></param>
-        /// <param name="date_stop"></param>
-        /// <param name="id_status_load"></param>
-        /// <param name="note"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public static long SetUpdateOperationFiling_old(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, DateTime? date_start, DateTime? date_stop, int? id_status_load, int? id_organization_service, string note, string user)
-        {
-            if (wf.Close != null) return (int)errors_base.close_wf; // подача закрыта
-            if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && (wim.FilingStart == null || wim.FilingEnd == null)) return (int)errors_base.wagon_not_operation; // По вагону нет операций
-            WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
-            if (wir == null) return (int)errors_base.not_wir_db; // нет wir
-            // Внутренее перемещение существует
-            if (wir.Close != null) return (int)errors_base.close_wir; // wir закрыт
-            WagonInternalOperation? wio = wim.IdWioNavigation;
-            if (wio == null) return (int)errors_base.not_wio_db; // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
-            wio.UpdateOperation(date_start, date_stop, null, id_status_load, id_organization_service, user);
-            wim.FilingStart = date_start != null ? date_start : wim.FilingStart;
-            wim.FilingEnd = date_stop != null ? date_stop : wim.FilingEnd;
-            wf.Change = DateTime.Now;
-            wf.ChangeUser = user;
-            return wim.Id;
-        }
+        //    wf.Change = DateTime.Now;
+        //    wf.ChangeUser = user;
+        //    if (wim_new != null)
+        //    {
+        //        return wim.Id;
+        //    }
+        //    else
+        //    {
+        //        return (int)errors_base.err_create_wim_db; // Ошибка создания новой позиции вагона.
+        //    }
+        //}
+        ///// <summary>
+        ///// Закрыть уже созданную операцию в подаче (проверить если подача закрыта или введен документ тогда запрет)
+        ///// </summary>
+        ///// <param name="wim"></param>
+        ///// <param name="context"></param>
+        ///// <param name="wf"></param>
+        ///// <param name="date_start"></param>
+        ///// <param name="date_stop"></param>
+        ///// <param name="id_status_load"></param>
+        ///// <param name="note"></param>
+        ///// <param name="user"></param>
+        ///// <returns></returns>
+        //public static long SetUpdateOperationFiling_old(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, DateTime? date_start, DateTime? date_stop, int? id_status_load, int? id_organization_service, string note, string user)
+        //{
+        //    if (wf.Close != null) return (int)errors_base.close_wf; // подача закрыта
+        //    if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling == wf.Id && (wim.FilingStart == null || wim.FilingEnd == null)) return (int)errors_base.wagon_not_operation; // По вагону нет операций
+        //    WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
+        //    if (wir == null) return (int)errors_base.not_wir_db; // нет wir
+        //    // Внутренее перемещение существует
+        //    if (wir.Close != null) return (int)errors_base.close_wir; // wir закрыт
+        //    WagonInternalOperation? wio = wim.IdWioNavigation;
+        //    if (wio == null) return (int)errors_base.not_wio_db; // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
+        //    wio.UpdateOperation(date_start, date_stop, null, id_status_load, id_organization_service, user);
+        //    wim.FilingStart = date_start != null ? date_start : wim.FilingStart;
+        //    wim.FilingEnd = date_stop != null ? date_stop : wim.FilingEnd;
+        //    wf.Change = DateTime.Now;
+        //    wf.ChangeUser = user;
+        //    return wim.Id;
+        //}
 
         /// <summary>
         /// * Открыть операцию подачи (создать новую или править старую-адм) (Возвращает 1-обновил, 0-не обновил, <0-ошибка)
@@ -565,7 +568,7 @@ namespace IDS.Helper
             {
                 if (wim.IdFiling == wf.Id && wim.FilingStart != null)
                 {
-                    if (wio != null && (wio.Close == null || (wio.Close != null && admin)))
+                    if (wio != null && (wf.Close == null || (wf.Close == null && admin)))
                     {
                         wio.UpdateOperation(date_start, date_stop, null, id_status_load, id_organization_service, user);
                         wim.FilingStart = date_start != null ? date_start : wim.FilingStart;
@@ -574,15 +577,161 @@ namespace IDS.Helper
                         wf.ChangeUser = user;
                         result = 1;
                     }
-                    else {
+                    else
+                    {
                         result = (int)errors_base.not_wio_db; // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
                     }
                 }
-                else {
+                else
+                {
                     result = (int)errors_base.wagon_not_operation; // По вагону нет операций
                 }
             }
             return wio;
+        }
+        /// <summary>
+        /// * Обновить статус операции 
+        /// </summary>
+        /// <param name="wim"></param>
+        /// <param name="context"></param>
+        /// <param name="wf"></param>
+        /// <param name="vag"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public static long SetUpdateStatusOperation(this WagonInternalMovement wim, ref EFDbContext context, WagonFiling wf, IOperationWagons vag, string user)
+        {
+            long result = 0;
+            if (vag is LoadingWagons)
+            {
+                if (((LoadingWagons)vag).id_status_load.IsEmpty())
+                {
+                    // Возвращаем порожний груз
+                    // Найдем груженный не закрытый груз и предыдущий груз (предыдущий откроем а груз груженный удалим)
+                    WagonInternalMoveCargo? wimc = context.WagonInternalMoveCargos.FirstOrDefault(w => w.IdWimLoad == wim.Id && w.Close == null && w.Empty != true);
+                    if (wimc != null)
+                    {
+                        WagonInternalMoveCargo? wimc_old = context.WagonInternalMoveCargos.FirstOrDefault(w => w.Id == wimc.ParentId);
+                        context.WagonInternalMoveCargos.Remove(wimc);
+                        if (wimc_old != null)
+                        {
+                            wimc_old.Close = null;
+                            wimc_old.CloseUser = null;
+                            context.WagonInternalMoveCargos.Update(wimc_old);
+                        }
+                        result = 1;
+                    }
+                }
+                else
+                {
+                    long res_load = wim.SetLoadInternalMoveCargo(ref context, wf, (LoadingWagons)vag, true, user);
+                    if (res_load < 0) return (int)res_load; // Ошибка                     
+                    result = 1;
+                }
+            }
+            return result;
+        }
+
+
+        #endregion
+
+        #region WagonFiling
+        /// <summary>
+        /// * Проверка подача существует и открыта (игнор если админ) (Возвращает >=0 Ок, <0-ошибка)
+        /// </summary>
+        /// <param name="wf"></param>
+        /// <param name="admin"></param>
+        /// <returns></returns>
+        public static long IsOpenFiling(this WagonFiling wf, bool admin = false)
+        {
+            if (wf == null) return (int)errors_base.not_wf_db;      // подача отсутсвует
+            if (wf.Close != null && !admin) return (int)errors_base.close_wf; // подача закрыта
+            return wf.Id;
+        }
+        /// <summary>
+        /// * Закрыть подачу
+        /// </summary>
+        /// <param name="wf"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public static long SetCloseFiling(this WagonFiling wf, string user, bool admin = false)
+        {
+            if (wf == null) return (int)errors_base.not_wf_db; // подача пуста   
+            if (wf.Close != null && !admin) return (int)errors_base.close_wf; // подача закрыта
+            int count = wf.WagonInternalMovements.Count();
+            int count_close = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).Count();
+
+            if ((wf.TypeFiling == 1 || wf.TypeFiling == 3 || wf.TypeFiling == 4) && count == count_close)
+            {
+                WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).OrderByDescending(c => c.FilingEnd).FirstOrDefault();
+                DateTime? close = wim_close_max != null ? wim_close_max.FilingEnd : null;
+                wf.EndFiling = close;
+                wf.Close = close;
+                wf.CloseUser = user;
+                return wf.Id;
+            }
+            if (wf.TypeFiling == 2 && count == count_close)
+            {
+                // Проверим на закрытый документ внутри подачи
+                bool document = true;
+                foreach (WagonInternalMovement wim in wf.WagonInternalMovements)
+                {
+                    WagonInternalOperation? wio = wim.IdWioNavigation;
+
+                    //WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.Close == null);
+                    WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.IdWimLoad == wim.Id);
+                    //if (wimc == null) wimc = wir.GetLastMoveCargo(ref context);
+                    if ((wimc == null && wio != null && !wio.IdLoadingStatus.IsEmpty()) || (wimc != null && wio != null && wimc.DocReceived == null && !wio.IdLoadingStatus.IsEmpty()))
+                    {
+                        document = false; break;
+                    }
+                }
+                // Закроем
+                if (wf.DocReceived != null || (wf.DocReceived == null && document))
+                {
+                    WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).OrderByDescending(c => c.FilingEnd).FirstOrDefault();
+                    DateTime? close = wim_close_max != null ? wim_close_max.FilingEnd : null;
+                    wf.EndFiling = close;
+                    wf.Close = close;
+                    wf.CloseUser = user;
+                    return wf.Id;
+                }
+            }
+
+
+            return 0; // не все позиции закрыты
+        }
+        /// <summary>
+        /// * Начать или сбросить начало операций в подаче (Возвращает 1-обновил, 0-не обновил, <0-ошибка)
+        /// </summary>
+        /// <param name="wf"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public static int SetOpenFiling(this WagonFiling wf, string user)
+        {
+            if (wf.Close != null) return (int)errors_base.close_wf; // подача закрыта
+            WagonInternalMovement? wim_open_min = wf.WagonInternalMovements.Where(m => m.FilingStart != null).OrderBy(c => c.FilingStart).FirstOrDefault();
+            DateTime? start = wim_open_min != null ? wim_open_min.FilingStart : null;
+            if (wf.StartFiling != start)
+            {
+                wf.StartFiling = start;
+                wf.Change = DateTime.Now;
+                wf.ChangeUser = user;
+                //return wf.Id;
+                return 1;
+            }
+            return 0;
+        }
+        /// <summary>
+        /// * Внутренее перемещение существует и открыто
+        /// </summary>
+        /// <param name="wim"></param>
+        /// <returns></returns>
+        public static long IsOpenWIR(this WagonInternalMovement wim)
+        {
+            WagonInternalRoute? wir = wim.IdWagonInternalRoutesNavigation;
+            // Внутренее перемещение существует и открыто
+            if (wir != null && wir.Close != null) return (int)errors_base.close_wir; // wir закрыт
+            return wim.Id; // 
         }
 
 
@@ -595,21 +744,33 @@ namespace IDS.Helper
         /// <returns></returns>
         public static long IsСheckAddWagonFiling(this WagonFiling wf, WagonInternalMovement? wim, bool admin = false)
         {
-            long result = wf.IsOpenFiling(admin);
-            if (result < 0) return result;
+            long result = wf.IsOpenFiling(admin); if (result < 0) return result;
             if (wim == null) return (int)errors_base.not_wim_db;    // запись wim не существует  
-            if (wim.Close != null || wim.WayEnd != null && !admin) return (int)errors_base.close_wim; // запись закрыта вагон не стоит на пути или строка закрыта
+            result = wim.IsOpenWIR(); if (result < 0) return result;
+            if ((wim.Close != null || wim.WayEnd != null) && !admin) return (int)errors_base.close_wim; // запись закрыта вагон не стоит на пути или строка закрыта
             if (wim.IdOuterWay != null) return (int)errors_base.wagon_not_way; // Вагон стоит на перегоне
-            if (wim.IdFiling != null && wim.IdFiling == wf.Id && wim.FilingEnd != null && !admin) return (int)errors_base.close_wf; // подача закрыта
-            if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling != wf.Id) return (int)errors_base.wim_lock_wf; // Вагон пренадлежит другой подаче
-            // Проверим внутренее перемещение вагона, существует? открыто?
-            WagonInternalRoute? wir = wim.IdWagonInternalRoutesNavigation;
-            // Внутренее перемещение существует
-            if (wir != null && wir.Close != null) return (int)errors_base.close_wir; // wir закрыт
+            if (wim.IdFiling != null && wf.Id != 0 && wim.IdFiling == wf.Id && wim.FilingEnd != null && wf.EndFiling != null && !admin) return (int)errors_base.close_wf; // подача закрыта
+            if (wim.IdFiling != null && wf.Id > 0 && wim.IdFiling != wf.Id && wim.FilingEnd == null) return (int)errors_base.wim_lock_wf; // Вагон пренадлежит другой подаче и операция в подаче не закрыта
             return wim.Id; // 
         }
         /// <summary>
-        /// * Метод добавить вагон в подачу ()
+        /// * По вагону возможна операция обновить вагон в подаче
+        /// </summary>
+        /// <param name="wf"></param>
+        /// <param name="wim"></param>
+        /// <param name="admin"></param>
+        /// <returns></returns>
+        public static long IsСheckUpdateWagonFiling(this WagonFiling wf, WagonInternalMovement? wim, bool admin = false)
+        {
+            long result = wf.IsOpenFiling(admin); if (result < 0) return result;
+            if (wim == null) return (int)errors_base.not_wim_db;    // запись wim не существует  
+            result = wim.IsOpenWIR(); if (result < 0) return result;
+            //if ((wim.Close != null || wim.WayEnd != null) && !admin) return (int)errors_base.close_wim; // запись закрыта вагон не стоит на пути или строка закрыта
+            if (wf.Id == 0 || wim.IdFiling == null || (wf.Id > 0 && wim.IdFiling != null && wim.IdFiling != wf.Id)) return (int)errors_base.wim_lock_wf; // Вагон пренадлежит другой подаче и операция в подаче не закрыта
+            return wim.Id; // 
+        }
+        /// <summary>
+        /// * Метод добавить вагон в подачу (по id_wim)
         /// </summary>
         /// <param name="wf"></param>
         /// <param name="context"></param>
@@ -617,9 +778,9 @@ namespace IDS.Helper
         /// <param name="user"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public static WagonInternalMovement? SetAddUpdateWagonFiling(this WagonFiling wf, ref EFDbContext context, long id_wim, string user, out long result)
+        public static WagonInternalMovement? SetAddUpdateWagonFiling(this WagonFiling wf, ref EFDbContext context, long id_wim, bool update, string user, out long result, bool admin = false)
         {
-            result = wf.IsOpenFiling(); // подача существует и открыта (добавление вагонов в закрытую подачу нет - АДМ)
+            result = wf.IsOpenFiling(admin); // подача существует и открыта (добавление вагонов в закрытую подачу нет - АДМ)
             if (result >= 0)
             {
                 // Найдем строку тек позиции в подаче
@@ -632,8 +793,30 @@ namespace IDS.Helper
                         .Include(wio => wio.IdWioNavigation)
                         .Where(m => m.Id == id_wim).FirstOrDefault();
                 }
-                // Проверим тек позиция - открыта, не стоит на перегоне, не пренадлежит не закрытой 
-                result = IsСheckAddWagonFiling(wf, wim);
+                return wf.SetAddUpdateWagonFiling(ref context, wim, update, user, out result, admin);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        /// <summary>
+        /// * Метод добавить вагон в подачу (по строке WagonInternalMovement)
+        /// </summary>
+        /// <param name="wf"></param>
+        /// <param name="context"></param>
+        /// <param name="wim"></param>
+        /// <param name="user"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public static WagonInternalMovement? SetAddUpdateWagonFiling(this WagonFiling wf, ref EFDbContext context, WagonInternalMovement? wim, bool update, string user, out long result, bool admin = false)
+        {
+            result = wf.IsOpenFiling(admin); // подача существует и открыта (игнор закрыта если админка)
+            if (result >= 0)
+            {
+                // Проверим тек позиция - открыта, не стоит на перегоне, не пренадлежит не закрытому внутренему перемещению
+                // и возможено обновление(удаление) или добавление
+                result = update ? IsСheckUpdateWagonFiling(wf, wim, admin) : IsСheckAddWagonFiling(wf, wim, admin);
                 if (result >= 0)
                 {
                     WagonInternalRoute wir = wim.IdWagonInternalRoutesNavigation;
@@ -674,10 +857,12 @@ namespace IDS.Helper
                         wf.WagonInternalMovements.Add(wim_new);
                         wf.Change = DateTime.Now;
                         wf.ChangeUser = user;
+                        result = 1;
                         return wim_new;
                     }
                     else
                     {
+                        result = wim.Id;
                         return wim;
                     }
                 }
@@ -690,95 +875,6 @@ namespace IDS.Helper
             {
                 return null;
             }
-        }
-
-        #endregion
-
-        #region WagonFiling
-        /// <summary>
-        /// * Проверка подача существует и открыта (игнор если админ) (Возвращает >=0 Ок, <0-ошибка)
-        /// </summary>
-        /// <param name="wf"></param>
-        /// <param name="admin"></param>
-        /// <returns></returns>
-        public static long IsOpenFiling(this WagonFiling wf, bool admin = false)
-        {
-            if (wf == null) return (int)errors_base.not_wf_db;      // подача отсутсвует
-            if (wf.Close != null && !admin) return (int)errors_base.close_wf; // подача закрыта
-            return wf.Id;
-        }
-        /// <summary>
-        /// Закрыть подачу
-        /// </summary>
-        /// <param name="wf"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public static long SetCloseFiling(this WagonFiling wf, string user)
-        {
-            if (wf == null) return (int)errors_base.not_wf_db; // подача пуста   
-            if (wf.Close != null) return (int)errors_base.close_wf; // подача закрыта
-            int count = wf.WagonInternalMovements.Count();
-            int count_close = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).Count();
-
-            if ((wf.TypeFiling == 1 || wf.TypeFiling == 3 || wf.TypeFiling == 4) && count == count_close)
-            {
-                WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).OrderByDescending(c => c.FilingEnd).FirstOrDefault();
-                DateTime? close = wim_close_max != null ? wim_close_max.FilingEnd : null;
-                wf.EndFiling = close;
-                wf.Close = close;
-                wf.CloseUser = user;
-                return wf.Id;
-            }
-            if (wf.TypeFiling == 2 && count == count_close)
-            {
-                // Проверим на закрытый документ внутри подачи
-                bool document = true;
-                foreach (WagonInternalMovement wim in wf.WagonInternalMovements)
-                {
-                    WagonInternalOperation? wio = wim.IdWioNavigation;
-
-                    //WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.Close == null);
-                    WagonInternalMoveCargo? wimc = wim.WagonInternalMoveCargoIdWimLoadNavigations.FirstOrDefault(w => w.IdWimLoad == wim.Id);
-                    if (wimc == null || (wio != null && wimc.DocReceived == null && wio.IdLoadingStatus != 0))
-                    {
-                        document = false; break;
-                    }
-                }
-                // Закроем
-                if (wf.DocReceived != null || (wf.DocReceived == null && document))
-                {
-                    WagonInternalMovement? wim_close_max = wf.WagonInternalMovements.Where(m => m.FilingEnd != null).OrderByDescending(c => c.FilingEnd).FirstOrDefault();
-                    DateTime? close = wim_close_max != null ? wim_close_max.FilingEnd : null;
-                    wf.EndFiling = close;
-                    wf.Close = close;
-                    wf.CloseUser = user;
-                    return wf.Id;
-                }
-            }
-
-
-            return 0; // не все позиции закрыты
-        }
-        /// <summary>
-        /// * Начать или сбросить начало операций в подаче (Возвращает 1-обновил, 0-не обновил, <0-ошибка)
-        /// </summary>
-        /// <param name="wf"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public static int SetOpenFiling(this WagonFiling wf, string user)
-        {
-            if (wf.Close != null) return (int)errors_base.close_wf; // подача закрыта
-            WagonInternalMovement? wim_open_min = wf.WagonInternalMovements.Where(m => m.FilingStart != null).OrderBy(c => c.FilingStart).FirstOrDefault();
-            DateTime? start = wim_open_min != null ? wim_open_min.FilingStart : null;
-            if (wf.StartFiling != start)
-            {
-                wf.StartFiling = start;
-                wf.Change = DateTime.Now;
-                wf.ChangeUser = user;
-                //return wf.Id;
-                return 1;
-            }
-            return 0;
         }
         ///// <summary>
         ///// Добавить вагон в подачу
@@ -853,76 +949,76 @@ namespace IDS.Helper
         /// <param name="wim"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public static long SetDeleteWagonFiling_old(this WagonFiling wf, ref EFDbContext context, WagonInternalMovement wim, string user)
-        {
-            long result = wf.IsFreeFiling_old(wim);
-            if (result < 0) return result;
-            WagonInternalOperation? wio = null;
-            // Если wim не пренадлежит подаче, тогда добавим в подачу
-            if (wf.Id != wim.IdFiling) return (int)errors_base.wim_lock_wf;
-            // если подача открыта, тогда прочтем операцию
-            if (wim.FilingStart != null)
-            {
-                wio = wim.IdWioNavigation;
-                // Операция закрыта
-                if (wio != null && wio.OperationStart != null && wio.OperationEnd != null) return (int)errors_base.wagon_close_operation;
-            }
-            // Подача на вагон закрыта?
-            if (wim.FilingStart != null && wim.FilingEnd != null) return (int)errors_base.wim_close_wf;                                 // Вагон заблокирован, операция в подаче по вагону закрыта
+        //public static long SetDeleteWagonFiling_old(this WagonFiling wf, ref EFDbContext context, WagonInternalMovement wim, string user)
+        //{
+        //    long result = wf.IsFreeFiling_old(wim);
+        //    if (result < 0) return result;
+        //    WagonInternalOperation? wio = null;
+        //    // Если wim не пренадлежит подаче, тогда добавим в подачу
+        //    if (wf.Id != wim.IdFiling) return (int)errors_base.wim_lock_wf;
+        //    // если подача открыта, тогда прочтем операцию
+        //    if (wim.FilingStart != null)
+        //    {
+        //        wio = wim.IdWioNavigation;
+        //        // Операция закрыта
+        //        if (wio != null && wio.OperationStart != null && wio.OperationEnd != null) return (int)errors_base.wagon_close_operation;
+        //    }
+        //    // Подача на вагон закрыта?
+        //    if (wim.FilingStart != null && wim.FilingEnd != null) return (int)errors_base.wim_close_wf;                                 // Вагон заблокирован, операция в подаче по вагону закрыта
 
-            // Погрузка текущая
-            if (wim != null)
-            {
-                WagonInternalMoveCargo? wimc = context.WagonInternalMoveCargos.Where(w => w.IdWimLoad == wim.Id).FirstOrDefault();
-                // Проверим есть погрузка текущая
-                if (wimc != null && wimc.Close == null)
-                {
-                    WagonInternalMoveCargo? wimc_parent = wimc.ParentId != null ? context.WagonInternalMoveCargos.Where(w => w.Id == wimc.ParentId).FirstOrDefault() : null;
-                    if (wimc_parent != null)
-                    {
-                        wimc_parent.Close = null;
-                        wimc_parent.CloseUser = null;
-                        context.WagonInternalMoveCargos.Update(wimc_parent);
-                    }
-                    context.WagonInternalMoveCargos.Remove(wimc);
-                }
-                // удалим ссылку на подачу
-                wim.IdFiling = null;
-                wim.FilingStart = null;
-                wim.FilingEnd = null;
-                wim.Note = null;
-                wim.IdWio = wio != null ? null : wim.IdWio; // сбросим если есть операция
-                context.WagonInternalMovements.Update(wim);
-                wf.WagonInternalMovements.Remove(wim);
-                context.WagonFilings.Update(wf);
-                // удалим операцию подачи
-                if (wio != null) context.WagonInternalOperations.Remove(wio);
-            }
-            // Проверка на пустую подачу
-            if (wf.WagonInternalMovements == null || wf.WagonInternalMovements.Count() == 0)
-            {
-                context.WagonFilings.Remove(wf); // удалить
-                return wim.Id;
-            }
-            else
-            {
-                // проверим на открытые операции (если нет удалим начало подачи)
-                int count_open_operation = wf.IsCountOpenOperationFiling();
-                wf.StartFiling = count_open_operation == 0 ? null : wf.StartFiling;
-                wf.EndFiling = count_open_operation == 0 ? null : wf.EndFiling;
-                wf.Change = DateTime.Now;
-                wf.ChangeUser = user;
-                long res = wf.SetCloseFiling(user);
-                if (res < 0)
-                {
-                    return res;
-                }
-                else
-                {
-                    return wim.Id;
-                }
-            }
-        }
+        //    // Погрузка текущая
+        //    if (wim != null)
+        //    {
+        //        WagonInternalMoveCargo? wimc = context.WagonInternalMoveCargos.Where(w => w.IdWimLoad == wim.Id).FirstOrDefault();
+        //        // Проверим есть погрузка текущая
+        //        if (wimc != null && wimc.Close == null)
+        //        {
+        //            WagonInternalMoveCargo? wimc_parent = wimc.ParentId != null ? context.WagonInternalMoveCargos.Where(w => w.Id == wimc.ParentId).FirstOrDefault() : null;
+        //            if (wimc_parent != null)
+        //            {
+        //                wimc_parent.Close = null;
+        //                wimc_parent.CloseUser = null;
+        //                context.WagonInternalMoveCargos.Update(wimc_parent);
+        //            }
+        //            context.WagonInternalMoveCargos.Remove(wimc);
+        //        }
+        //        // удалим ссылку на подачу
+        //        wim.IdFiling = null;
+        //        wim.FilingStart = null;
+        //        wim.FilingEnd = null;
+        //        wim.Note = null;
+        //        wim.IdWio = wio != null ? null : wim.IdWio; // сбросим если есть операция
+        //        context.WagonInternalMovements.Update(wim);
+        //        wf.WagonInternalMovements.Remove(wim);
+        //        context.WagonFilings.Update(wf);
+        //        // удалим операцию подачи
+        //        if (wio != null) context.WagonInternalOperations.Remove(wio);
+        //    }
+        //    // Проверка на пустую подачу
+        //    if (wf.WagonInternalMovements == null || wf.WagonInternalMovements.Count() == 0)
+        //    {
+        //        context.WagonFilings.Remove(wf); // удалить
+        //        return wim.Id;
+        //    }
+        //    else
+        //    {
+        //        // проверим на открытые операции (если нет удалим начало подачи)
+        //        int count_open_operation = wf.IsCountOpenOperationFiling();
+        //        wf.StartFiling = count_open_operation == 0 ? null : wf.StartFiling;
+        //        wf.EndFiling = count_open_operation == 0 ? null : wf.EndFiling;
+        //        wf.Change = DateTime.Now;
+        //        wf.ChangeUser = user;
+        //        long res = wf.SetCloseFiling(user);
+        //        if (res < 0)
+        //        {
+        //            return res;
+        //        }
+        //        else
+        //        {
+        //            return wim.Id;
+        //        }
+        //    }
+        //}
         /// <summary>
         /// Убрать вагон из подачи (если указан админ удалим из закрытой с проверкой на наличие следующей подачи)
         /// </summary>
@@ -940,7 +1036,8 @@ namespace IDS.Helper
                 // Найдем строку тек позиции в подаче
                 WagonInternalMovement? wim = wf.WagonInternalMovements.FirstOrDefault(m => m.Id == id_wim);
                 // Проверим тек позиция - открыта, не стоит на перегоне, не пренадлежит не закрытой или это админка
-                result = IsСheckAddWagonFiling(wf, wim, admin);
+                //result = IsСheckAddWagonFiling(wf, wim, admin);
+                result = IsСheckUpdateWagonFiling(wf, wim, admin);
                 if (result >= 0)
                 {
                     ViewFilingNext? fn = list_filing_next.FirstOrDefault(n => n.IdWim == id_wim);
