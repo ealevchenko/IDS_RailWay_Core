@@ -361,6 +361,44 @@ public class ViewWagonsFiling
     [StringLength(30)]
     public string? LimitingAbbrEn { get; set; }
 
+    [Column("view_id_operator")]
+    public int? ViewIdOperator { get; set; }
+
+    [Column("view_operator_ru")]
+    [StringLength(100)]
+    public string? ViewOperatorRu { get; set; }
+
+    [Column("view_operator_en")]
+    [StringLength(100)]
+    public string? ViewOperatorEn { get; set; }
+
+    [Column("view_operator_abbr_ru")]
+    [StringLength(20)]
+    public string? ViewOperatorAbbrRu { get; set; }
+
+    [Column("view_operator_abbr_en")]
+    [StringLength(20)]
+    public string? ViewOperatorAbbrEn { get; set; }
+
+    [Column("view_id_limiting_loading")]
+    public int? ViewIdLimitingLoading { get; set; }
+
+    [Column("view_limiting_name_ru")]
+    [StringLength(100)]
+    public string? ViewLimitingNameRu { get; set; }
+
+    [Column("view_limiting_name_en")]
+    [StringLength(100)]
+    public string? ViewLimitingNameEn { get; set; }
+
+    [Column("view_limiting_abbr_ru")]
+    [StringLength(30)]
+    public string? ViewLimitingAbbrRu { get; set; }
+
+    [Column("view_limiting_abbr_en")]
+    [StringLength(30)]
+    public string? ViewLimitingAbbrEn { get; set; }
+
     [Column("arrival_condition_id_condition")]
     public int? ArrivalConditionIdCondition { get; set; }
 
@@ -530,6 +568,9 @@ public class ViewWagonsFiling
     [StringLength(50)]
     public string? CurrentOrganizationServiceEn { get; set; }
 
+    [Column("current_wimc_id")]
+    public long? CurrentWimcId { get; set; }
+
     [Column("internal_doc_num")]
     [StringLength(20)]
     public string? InternalDocNum { get; set; }
@@ -543,46 +584,70 @@ public class ViewWagonsFiling
     [Column("current_cargo_id_group")]
     public int? CurrentCargoIdGroup { get; set; }
 
-    [Column("current_cargo_group_name_ru")]
-    [StringLength(50)]
-    public string? CurrentCargoGroupNameRu { get; set; }
-
-    [Column("current_cargo_group_name_en")]
-    [StringLength(50)]
-    public string? CurrentCargoGroupNameEn { get; set; }
-
     [Column("current_cargo_id_cargo")]
     public int? CurrentCargoIdCargo { get; set; }
-
-    [Column("current_cargo_name_ru")]
-    [StringLength(50)]
-    public string? CurrentCargoNameRu { get; set; }
-
-    [Column("current_cargo_name_en")]
-    [StringLength(50)]
-    public string? CurrentCargoNameEn { get; set; }
 
     [Column("current_internal_cargo_id_group")]
     public int? CurrentInternalCargoIdGroup { get; set; }
 
-    [Column("current_internal_cargo_group_name_ru")]
-    [StringLength(50)]
-    public string? CurrentInternalCargoGroupNameRu { get; set; }
-
-    [Column("current_internal_cargo_group_name_en")]
-    [StringLength(50)]
-    public string? CurrentInternalCargoGroupNameEn { get; set; }
-
     [Column("current_internal_cargo_id_internal_cargo")]
     public int? CurrentInternalCargoIdInternalCargo { get; set; }
 
-    [Column("current_internal_cargo_name_ru")]
+    [Column("view_current_cargo_name_ru")]
     [StringLength(50)]
-    public string? CurrentInternalCargoNameRu { get; set; }
+    public string? ViewCurrentCargoNameRu { get; set; }
 
-    [Column("current_internal_cargo_name_en")]
+    [Column("view_current_cargo_name_en")]
     [StringLength(50)]
-    public string? CurrentInternalCargoNameEn { get; set; }
+    public string? ViewCurrentCargoNameEn { get; set; }
+
+    [Column("view_current_cargo_group_name_ru")]
+    [StringLength(50)]
+    public string? ViewCurrentCargoGroupNameRu { get; set; }
+
+    [Column("view_current_cargo_group_name_en")]
+    [StringLength(50)]
+    public string? ViewCurrentCargoGroupNameEn { get; set; }
+
+    [Column("view_current_division_from_abbr_ru")]
+    [StringLength(50)]
+    public string? ViewCurrentDivisionFromAbbrRu { get; set; }
+
+    [Column("view_current_division_from_abbr_en")]
+    [StringLength(50)]
+    public string? ViewCurrentDivisionFromAbbrEn { get; set; }
+
+    [Column("view_current_division_on_abbr_ru")]
+    [StringLength(50)]
+    public string? ViewCurrentDivisionOnAbbrRu { get; set; }
+
+    [Column("view_current_division_on_abbr_en")]
+    [StringLength(50)]
+    public string? ViewCurrentDivisionOnAbbrEn { get; set; }
+
+    [Column("view_current_external_station_on_name_ru")]
+    [StringLength(50)]
+    public string? ViewCurrentExternalStationOnNameRu { get; set; }
+
+    [Column("view_current_external_station_on_name_en")]
+    [StringLength(50)]
+    public string? ViewCurrentExternalStationOnNameEn { get; set; }
+
+    [Column("view_current_station_from_amkr_abbr_ru")]
+    [StringLength(50)]
+    public string? ViewCurrentStationFromAmkrAbbrRu { get; set; }
+
+    [Column("view_current_station_from_amkr_abbr_en")]
+    [StringLength(50)]
+    public string? ViewCurrentStationFromAmkrAbbrEn { get; set; }
+
+    [Column("view_current_station_on_amkr_abbr_ru")]
+    [StringLength(50)]
+    public string? ViewCurrentStationOnAmkrAbbrRu { get; set; }
+
+    [Column("view_current_station_on_amkr_abbr_en")]
+    [StringLength(50)]
+    public string? ViewCurrentStationOnAmkrAbbrEn { get; set; }
 
     [Column("current_vesg")]
     public int? CurrentVesg { get; set; }
@@ -770,6 +835,9 @@ public class ViewWagonsFiling
     [StringLength(50)]
     public string? FilingOrganizationServiceEn { get; set; }
 
+    [Column("filing_wimc_id")]
+    public long? FilingWimcId { get; set; }
+
     [Column("filing_internal_doc_num")]
     [StringLength(20)]
     public string? FilingInternalDocNum { get; set; }
@@ -783,46 +851,70 @@ public class ViewWagonsFiling
     [Column("filing_cargo_id_group")]
     public int? FilingCargoIdGroup { get; set; }
 
-    [Column("filing_cargo_group_name_ru")]
-    [StringLength(50)]
-    public string? FilingCargoGroupNameRu { get; set; }
-
-    [Column("filing_cargo_group_name_en")]
-    [StringLength(50)]
-    public string? FilingCargoGroupNameEn { get; set; }
-
     [Column("filing_cargo_id_cargo")]
     public int? FilingCargoIdCargo { get; set; }
-
-    [Column("filing_cargo_name_ru")]
-    [StringLength(50)]
-    public string? FilingCargoNameRu { get; set; }
-
-    [Column("filing_cargo_name_en")]
-    [StringLength(50)]
-    public string? FilingCargoNameEn { get; set; }
 
     [Column("filing_internal_cargo_id_group")]
     public int? FilingInternalCargoIdGroup { get; set; }
 
-    [Column("filing_internal_cargo_group_name_ru")]
-    [StringLength(50)]
-    public string? FilingInternalCargoGroupNameRu { get; set; }
-
-    [Column("filing_internal_cargo_group_name_en")]
-    [StringLength(50)]
-    public string? FilingInternalCargoGroupNameEn { get; set; }
-
     [Column("filing_internal_cargo_id_internal_cargo")]
     public int? FilingInternalCargoIdInternalCargo { get; set; }
 
-    [Column("filing_internal_cargo_name_ru")]
+    [Column("view_filing_cargo_name_ru")]
     [StringLength(50)]
-    public string? FilingInternalCargoNameRu { get; set; }
+    public string? ViewFilingCargoNameRu { get; set; }
 
-    [Column("filing_internal_cargo_name_en")]
+    [Column("view_filing_cargo_name_en")]
     [StringLength(50)]
-    public string? FilingInternalCargoNameEn { get; set; }
+    public string? ViewFilingCargoNameEn { get; set; }
+
+    [Column("view_filing_cargo_group_name_ru")]
+    [StringLength(50)]
+    public string? ViewFilingCargoGroupNameRu { get; set; }
+
+    [Column("view_filing_cargo_group_name_en")]
+    [StringLength(50)]
+    public string? ViewFilingCargoGroupNameEn { get; set; }
+
+    [Column("view_filing_division_from_abbr_ru")]
+    [StringLength(50)]
+    public string? ViewFilingDivisionFromAbbrRu { get; set; }
+
+    [Column("view_filing_division_from_abbr_en")]
+    [StringLength(50)]
+    public string? ViewFilingDivisionFromAbbrEn { get; set; }
+
+    [Column("view_filing_division_on_abbr_ru")]
+    [StringLength(50)]
+    public string? ViewFilingDivisionOnAbbrRu { get; set; }
+
+    [Column("view_filing_division_on_abbr_en")]
+    [StringLength(50)]
+    public string? ViewFilingDivisionOnAbbrEn { get; set; }
+
+    [Column("view_filing_external_station_on_name_ru")]
+    [StringLength(50)]
+    public string? ViewFilingExternalStationOnNameRu { get; set; }
+
+    [Column("view_filing_external_station_on_name_en")]
+    [StringLength(50)]
+    public string? ViewFilingExternalStationOnNameEn { get; set; }
+
+    [Column("view_filing_station_from_amkr_abbr_ru")]
+    [StringLength(50)]
+    public string? ViewFilingStationFromAmkrAbbrRu { get; set; }
+
+    [Column("view_filing_station_from_amkr_abbr_en")]
+    [StringLength(50)]
+    public string? ViewFilingStationFromAmkrAbbrEn { get; set; }
+
+    [Column("view_filing_station_on_amkr_abbr_ru")]
+    [StringLength(50)]
+    public string? ViewFilingStationOnAmkrAbbrRu { get; set; }
+
+    [Column("view_filing_station_on_amkr_abbr_en")]
+    [StringLength(50)]
+    public string? ViewFilingStationOnAmkrAbbrEn { get; set; }
 
     [Column("filing_vesg")]
     public int? FilingVesg { get; set; }
@@ -949,4 +1041,31 @@ public class ViewWagonsFiling
     [StringLength(50)]
     public string? FilingMoveCargoCloseUser { get; set; }
 
+    [Column("old_id_operation")]
+    public int? OldIdOperation { get; set; }
+
+    [Column("old_operation_name_ru")]
+    [StringLength(50)]
+    public string? OldOperationNameRu { get; set; }
+
+    [Column("old_operation_name_en")]
+    [StringLength(50)]
+    public string? OldOperationNameEn { get; set; }
+
+    [Column("old_wimc_id")]
+    public long? OldWimcId { get; set; }
+
+    [Column("old_cargo_id_cargo")]
+    public int? OldCargoIdCargo { get; set; }
+
+    [Column("old_internal_cargo_id_internal_cargo")]
+    public int? OldInternalCargoIdInternalCargo { get; set; }
+
+    [Column("view_old_cargo_name_ru")]
+    [StringLength(50)]
+    public string? ViewOldCargoNameRu { get; set; }
+
+    [Column("view_old_cargo_name_en")]
+    [StringLength(50)]
+    public string? ViewOldCargoNameEn { get; set; }
 }

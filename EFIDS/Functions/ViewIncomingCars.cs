@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EFIDS.Functions;
 
-public partial class ViewIncomingCars
+public class ViewIncomingCars
 {
     [Key]
     [Column("arrival_car_id")]

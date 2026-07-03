@@ -10,6 +10,34 @@
         close = 5,
         clear = 6,
     }
+    /// <summary>
+    /// Список операций над вагонами
+    /// </summary>
+    //public enum wagon_operations
+    //{
+    //    not = 0,
+    //    arrival_from_uz = 1,
+    //    departure_to_uz = 2,
+    //    dislocation = 3,
+    //    dissolution = 4,
+    //    sending = 5,
+    //    arrival = 6,
+    //    transportation = 7,
+    //    manual_placement = 8,
+    //    presentation_for_uz = 9,
+    //    returns = 10,
+    //    return_outer_way = 11,
+    //    cancel = 12,
+    //    unloading_from_uz = 13,
+    //    unloading_if = 14,
+    //    loading_uz = 15,
+    //    loading_if = 16,
+    //    cleaning = 17,
+    //    processing = 18,
+    //}
+    /// <summary>
+    /// Список ошибок
+    /// </summary>
     public enum errors_base : int
     {
         global = -1,
@@ -42,7 +70,8 @@
         err_last_wim_db = -305,                     // Ошибка позиция вагона несоответсвует последней позиции в базе
         wim_lock_wf = -306,                         // Вагон заблокирован, пренадлежит другой подаче
         wim_open_wf = -307,                         // Вагон заблокирован, операция в подаче уже открыта
-        close_wim = -308,                           // Вагон закрыт
+        wim_close_wf = -308,                        // Вагон заблокирован, операция в подаче по вагону закрыта
+        close_wim = -309,                           // Вагон закрыт
 
         // таблица подач wf -350...
         not_wf_db = -351,                           // В базе данных нет записи по WagonFiling (Подача вагонов)
@@ -50,6 +79,8 @@
         wf_not_wagon = -353,                        // Запись WagonFiling не имеет вагонов
         err_total_value_wf = -354,                  // Ошибка, общих параметров операции
         err_type_wf = -355,                         // Ошибка, тип подачи не соответсвуеет операции
+        err_wf_add_wagon = -356,                    // Ошибка, запрет добавления вагона в операцию
+        err_wf_del_wagon = -357,                    // Ошибка, запрет удаления вагона из подачи (по вагону открыта слежующая подача)
 
         // таблица wio -400...
         not_wio_db = -401,                          // В базе данных нет записи по WagonInternalOperation (Внутренняя операция по вагону)
@@ -62,7 +93,11 @@
         err_last_wio_db = -408,                     // Ошибка, операция вагона несоответсвует последней операции во внутренем перемещении
         wagon_open_operation = -409,                // Операция открыта
         wagon_close_operation = -410,               // Операция закрыта
-        wagon_not_open_operation = -410,            // Операция не открыта
+        wagon_not_open_operation = -411,            // Операция не открыта
+        err_data_operation = -412,                  // Ошибка даты операции (попытка присвоить дату больше следующей или меньше предыдущей)
+        err_wio_error_input_value = -413,           // Ошибка входных параметров
+        not_wio_organization_service = -414,        // Для операции не указана организация выполняющая операцию
+        not_wio_status_load = -415,                 // Для операции не указан статус
 
         // таблица wimc -450...
         not_wimc_db = -451,                         // В базе данных нет записи по WagonInternalMoveCargo (Внутренняя операция перемещения груза по АМКР)
@@ -191,17 +226,23 @@
         not_dir_station_of_db = -2301,                      // В базе данных нет указаной станции
 
         // Directory_Wagons -2400..
-        not_dir_wagon_of_db = -2401,                        // В базе данных нет записи указанной строки вагона
+        not_dir_wagon_of_db = -2401,                       // В базе данных нет записи указанной строки вагона
         error_sys_numeration_wagon = -2402,                // Ошибка системной нумерации вагона
         error_numeration_wagon = -2403,                    // Ошибка нумерации вагона (- или =0)
-        exists_dir_wagon_of_db = -2404,                     // В базе данных уже есть запись по указаному вагону
+        exists_dir_wagon_of_db = -2404,                    // В базе данных уже есть запись по указаному вагону
+
+        // Directory_OperatorsWagons -2450..
+
+        // Directory_OperatorsWagonsGroup
 
         // Directory_OuterWays -2500..
         not_dir_outerways_of_db = -2501,                    // В базе данных нет записи указаного перегона
 
 
     }
-
+    /// <summary>
+    /// 
+    /// </summary>
     public class ChangeID
     {
         public long id_old { get; set; }

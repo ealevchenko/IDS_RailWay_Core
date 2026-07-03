@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
 using WebAPI.Controllers.GIVC;
 using WebAPI.Repositories;
 using WebAPI.Repositories.Directory;
@@ -156,7 +157,7 @@ namespace WebAPI.Controllers.Directory
     //    public int id_way { get; set; }
     //    public List<ProcessingWagons> wagons { get; set; }
     //}
-    public class OperationADWagonFiling
+    public class OperationEditWagonFiling
     {
         public int id_filing { get; set; }
         public List<long> wagons { get; set; }
@@ -192,7 +193,19 @@ namespace WebAPI.Controllers.Directory
     {
         public int id_filing { get; set; }
         public int mode { get; set; }
-        public int id_division { get; set; }
+        public int? id_division { get; set; }
+        public int? id_wagon_operations { get; set; }
+        public int? id_organization_service { get; set; }
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    public class OperationUpdateDateFiling
+    {
+        public int id_filing { get; set; }
+        public DateTime? start { get; set; }
+        public DateTime? stop { get; set; }
+        public List<long> wagons { get; set; }
     }
     #endregion
 
@@ -235,6 +248,7 @@ namespace WebAPI.Controllers.Directory
         public List<IdNumStatusWagon> wagons { get; set; }
     }
     #endregion
+
     #region ОПЕРАЦИЯ ПЛАТА ПОЛЬЗОВАНИЯ
     public class OperationUpdateUsageFeePeriodDetali
     {
@@ -280,7 +294,6 @@ namespace WebAPI.Controllers.Directory
 
     #endregion
 
-
     #region ОПЕРАЦИЯ АДМ
     public class AdmDivisionOutgoingWagons
     {
@@ -322,22 +335,6 @@ namespace WebAPI.Controllers.Directory
         private readonly IConfiguration _configuration;
         EventId _eventId = new EventId(0);
         EventId _eventId_ids_wir = new EventId(0);
-        //string _Role_ACCEPT_RW = "";
-        //string _Role_SEND_RW = "";
-        //string _Role_TRF_ACCEPT_RW = "";
-        //string _Role_TRF_SEND_RW = "";
-        //string _Role_DOK_ACCEPT_RW = "";
-        //string _Role_DOK_SEND_RW = "";
-        //string _Role_DOK_RO = "";
-        //string _Role_LET_WORK_RO = "";
-        //public string _Role_ADMIN = "";
-        //string _Role_PAY_RW = "";
-        //string _Role_LETTERS = "";
-        //string _Role_DIRECTORY_RW = "";
-        //string _Role_ADDRESS_RW = "";
-        //string _Role_COM_STAT_RW = "";
-        //string _Role_COND_ARR_RW = "";
-        //string _Role_COND_SEND_RW = "";
 
         public WSDController(EFDbContext db, ILogger<WSDController> logger, IConfiguration configuration)
         {
@@ -679,7 +676,7 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-        // GET: WSD/view/wagons/filing/period/start/2024-10-15T00:00:00/stop/2024-12-30T00:00:00/station/id/7
+        // GET: WSD/view/wagons/filing/period/start/2026-03-01T00:01/stop/2026-03-24T23:59/station/id/36
         [HttpGet("view/wagons/filing/period/start/{start:DateTime}/stop/{stop:DateTime}/station/id/{id_station}")]
         public async Task<ActionResult<IEnumerable<ViewWagonsFiling>>> GetViewWagonsFilingOfPeriodIdStation(DateTime start, DateTime stop, int id_station)
         {
@@ -690,6 +687,28 @@ namespace WebAPI.Controllers.Directory
                 if (result == null)
                     return NotFound();
                 db.Database.SetCommandTimeout(0);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Получить список операций предыдущей и следующей по id_wim
+        /// </summary>
+        /// <param name="id_wim"></param>
+        /// <returns></returns>
+        // GET: WSD/view/operation/history/wim/12691510
+        [HttpGet("view/operation/history/wim/{id_wim}")]
+        public async Task<ActionResult<ViewHistoryOperations>> GetViewHistoryOperationsOfIdWim(long id_wim)
+        {
+            try
+            {
+                ViewHistoryOperations? result = await db.getViewHistoryOperationsOfIdWim(id_wim).FirstOrDefaultAsync();
+                if (result == null)
+                    return NotFound();
                 return Ok(result);
             }
             catch (Exception e)
@@ -1052,9 +1071,32 @@ namespace WebAPI.Controllers.Directory
 
         #region ОПЕРАЦИЯ ФОРМИРОВАНИЯ ПОДАЧ (ВЫГРУЗКА, ПОГРУЗКА...)
 
+        /// <summary>
+        /// Получить список следующих подач по вагонам подачи по id_filing
+        /// </summary>
+        /// <param name="id_filing"></param>
+        /// <returns></returns>
+        // GET: WSD/view/filing_next/filing/203485
+        [HttpGet("view/filing_next/filing/{id_filing}")]
+        public async Task<ActionResult<IEnumerable<ViewFilingNext>>> GetViewNextFilingOfIdFiling(long id_filing)
+        {
+            try
+            {
+                List<ViewFilingNext> result = await db.getViewNextFilingOfIdFiling(id_filing).ToListAsync();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         // POST: WSD/add/filing/operation/unloading
         // BODY: WSD (JSON, XML)
         [HttpPost("add/filing/operation/unloading")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostAddFilingUnloading([FromBody] OperationAddFilingUnloading value)
         {
             try
@@ -1079,6 +1121,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/add/filing/operation/loading
         // BODY: WSD (JSON, XML)
         [HttpPost("add/filing/operation/loading")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostAddFilingLoading([FromBody] OperationAddFilingLoading value)
         {
             try
@@ -1103,6 +1146,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/add/filing/operation/cleaning
         // BODY: WSD (JSON, XML)
         [HttpPost("add/filing/operation/cleaning")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostAddFilingCleaning([FromBody] OperationAddFilingCleaning value)
         {
             try
@@ -1124,34 +1168,11 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-        //// POST: WSD/add/filing/operation/processing
-        //// BODY: WSD (JSON, XML)
-        //[HttpPost("add/filing/operation/processing")]
-        //public async Task<ActionResult<ResultUpdateIDWagon>> PostAddFilingProcessing([FromBody] OperationAddFilingProcessing value)
-        //{
-        //    try
-        //    {
-        //        string user = HttpContext.User.Identity.Name;
-        //        bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
-
-        //        if (value == null || !IsAuthenticated)
-        //        {
-        //            return BadRequest();
-        //        }
-        //        IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-        //        ResultUpdateIDWagon result = ids_wir.AddFiling(value.id_filing, null, value.type_filing, value.id_way, null, value.wagons, user);
-        //        return Ok(result);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return BadRequest(e.Message);
-        //    }
-        //}
-
         // POST: WSD/add/wagon/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("add/wagon/filing")]
-        public async Task<ActionResult<ResultUpdateIDWagon>> PostAddWagonFiling([FromBody] OperationADWagonFiling value)
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostAddWagonFiling([FromBody] OperationEditWagonFiling value)
         {
             try
             {
@@ -1162,8 +1183,9 @@ namespace WebAPI.Controllers.Directory
                 {
                     return BadRequest();
                 }
+                bool admin = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_ADMIN");
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.AddWagonOfFiling(value.id_filing, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.AddWagonOfFiling(value.id_filing, value.wagons, user, admin);
                 return Ok(result);
             }
             catch (Exception e)
@@ -1175,7 +1197,8 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/delete/wagon/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("delete/wagon/filing")]
-        public async Task<ActionResult<ResultUpdateIDWagon>> PostDeleteWagonFiling([FromBody] OperationADWagonFiling value)
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostDeleteWagonFiling([FromBody] OperationEditWagonFiling value)
         {
             try
             {
@@ -1186,8 +1209,9 @@ namespace WebAPI.Controllers.Directory
                 {
                     return BadRequest();
                 }
+                bool admin = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_ADMIN");
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.DeleteWagonOfFiling(value.id_filing, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.DeleteWagonOfFiling(value.id_filing, value.wagons, user, admin);
                 return Ok(result);
             }
             catch (Exception e)
@@ -1199,6 +1223,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/update/filing/operation/unloading
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing/operation/unloading")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS, KRR-LG_TD-IDSRW_CORREECT")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFilingOperationUnloading([FromBody] OperationUpdateFilingOperationUnloading value)
         {
             try
@@ -1210,8 +1235,10 @@ namespace WebAPI.Controllers.Directory
                 {
                     return BadRequest();
                 }
+                bool admin = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_ADMIN");
+                bool correct = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_CORREECT");
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, null, null, null, value.mode, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, null, null, null, null, null, value.mode, value.wagons, user, admin | correct);
                 return Ok(result);
             }
             catch (Exception e)
@@ -1223,6 +1250,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/update/filing/operation/loading
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing/operation/loading")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS, KRR-LG_TD-IDSRW_CORREECT")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFilingOperationLoading([FromBody] OperationUpdateFilingOperationLoading value)
         {
             try
@@ -1235,7 +1263,9 @@ namespace WebAPI.Controllers.Directory
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, value.num_filing, value.vesg, value.doc_received, value.mode, value.wagons, user);
+                bool admin = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_ADMIN");
+                bool correct = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_CORREECT");
+                ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, value.num_filing, value.vesg, value.doc_received, null, null, value.mode, value.wagons, user, admin | correct);
                 return Ok(result);
             }
             catch (Exception e)
@@ -1247,6 +1277,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/update/filing/operation/cleaning
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing/operation/cleaning")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS, KRR-LG_TD-IDSRW_CORREECT")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFilingOperationCleaning([FromBody] OperationUpdateFilingOperationCleaning value)
         {
             try
@@ -1258,8 +1289,10 @@ namespace WebAPI.Controllers.Directory
                 {
                     return BadRequest();
                 }
+                bool admin = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_ADMIN");
+                bool correct = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_CORREECT");
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, null, null, null, value.mode, value.wagons, user);
+                ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, null, null, null, null, null, value.mode, value.wagons, user, admin | correct);
                 return Ok(result);
             }
             catch (Exception e)
@@ -1268,33 +1301,10 @@ namespace WebAPI.Controllers.Directory
             }
         }
 
-        //// POST: WSD/update/filing/operation/processing
-        //// BODY: WSD (JSON, XML)
-        //[HttpPost("update/filing/operation/processing")]
-        //public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFilingOperationProcessing([FromBody] OperationUpdateFilingOperationProcessing value)
-        //{
-        //    try
-        //    {
-        //        string user = HttpContext.User.Identity.Name;
-        //        bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
-
-        //        if (value == null || !IsAuthenticated)
-        //        {
-        //            return BadRequest();
-        //        }
-        //        IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-        //        ResultUpdateIDWagon result = ids_wir.UpdateOperationFiling(value.id_filing, null, null, null, value.mode, value.wagons, user);
-        //        return Ok(result);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return BadRequest(e.Message);
-        //    }
-        //}        
-
         // POST: WSD/update/filing
         // BODY: WSD (JSON, XML)
         [HttpPost("update/filing")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_OPERATIONS, KRR-LG_TD-IDSRW_CORREECT")]
         public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateFiling([FromBody] OperationUpdateFiling value)
         {
             try
@@ -1306,8 +1316,10 @@ namespace WebAPI.Controllers.Directory
                 {
                     return BadRequest();
                 }
+                bool admin = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_ADMIN");
+                bool correct = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_CORREECT");
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                ResultUpdateIDWagon result = ids_wir.UpdateFiling(value.id_filing, value.mode, value.id_division, user);
+                ResultUpdateIDWagon result = ids_wir.UpdateFiling(value.id_filing, value.mode, value.id_division, value.id_wagon_operations, value.id_organization_service, user, admin | correct);
                 return Ok(result);
             }
             catch (Exception e)
@@ -1315,6 +1327,34 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        // POST: WSD/update/date/filing
+        // BODY: WSD (JSON, XML)
+        [HttpPost("update/date/filing")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_CORREECT, KRR-LG_TD-IDSRW_ARM_OPERATIONS")]
+        public async Task<ActionResult<ResultUpdateIDWagon>> PostUpdateDateFiling([FromBody] OperationUpdateDateFiling value)
+        {
+            try
+            {
+                string user = HttpContext.User.Identity.Name;
+                bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+                if (value == null || !IsAuthenticated)
+                {
+                    return BadRequest();
+                }
+                bool admin = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_ADMIN");
+                bool correct = HttpContext.User.IsInRole("KRR-LG_TD-IDSRW_CORREECT");
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultUpdateIDWagon result = ids_wir.UpdateDateFiling(value.id_filing, value.start, value.stop, value.wagons, user);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         #endregion
 
         #region ОПЕРАЦИЯ С ГРУППОЙ ВАГОНОВ
