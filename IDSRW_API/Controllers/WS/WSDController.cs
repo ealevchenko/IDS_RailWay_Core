@@ -925,6 +925,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/provide
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/provide")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_TROP")]
         public async Task<ActionResult<ResultTransfer>> PostProvideWagonsOfStationAMKR([FromBody] OperationProvideWagons value)
         {
             try
@@ -949,6 +950,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/provide/datetime
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/provide/datetime")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_TROP")]
         public async Task<ActionResult<int>> PostDateTimeProvideWagonsOfStationAMKR([FromBody] OperationDTProvideWagons value)
         {
             try
@@ -973,6 +975,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/provide/move/wagons
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/provide/move/wagons")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_TROP")]
         public async Task<ActionResult<ResultTransfer>> PostMoveWagonsProvideWayOfStationAMKR([FromBody] OperationMoveWagonsProvideWay value)
         {
             try
