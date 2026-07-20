@@ -4265,34 +4265,52 @@ namespace IDS_
 
                 if (status.view_wagon_dislocation != null)
                 {
+                    // Проверим, закрыта строка внутреннего перемещения
                     if (status.view_wagon_dislocation.CloseWir == null)
                     {
-                        // Вагон на территории АМКР
+                        // Вагон на станции АМКР или на перегонах АМКР
                         if (status.view_wagon_dislocation.IdOuterWay == null)
                         {
                             // Вагон на станции
-                            if (status.view_wagon_dislocation.IdOperationWagon != 9)
+                            if (status.view_wagon_dislocation.Status == 0 || status.view_wagon_dislocation.Status == 1)
                             {
-                                status.info = "Вагон находится на станции : " + status.view_wagon_dislocation.StationNameRu + "; <br/>Путь станции : " + status.view_wagon_dislocation.WayNumRu + " - " + status.view_wagon_dislocation.WayNameRu + "; <br/>Позиция на пути : " + status.view_wagon_dislocation.Position + ", прибыл на путь : " + (status.view_wagon_dislocation.WayStart != null ? ((DateTime)status.view_wagon_dislocation.WayStart).ToString("dd.MM.yyyy hh:mm:ss") : "");
-                                status.status = 1;
+                                status.info = "ВНИМАНИЕ, по вагону открыта операция предъявления на УЗ.<br/>Вагон находится на станции : " + status.view_wagon_dislocation.StationNameRu + ".<br/>Путь станции : " + status.view_wagon_dislocation.WayNumRu + " - " + status.view_wagon_dislocation.WayNameRu + ".<br/>Позиция на пути : " + status.view_wagon_dislocation.Position + ", прибыл на путь : " + (status.view_wagon_dislocation.WayStart != null ? ((DateTime)status.view_wagon_dislocation.WayStart).ToString("dd.MM.yyyy hh:mm:ss") : "") + "<br/>";
+                                status.status = 3;
+
+                            }
+                            else if (status.view_wagon_dislocation.Status == 2)
+                            {
+                                status.info = "ВНИМАНИЕ, вагон предъявлен на УЗ [" + (status.view_wagon_dislocation.DateOutgoing != null ? ((DateTime)status.view_wagon_dislocation.DateOutgoing).ToString("dd.MM.yyyy hh:mm:ss") : "") + "] и ждет отправки на внешнюю сеть.<br/>Вагон находится на станции : " + status.view_wagon_dislocation.StationNameRu + ".<br/>Путь станции : " + status.view_wagon_dislocation.WayNumRu + " - " + status.view_wagon_dislocation.WayNameRu + "<br/>Позиция на пути : " + status.view_wagon_dislocation.Position + ", прибыл на путь : " + (status.view_wagon_dislocation.WayStart != null ? ((DateTime)status.view_wagon_dislocation.WayStart).ToString("dd.MM.yyyy hh:mm:ss") : "") + "<br/>";
+                                status.status = 3;
                             }
                             else
                             {
-                                status.info = "!ВНМАНИЕ ВАГОН ПРЕДЪЯВЛЕН, находится на станции : " + status.view_wagon_dislocation.StationNameRu + "; <br/>Путь станции : " + status.view_wagon_dislocation.WayNumRu + " - " + status.view_wagon_dislocation.WayNameRu + "; <br/>Позиция на пути : " + status.view_wagon_dislocation.Position + ", прибыл на путь : " + (status.view_wagon_dislocation.WayStart != null ? ((DateTime)status.view_wagon_dislocation.WayStart).ToString("dd.MM.yyyy hh:mm:ss") : "");
-                                status.status = 3;
+                                status.info = "Вагон находится на станции : " + status.view_wagon_dislocation.StationNameRu + ".<br/>Путь станции : " + status.view_wagon_dislocation.WayNumRu + " - " + status.view_wagon_dislocation.WayNameRu + ".<br/>Позиция на пути : " + status.view_wagon_dislocation.Position + ", прибыл на путь : " + (status.view_wagon_dislocation.WayStart != null ? ((DateTime)status.view_wagon_dislocation.WayStart).ToString("dd.MM.yyyy hh:mm:ss") : "") + "<br/>";
+                                status.status = 1;
                             }
+
+                            //if (status.view_wagon_dislocation.IdOperationWagon != 9)
+                            //{
+                            //    status.info = "Вагон находится на станции : " + status.view_wagon_dislocation.StationNameRu + "; <br/>Путь станции : " + status.view_wagon_dislocation.WayNumRu + " - " + status.view_wagon_dislocation.WayNameRu + "; <br/>Позиция на пути : " + status.view_wagon_dislocation.Position + ", прибыл на путь : " + (status.view_wagon_dislocation.WayStart != null ? ((DateTime)status.view_wagon_dislocation.WayStart).ToString("dd.MM.yyyy hh:mm:ss") : "");
+                            //    status.status = 1;
+                            //}
+                            //else
+                            //{
+                            //    status.info = "!ВНМАНИЕ ВАГОН ПРЕДЪЯВЛЕН, находится на станции : " + status.view_wagon_dislocation.StationNameRu + "; <br/>Путь станции : " + status.view_wagon_dislocation.WayNumRu + " - " + status.view_wagon_dislocation.WayNameRu + "; <br/>Позиция на пути : " + status.view_wagon_dislocation.Position + ", прибыл на путь : " + (status.view_wagon_dislocation.WayStart != null ? ((DateTime)status.view_wagon_dislocation.WayStart).ToString("dd.MM.yyyy hh:mm:ss") : "");
+                            //    status.status = 3;
+                            //}
                         }
                         else
                         {
                             // Вагон движется по территории.
-                            status.info = "Вагон находится на перегоне : " + status.view_wagon_dislocation.NameOuterWayRu + "; <br/>Отправлен : " + (status.view_wagon_dislocation.OuterWayStart != null ? ((DateTime)status.view_wagon_dislocation.OuterWayStart).ToString("dd.MM.yyyy hh:mm:ss") : "");
+                            status.info = "Вагон находится на перегоне : " + status.view_wagon_dislocation.NameOuterWayRu + ".<br/>Отправлен : " + (status.view_wagon_dislocation.OuterWayStart != null ? ((DateTime)status.view_wagon_dislocation.OuterWayStart).ToString("dd.MM.yyyy hh:mm:ss") : "") + "<br/>";
                             status.status = 2;
                         }
                     }
                     else
                     {
                         // Вагон вышел
-                        status.info = "Вагон сдан на УЗ " + (status.view_wagon_dislocation.DateOutgoing != null ? ((DateTime)status.view_wagon_dislocation.DateOutgoing).ToString("dd.MM.yyyy hh:mm:ss") : "") + ". Вагон убыл : " + (status.view_wagon_dislocation.DateDepartureAmkr != null ? ((DateTime)status.view_wagon_dislocation.DateDepartureAmkr).ToString("dd.MM.yyyy hh:mm:ss") : "") + " со станции " + status.view_wagon_dislocation.StationNameRu;
+                        status.info = "Вагон сдан на УЗ " + (status.view_wagon_dislocation.DateOutgoing != null ? ((DateTime)status.view_wagon_dislocation.DateOutgoing).ToString("dd.MM.yyyy hh:mm:ss") : "") + ".<br/>Вагон убыл : " + (status.view_wagon_dislocation.DateDepartureAmkr != null ? ((DateTime)status.view_wagon_dislocation.DateDepartureAmkr).ToString("dd.MM.yyyy hh:mm:ss") : "") + " со станции " + status.view_wagon_dislocation.StationNameRu;
                         status.status = 4;
                     }
                 }
