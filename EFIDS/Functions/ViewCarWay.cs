@@ -356,11 +356,17 @@ public class ViewCarWay
     [StringLength(50)]
     public string? ArrivalDivisionAmkrAbbrEn { get; set; }
 
+    [Column("current_wagon_provide")]
+    public int CurrentWagonProvide { get; set; }
+    
     [Column("current_wagon_busy")]
     public int CurrentWagonBusy { get; set; }
 
     [Column("current_move_busy")]
     public int CurrentMoveBusy { get; set; }
+
+    [Column("current_filing_busy")]
+    public int CurrentFilingBusy { get; set; }
 
     [Column("current_load_busy")]
     public int CurrentLoadBusy { get; set; }

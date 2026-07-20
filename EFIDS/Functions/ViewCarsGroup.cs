@@ -497,11 +497,38 @@ public class ViewCarsGroup
     [StringLength(30)]
     public string? CurrentLoadingStatusEn { get; set; }
 
+    //[Column("current_wagon_busy")]
+    //public int CurrentWagonBusy { get; set; }
+
+    //[Column("current_move_busy")]
+    //public int CurrentMoveBusy { get; set; }
+
+    //[Column("current_filing_busy")]
+    //public int CurrentFilingBusy { get; set; }
+
+    //[Column("current_load_busy")]
+    //public int CurrentLoadBusy { get; set; }
+
+    //[Column("current_unload_busy")]
+    //public int CurrentUnloadBusy { get; set; }
+
+    //[Column("exist_load_document")]
+    //public int ExistLoadDocument { get; set; }
+
+    //[Column("current_processing_busy")]
+    //public int CurrentProcessingBusy { get; set; }
+
+    [Column("current_wagon_provide")]
+    public int CurrentWagonProvide { get; set; }
+
     [Column("current_wagon_busy")]
     public int CurrentWagonBusy { get; set; }
 
     [Column("current_move_busy")]
     public int CurrentMoveBusy { get; set; }
+
+    [Column("current_filing_busy")]
+    public int CurrentFilingBusy { get; set; }
 
     [Column("current_load_busy")]
     public int CurrentLoadBusy { get; set; }
@@ -511,9 +538,6 @@ public class ViewCarsGroup
 
     [Column("exist_load_document")]
     public int ExistLoadDocument { get; set; }
-
-    [Column("current_processing_busy")]
-    public int CurrentProcessingBusy { get; set; }
 
     [Column("current_id_operation")]
     public int? CurrentIdOperation { get; set; }
