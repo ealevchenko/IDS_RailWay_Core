@@ -877,6 +877,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/dissolution
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/dissolution")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_TROP")]
         public async Task<ActionResult<ListResultTransfer>> PostDissolutionWagonsOfStationAMKR([FromBody] OperationDissolutionWagons value)
         {
             try
@@ -901,6 +902,7 @@ namespace WebAPI.Controllers.Directory
         // POST: WSD/operation/dislocation
         // BODY: WSD (JSON, XML)
         [HttpPost("operation/dislocation")]
+        [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN, KRR-LG_TD-IDSRW_ARM_TROP")]
         public async Task<ActionResult<ResultTransfer>> PostDislocationWagonsOfStationAMKR([FromBody] OperationDislocationWagons value)
         {
             try
