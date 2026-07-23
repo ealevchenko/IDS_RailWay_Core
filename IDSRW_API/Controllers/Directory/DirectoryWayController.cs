@@ -28,7 +28,11 @@ namespace WebAPI.Controllers.Directory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DirectoryWay>>> GetDirectoryWay()
         {
-            return await db.DirectoryWays.AsNoTracking().ToListAsync();
+            return await db.DirectoryWays
+                .AsNoTracking()
+                .Include(dev => dev.IdDevisionNavigation)
+                .Include(park => park.IdParkNavigation)
+                .ToListAsync();
         }
         // GET: DirectoryWay/list
         [HttpGet("list")]
