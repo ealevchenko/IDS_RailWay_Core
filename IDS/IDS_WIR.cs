@@ -99,6 +99,8 @@ namespace IDS_
         public long wir_id { get; set; }
         public int position { get; set; }
         public int id_way_dissolution { get; set; }
+        public bool reverse { get; set; }
+        public bool head { get; set; }
     }
     /// <summary>
     /// Класс данных расчета платы пользования по вагону
@@ -1960,7 +1962,7 @@ namespace IDS_
         /// <param name="wagons"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        public ResultTransfer DissolutionWagons(ref EFDbContext? context, int id_way_from, int id_way_on, DateTime date_start, DateTime date_stop, List<WagonInternalRoute> wagons, string user)
+        public ResultTransfer DissolutionWagons(ref EFDbContext? context, int id_way_from, int id_way_on, bool head, bool reverse, DateTime date_start, DateTime date_stop, List<WagonInternalRoute> wagons, string user)
         {
             ResultTransfer rt = new ResultTransfer(wagons.Count());
             try
@@ -1975,13 +1977,19 @@ namespace IDS_
                     //WagonInternalMovement wim = wir.GetLastMovement(ref context);
                     //wim.Position;
 
-                    //List <WagonInternalRoute> wagon_position = reverse == true ? wagons.OrderByDescending(w => w.((WagonInternalMovement)GetLastMovement(ref context)).Position).ToList() : wagons.OrderBy(w => w.GetLastMovement(ref context).Position).ToList();
-                    List<WagonInternalRoute> wagon_position = wagons.OrderBy(w => w.WagonInternalMovements.OrderByDescending(c => c.Id).FirstOrDefault().Position).ToList();
+                    List <WagonInternalRoute> wagon_position = reverse == true ? wagons.OrderByDescending(w => w.WagonInternalMovements.OrderByDescending(c => c.Id).FirstOrDefault().Position).ToList() : wagons.OrderBy(w => w.WagonInternalMovements.OrderByDescending(c => c.Id).FirstOrDefault().Position).ToList();
+                    //List<WagonInternalRoute> wagon_position = wagons.OrderBy(w => w.WagonInternalMovements.OrderByDescending(c => c.Id).FirstOrDefault().Position).ToList();
 
+                    int start_position = (head == true ? (wagons.Count() + 1) : 1);
                     // Подготовим путь приема (перестроим позиции)
-                    int res_renum = RenumberingWagons(ref context, id_way_on, 1, false);
+                    int res_renum = RenumberingWagons(ref context, id_way_on, start_position, false);
                     // Определим позицию переноса вагонов
-                    int position = context.GetNextPosition(id_way_on);
+                    int position = head == true ? 1 : context.GetNextPosition(id_way_on);
+
+                    //// Подготовим путь приема (перестроим позиции)
+                    //int res_renum = RenumberingWagons(ref context, id_way_on, 1, false);
+                    //// Определим позицию переноса вагонов
+                    //int position = context.GetNextPosition(id_way_on);
 
                     foreach (WagonInternalRoute wagon in wagon_position)
                     {
@@ -2032,6 +2040,9 @@ namespace IDS_
                 }
                 List<WagonInternalRoutesPosition> List_wir = new List<WagonInternalRoutesPosition>();
 
+                bool side = false;
+                bool reverse = false;
+
                 // Сгруппируем по путям роспуска
                 List<IGrouping<int, ListDissolutionWagon>> group_dissolution = list_dissolution
                                 .ToList()
@@ -2049,8 +2060,12 @@ namespace IDS_
                         s_id_way_on += id_way_dissolution.ToString() + ";";
                         List<ListDissolutionWagon> list_dw = gr_dw.OrderBy(w => w.position).ToList();
                         List<WagonInternalRoute> wagons = new List<WagonInternalRoute>();
+                        side = false;
+                        reverse = false;
                         foreach (ListDissolutionWagon dw in list_dw)
                         {
+                            side = dw.head;
+                            reverse = dw.reverse;
                             wagons.Add(context.WagonInternalRoutes
                                 .Where(r => r.Id == dw.wir_id)
                                 .Include(wim => wim.WagonInternalMovements) // WagonInternalMovement
@@ -2058,7 +2073,7 @@ namespace IDS_
                         }
                         ResultTransfer res = new ResultTransfer(wagons.Count);
                         // Перенесем вагоны 
-                        res = DissolutionWagons(ref context, id_way_from, id_way_dissolution, date_start, date_stop, wagons, user);
+                        res = DissolutionWagons(ref context, id_way_from, id_way_dissolution, side, reverse, date_start, date_stop, wagons, user);
                         lrt.AddResultTransfer(res);
                         // Проверим на ошибки
                         if (lrt.result < 0)
