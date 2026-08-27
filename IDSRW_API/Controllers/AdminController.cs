@@ -3,7 +3,9 @@ using EF_IDS.Functions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using System.Security.Claims;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -29,6 +31,29 @@ namespace IDSRW_API.Controllers
     public class AdminController : ControllerBase
     {
         private EFDbContext db;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="domain"></param>
+        /// <param name="role"></param>
+        /// <returns></returns>
+        private bool isDomianRole(string? domain, string role)
+        {
+            if (!String.IsNullOrWhiteSpace(role))
+            {
+                if (!String.IsNullOrWhiteSpace(domain))
+                {
+                    string drole = string.Concat(domain, "\\", role);
+                    return HttpContext.User.IsInRole(@drole);
+                }
+                else
+                {
+                    return HttpContext.User.IsInRole(role);
+                }
+            }
+            else return false;
+        }
         public AdminController(EFDbContext db)
         {
             this.db = db;
@@ -87,15 +112,7 @@ namespace IDSRW_API.Controllers
                 string domain = parts.Length > 0 ? parts[0] : string.Empty;
                 if (IsAuthenticated)
                 {
-                    if (!String.IsNullOrWhiteSpace(domain))
-                    {
-                        isRole = HttpContext.User.IsInRole(domain + "\\" + role);
-                    }
-                    else
-                    {
-                        isRole = HttpContext.User.IsInRole(role);
-                    }
-
+                    isRole = this.isDomianRole(domain, role);
                 }
                 return new ObjectResult(isRole);
             }
@@ -133,14 +150,14 @@ namespace IDSRW_API.Controllers
                     "KRR-LG_TD-IDSRW_ARM_TROP",
                     "KRR-LG_TD-IDSRW_ARM_ OPERATIONS",
                     "KRR-LG_TD-IDSRW_ARM_OR",
-                    "KRR-LG_TD-IDSRW_ARM_ NOTE",
+                    "KRR-LG_TD-IDSRW_ARM_NOTE",
                     "KRR-LG_TD-IDSRO_ARM",
                     "KRR-LG_TD-IDSRW_TIME",
                     "KRR-LG_TD-IDSRW_CORREECT",
                     "KRR-LG_TD-IDSRO_ACCEPT",
                     "KRR-LG_TD-IDSRO_SEND",
                     "KRR-LG_TD-IDSRO_HISTORI",
-                    "KRR-TD-IDSRW_PARK",
+                    "KRR-LG_TD-IDSRW_PARK",
                     "KRR-LG_TD-IDSRO_REPORT",
                     "KRR-LG_TD-IDSRO_REPORT_ACCEPT",
                     "KRR-LG_TD-IDSRO_REPORT_SEND",
@@ -155,17 +172,10 @@ namespace IDSRW_API.Controllers
                 if (IsAuthenticated)
                 {
 
+                    bool isRole = false;
                     foreach (string role in roles)
                     {
-                        bool isRole = false;
-                        if (!String.IsNullOrWhiteSpace(domain))
-                        {
-                            isRole = HttpContext.User.IsInRole(domain + "\\" + role);
-                        }
-                        else
-                        {
-                            isRole = HttpContext.User.IsInRole(role);
-                        }
+                        isRole = this.isDomianRole(domain, role);
                         result.Add(new RoleInfo { Role = role, IsRole = isRole });
                     }
                 }
