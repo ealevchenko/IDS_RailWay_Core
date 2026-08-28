@@ -437,7 +437,9 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
+                db.Database.SetCommandTimeout(300);
                 List<ViewCarWay> result = await db.getViewWagonsOfIdWay(id_way).ToListAsync();
+                db.Database.SetCommandTimeout(0);
                 if (result == null)
                     return NotFound();
                 return Ok(result);
