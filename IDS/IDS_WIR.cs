@@ -1977,7 +1977,7 @@ namespace IDS_
                     //WagonInternalMovement wim = wir.GetLastMovement(ref context);
                     //wim.Position;
 
-                    List <WagonInternalRoute> wagon_position = reverse == true ? wagons.OrderByDescending(w => w.WagonInternalMovements.OrderByDescending(c => c.Id).FirstOrDefault().Position).ToList() : wagons.OrderBy(w => w.WagonInternalMovements.OrderByDescending(c => c.Id).FirstOrDefault().Position).ToList();
+                    List<WagonInternalRoute> wagon_position = reverse == true ? wagons.OrderByDescending(w => w.WagonInternalMovements.OrderByDescending(c => c.Id).FirstOrDefault().Position).ToList() : wagons.OrderBy(w => w.WagonInternalMovements.OrderByDescending(c => c.Id).FirstOrDefault().Position).ToList();
                     //List<WagonInternalRoute> wagon_position = wagons.OrderBy(w => w.WagonInternalMovements.OrderByDescending(c => c.Id).FirstOrDefault().Position).ToList();
 
                     int start_position = (head == true ? (wagons.Count() + 1) : 1);
@@ -2375,9 +2375,36 @@ namespace IDS_
                         .Where(s => s.Id == id_sostav)
                         .Include(cars => cars.OutgoingCars)
                         .FirstOrDefault();
-                    if (sostav == null)
+                    if (sostav == null) { return (int)errors_base.not_outgoing_sostav_db; }
+                    if (sostav.Status == 4) return (int)errors_base.error_status_outgoing_sostav;           // Ошибка статуса состава (Статус не позволяет сделать эту операцию)
+                    //int count_car = sostav.OutgoingCars.Where(c => c.Outgoing != null).ToList().Count();
+                    List<OutgoingCar> list_out_car = sostav.OutgoingCars.ToList();
+                    if (sostav.Status > 0 && sostav.Status < 4)
                     {
-                        return (int)errors_base.not_outgoing_sostav_db;
+                        list_out_car = sostav.OutgoingCars.Where(c => c.Outgoing != null).ToList();
+                    }
+                    // По вагонам закроем операцию предъявления
+                    foreach (OutgoingCar car in list_out_car)
+                    {
+                        WagonInternalRoute? wir = context.WagonInternalRoutes.Where(c => c.IdOutgoingCar == car.Id && c.Close == null).FirstOrDefault();
+                        if (wir != null)
+                        {
+                            //WagonInternalOperation wio = ef_wio.Context.Where(o => o.id_wagon_internal_routes == wir.id && o.close == null && o.id_operation == 9).FirstOrDefault();
+                            WagonInternalOperation? wio = context.WagonInternalOperations.Where(o => o.IdWagonInternalRoutes == wir.Id && o.Close == null && o.IdOperation == 9).FirstOrDefault();
+                            if (wio != null)
+                            {
+                                wio.OperationStart = lead_time;
+                                context.WagonInternalOperations.Update(wio);
+                            }
+                            else
+                            {
+                                return (int)errors_base.not_wio_db;
+                            }
+                        }
+                        else
+                        {
+                            return (int)errors_base.not_wir_db;
+                        }
                     }
                     // правим дату
                     sostav.DateReadinessAmkr = lead_time;
