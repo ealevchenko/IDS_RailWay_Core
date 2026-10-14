@@ -1577,17 +1577,9 @@ namespace WebAPI.Controllers.Directory
                 {
                     return BadRequest();
                 }
-                //if (user == "EUROPE\\ealevchenko" || user == "EUROPE\\lvgubarenko")
-                //{
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
                 List<StatusInstructionalLettersWagon> result = ids_wir.GetStatusInstructionalLetterWagons(value.nums, value.date_lett);
                 return Ok(result);
-                //}
-                //else
-                //{
-                //    return BadRequest();
-                //}
-
             }
             catch (Exception e)
             {
@@ -1877,17 +1869,9 @@ namespace WebAPI.Controllers.Directory
                 {
                     return BadRequest();
                 }
-                if (user == "EUROPE\\ealevchenko" || user == "EUROPE\\lvgubarenko")
-                {
-                    IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                    int result = ids_wir.ChangeDivisionOutgoingWagons(value.num_doc, value.nums, value.id_division);
-                    return Ok(result);
-                }
-                else
-                {
-                    return BadRequest();
-                }
-
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                int result = ids_wir.ChangeDivisionOutgoingWagons(value.num_doc, value.nums, value.id_division);
+                return Ok(result);
             }
             catch (Exception e)
             {
@@ -1909,17 +1893,9 @@ namespace WebAPI.Controllers.Directory
                 {
                     return BadRequest();
                 }
-                if (user == "EUROPE\\ealevchenko" || user == "EUROPE\\lvgubarenko")
-                {
-                    IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                    int result = ids_wir.ChangeVesgOutgoingWagons(value.num_doc, value.num_vag, value.vesg);
-                    return Ok(result);
-                }
-                else
-                {
-                    return BadRequest();
-                }
-
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                int result = ids_wir.ChangeVesgOutgoingWagons(value.num_doc, value.num_vag, value.vesg);
+                return Ok(result);
             }
             catch (Exception e)
             {
@@ -1942,17 +1918,9 @@ namespace WebAPI.Controllers.Directory
                 {
                     return BadRequest();
                 }
-                if (user == "EUROPE\\ealevchenko" || user == "EUROPE\\lvgubarenko")
-                {
-                    IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                    ResultCorrect result = ids_wir.CorrectArrivalDocument(value.num_doc, value.num_nakl, value.union, value.create_new, value.nums, value.correct_document, value.correct_vagons);
-                    return Ok(result);
-                }
-                else
-                {
-                    return BadRequest();
-                }
-
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultCorrect result = ids_wir.CorrectArrivalDocument(value.num_doc, value.num_nakl, value.union, value.create_new, value.nums, value.correct_document, value.correct_vagons);
+                return Ok(result);
             }
             catch (Exception e)
             {
@@ -1975,17 +1943,9 @@ namespace WebAPI.Controllers.Directory
                 {
                     return BadRequest();
                 }
-                if (user == "EUROPE\\ealevchenko" || user == "EUROPE\\lvgubarenko")
-                {
-                    IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                    ResultCorrect result = ids_wir.DeleteWagonOfAMKR(value.num_doc, value.nums);
-                    return Ok(result);
-                }
-                else
-                {
-                    return BadRequest();
-                }
-
+                IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+                ResultCorrect result = ids_wir.DeleteWagonOfAMKR(value.num_doc, value.nums);
+                return Ok(result);
             }
             catch (Exception e)
             {
