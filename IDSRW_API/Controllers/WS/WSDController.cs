@@ -708,13 +708,16 @@ namespace WebAPI.Controllers.Directory
         {
             try
             {
+                db.Database.SetCommandTimeout(300);
                 ViewHistoryOperations? result = await db.getViewHistoryOperationsOfIdWim(id_wim).FirstOrDefaultAsync();
                 if (result == null)
                     return NotFound();
+                db.Database.SetCommandTimeout(0);
                 return Ok(result);
             }
             catch (Exception e)
             {
+                db.Database.SetCommandTimeout(0);
                 return BadRequest(e.Message);
             }
         }
