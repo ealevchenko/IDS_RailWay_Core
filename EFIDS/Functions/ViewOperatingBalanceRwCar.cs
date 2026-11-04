@@ -239,6 +239,9 @@ public class ViewOperatingBalanceRwCar
     [Column("way_end", TypeName = "datetime")]
     public DateTime? WayEnd { get; set; }
 
+    [Column("position")]
+    public int Position { get; set; }
+
     [Column("wim_note")]
     [StringLength(250)]
     public string? WimNote { get; set; }
