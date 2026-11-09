@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Client;
 using NLog;
 using NLog.Extensions.Logging;
 using System;
@@ -28,7 +29,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-
 
 namespace IDS_
 {
@@ -6092,13 +6092,66 @@ namespace IDS_
 
         #region АДМИНИСТРИРОВАНИЕ
         /// <summary>
-        /// Правка цеха погрузки
+        /// Правка документа по прибытию (по номеру ведомости и перечню вагонов)
+        /// </summary>
+        /// <param name="num_doc"></param>
+        /// <param name="nums"></param>
+        /// <param name="code_shipper"></param>
+        /// <param name="code_consignee"></param>
+        /// <param name="klient"></param>
+        /// <returns></returns>
+        public int ChangeArrival_UZ_Document(int num_doc, List<int> nums, int? code_shipper, int? code_consignee, bool? klient, string user)
+        {
+            try
+            {
+                int result = 0;
+                using (EFDbContext context = new(this.options))
+                {
+                    ArrivalSostav? sostav = context.ArrivalSostavs
+                       //.AsNoTracking()
+                       .Where(s => s.NumDoc == num_doc)
+                       .Include(cars => cars.ArrivalCars) // ArrivalCar
+                       .ThenInclude(vag => vag.IdArrivalUzVagonNavigation) // ArrivalUzVagon
+                        .ThenInclude(doc => doc.IdDocumentNavigation) // ArrivalUzDocument
+                       .OrderByDescending(c => c.Id)
+                       .FirstOrDefault();
+                    if (sostav == null) return (int)errors_base.not_arrival_sostav_db;
+
+                    foreach (ArrivalCar vag in sostav.ArrivalCars)
+                    {
+                        int index = nums.IndexOf(vag.Num);
+                        if (index >= 0)
+                        {
+                            ArrivalUzVagon? vag_uz = vag.IdArrivalUzVagonNavigation;
+                            if (vag_uz == null) return (int)errors_base.not_inp_uz_vag_db;
+                            ArrivalUzDocument? doc_uz = vag_uz.IdDocumentNavigation;
+                            if (doc_uz == null) return (int)errors_base.not_inp_uz_doc_db;
+                            doc_uz.CodeShipper = (code_shipper != null && code_shipper != -1) ? code_shipper : doc_uz.CodeShipper;
+                            doc_uz.CodeConsignee = (code_consignee != null && code_consignee != -1) ? code_consignee : doc_uz.CodeShipper;
+                            doc_uz.Klient = klient != null ? klient : doc_uz.Klient;
+                            doc_uz.Change = DateTime.Now;
+                            doc_uz.ChangeUser = user;
+                        }
+                    }
+                    result = context.SaveChanges();
+                }
+                return result;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(_eventId, e, "ChangeArrival_UZ_Document(num_doc={0}, nums={1}, code_shipper={2}, code_consignee={3}, klient={4})", num_doc, nums, code_shipper, code_consignee, klient);
+                return (int)errors_base.global;
+            }
+        }
+        /// <summary>
+        /// Правка документов на вагоны по прибытию (по номеру ведомости и перечню вагонов)
         /// </summary>
         /// <param name="num_doc"></param>
         /// <param name="nums"></param>
         /// <param name="id_division"></param>
+        /// <param name="vesg"></param>
         /// <returns></returns>
-        public int ChangeDivisionOutgoingWagons(int num_doc, List<int> nums, int id_division)
+        public int ChangeOutgoing_UZ_Vagon(int num_doc, List<int> nums, int? id_division, int? vesg, string user)
         {
             try
             {
@@ -6110,22 +6163,23 @@ namespace IDS_
                        .Where(s => s.NumDoc == num_doc)
                        .Include(cars => cars.OutgoingCars) // OutgoingCar
                        .ThenInclude(vag => vag.IdOutgoingUzVagonNavigation) // OutgoingUzVagon
+                        .ThenInclude(doc => doc.IdDocumentNavigation) // OutgoingUzDocument
                        .OrderByDescending(c => c.Id)
                        .FirstOrDefault();
-                    if (sostav == null) return (int)errors_base.not_outgoing_sostav_db;
+                    if (sostav == null) return (int)errors_base.not_arrival_sostav_db;
+
                     foreach (OutgoingCar vag in sostav.OutgoingCars)
                     {
                         int index = nums.IndexOf(vag.Num);
                         if (index >= 0)
                         {
                             OutgoingUzVagon? vag_uz = vag.IdOutgoingUzVagonNavigation;
-                            if (vag_uz != null)
-                            {
-                                vag_uz.IdDivision = id_division;
-                            }
-
+                            if (vag_uz == null) return (int)errors_base.not_out_uz_vag_db;
+                            vag_uz.IdDivision = id_division != -1 ? id_division : vag_uz.IdDivision;
+                            vag_uz.Vesg = vesg != -1 ? vesg : vag_uz.Vesg;
+                            vag_uz.Change = DateTime.Now;
+                            vag_uz.ChangeUser = user;
                         }
-
                     }
                     result = context.SaveChanges();
                 }
@@ -6133,55 +6187,101 @@ namespace IDS_
             }
             catch (Exception e)
             {
-                _logger.LogError(_eventId, e, "ChangeDivisionOutgoingWagons(num_doc={0}, nums={1}, id_division={2})", num_doc, nums, id_division);
+                _logger.LogError(_eventId, e, "ChangeOutgoing_UZ_Vagon(num_doc={0}, nums={1}, id_division={2}, vesg={3})", num_doc, nums, id_division, vesg);
                 return (int)errors_base.global;
             }
         }
-        /// <summary>
-        /// Правка веса груза
-        /// </summary>
-        /// <param name="num_doc"></param>
-        /// <param name="num_vag"></param>
-        /// <param name="vesg"></param>
-        /// <returns></returns>
-        public int ChangeVesgOutgoingWagons(int num_doc, int num_vag, int vesg)
-        {
-            try
-            {
-                int result = 0;
-                using (EFDbContext context = new(this.options))
-                {
-                    OutgoingSostav? sostav = context.OutgoingSostavs
-                       //.AsNoTracking()
-                       .Where(s => s.NumDoc == num_doc)
-                       .Include(cars => cars.OutgoingCars) // OutgoingCar
-                       .ThenInclude(vag => vag.IdOutgoingUzVagonNavigation) // OutgoingUzVagon
-                       .OrderByDescending(c => c.Id)
-                       .FirstOrDefault();
-                    if (sostav == null) return (int)errors_base.not_outgoing_sostav_db;
-                    foreach (OutgoingCar vag in sostav.OutgoingCars)
-                    {
-                        if (vag.Num == num_vag)
-                        {
-                            OutgoingUzVagon? vag_uz = vag.IdOutgoingUzVagonNavigation;
-                            if (vag_uz != null)
-                            {
-                                vag_uz.Vesg = vesg;
-                            }
+        ///// <summary>
+        ///// Правка цеха погрузки
+        ///// </summary>
+        ///// <param name="num_doc"></param>
+        ///// <param name="nums"></param>
+        ///// <param name="id_division"></param>
+        ///// <returns></returns>
+        //public int ChangeDivisionOutgoingWagons(int num_doc, List<int> nums, int id_division)
+        //{
+        //    try
+        //    {
+        //        int result = 0;
+        //        using (EFDbContext context = new(this.options))
+        //        {
+        //            OutgoingSostav? sostav = context.OutgoingSostavs
+        //               //.AsNoTracking()
+        //               .Where(s => s.NumDoc == num_doc)
+        //               .Include(cars => cars.OutgoingCars) // OutgoingCar
+        //               .ThenInclude(vag => vag.IdOutgoingUzVagonNavigation) // OutgoingUzVagon
+        //               .OrderByDescending(c => c.Id)
+        //               .FirstOrDefault();
+        //            if (sostav == null) return (int)errors_base.not_outgoing_sostav_db;
+        //            foreach (OutgoingCar vag in sostav.OutgoingCars)
+        //            {
+        //                int index = nums.IndexOf(vag.Num);
+        //                if (index >= 0)
+        //                {
+        //                    OutgoingUzVagon? vag_uz = vag.IdOutgoingUzVagonNavigation;
+        //                    if (vag_uz != null)
+        //                    {
+        //                        vag_uz.IdDivision = id_division;
+        //                    }
 
-                        }
+        //                }
 
-                    }
-                    result = context.SaveChanges();
-                }
-                return result;
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(_eventId, e, "ChangeVesgOutgoingWagons(num_doc={0}, num_vag={1}, vesg={2})", num_doc, num_vag, vesg);
-                return (int)errors_base.global;
-            }
-        }
+        //            }
+        //            result = context.SaveChanges();
+        //        }
+        //        return result;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        _logger.LogError(_eventId, e, "ChangeDivisionOutgoingWagons(num_doc={0}, nums={1}, id_division={2})", num_doc, nums, id_division);
+        //        return (int)errors_base.global;
+        //    }
+        //}
+        ///// <summary>
+        ///// Правка веса груза
+        ///// </summary>
+        ///// <param name="num_doc"></param>
+        ///// <param name="num_vag"></param>
+        ///// <param name="vesg"></param>
+        ///// <returns></returns>
+        //public int ChangeVesgOutgoingWagons(int num_doc, int num_vag, int vesg)
+        //{
+        //    try
+        //    {
+        //        int result = 0;
+        //        using (EFDbContext context = new(this.options))
+        //        {
+        //            OutgoingSostav? sostav = context.OutgoingSostavs
+        //               //.AsNoTracking()
+        //               .Where(s => s.NumDoc == num_doc)
+        //               .Include(cars => cars.OutgoingCars) // OutgoingCar
+        //               .ThenInclude(vag => vag.IdOutgoingUzVagonNavigation) // OutgoingUzVagon
+        //               .OrderByDescending(c => c.Id)
+        //               .FirstOrDefault();
+        //            if (sostav == null) return (int)errors_base.not_outgoing_sostav_db;
+        //            foreach (OutgoingCar vag in sostav.OutgoingCars)
+        //            {
+        //                if (vag.Num == num_vag)
+        //                {
+        //                    OutgoingUzVagon? vag_uz = vag.IdOutgoingUzVagonNavigation;
+        //                    if (vag_uz != null)
+        //                    {
+        //                        vag_uz.Vesg = vesg;
+        //                    }
+
+        //                }
+
+        //            }
+        //            result = context.SaveChanges();
+        //        }
+        //        return result;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        _logger.LogError(_eventId, e, "ChangeVesgOutgoingWagons(num_doc={0}, num_vag={1}, vesg={2})", num_doc, num_vag, vesg);
+        //        return (int)errors_base.global;
+        //    }
+        //}
         /// <summary>
         /// Правка документов по прибытию (вагоны принятые без ЭПД будут привязаны к накладно)
         /// </summary>

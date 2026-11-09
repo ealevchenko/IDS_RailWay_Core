@@ -295,6 +295,22 @@ namespace WebAPI.Controllers.Directory
     #endregion
 
     #region ОПЕРАЦИЯ АДМ
+    public class AdmChangeArrival_UZ_Document
+    {
+        public int num_doc { get; set; }
+        public List<int> nums { get; set; }
+        public int? code_shipper { get; set; } = -1;
+        public int? code_consignee { get; set; } = -1;
+        public bool? klient { get; set; } = null;
+    }
+    public class AdmChangeOutgoing_UZ_Vagon
+    {
+        public int num_doc { get; set; }
+        public List<int> nums { get; set; }
+        public int? id_division { get; set; } = -1;
+        public int? vesg { get; set; } = -1;
+    }
+
     public class AdmDivisionOutgoingWagons
     {
         public int num_doc { get; set; }
@@ -1857,23 +1873,22 @@ namespace WebAPI.Controllers.Directory
         #endregion
 
         #region АДМИНИСТРИРОВАНИЕ
-        // POST: WSD/admin/change/division/outgoing
+        // POST: WSD/admin/change/arrival/uz/document
         // BODY: WSD (JSON, XML)
-        [HttpPost("admin/change/division/outgoing")]
+        [HttpPost("admin/change/arrival/uz/document")]
         [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN")]
-        public async Task<ActionResult<ResultTransfer>> PostAdmChangeDivisionOutgoingWagons([FromBody] AdmDivisionOutgoingWagons value)
+        public async Task<ActionResult<int>> PostAdmChangeArrival_UZ_Document([FromBody] AdmChangeArrival_UZ_Document value)
         {
             try
             {
                 string user = HttpContext.User.Identity.Name;
                 bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
-
                 if (value == null || !IsAuthenticated)
                 {
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                int result = ids_wir.ChangeDivisionOutgoingWagons(value.num_doc, value.nums, value.id_division);
+                int result = ids_wir.ChangeArrival_UZ_Document(value.num_doc, value.nums, value.code_shipper, value.code_consignee, value.klient, user);
                 return Ok(result);
             }
             catch (Exception e)
@@ -1881,23 +1896,23 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
-        // POST: WSD/admin/change/vesg/outgoing
+
+        // POST: WSD/admin/change/outgoing/uz/vagon
         // BODY: WSD (JSON, XML)
-        [HttpPost("admin/change/vesg/outgoing")]
+        [HttpPost("admin/change/outgoing/uz/vagon")]
         [Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN")]
-        public async Task<ActionResult<ResultTransfer>> PostAdmChangeVesgOutgoingWagons([FromBody] AdmChangeVesgOutgoingWagons value)
+        public async Task<ActionResult<int>> PostAdmChangeOutgoing_UZ_Vagon([FromBody] AdmChangeOutgoing_UZ_Vagon value)
         {
             try
             {
                 string user = HttpContext.User.Identity.Name;
                 bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
-
                 if (value == null || !IsAuthenticated)
                 {
                     return BadRequest();
                 }
                 IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
-                int result = ids_wir.ChangeVesgOutgoingWagons(value.num_doc, value.num_vag, value.vesg);
+                int result = ids_wir.ChangeOutgoing_UZ_Vagon(value.num_doc, value.nums, value.id_division, value.vesg, user);
                 return Ok(result);
             }
             catch (Exception e)
@@ -1905,6 +1920,55 @@ namespace WebAPI.Controllers.Directory
                 return BadRequest(e.Message);
             }
         }
+
+        //// POST: WSD/admin/change/division/outgoing
+        //// BODY: WSD (JSON, XML)
+        //[HttpPost("admin/change/division/outgoing")]
+        //[Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN")]
+        //public async Task<ActionResult<ResultTransfer>> PostAdmChangeDivisionOutgoingWagons([FromBody] AdmDivisionOutgoingWagons value)
+        //{
+        //    try
+        //    {
+        //        string user = HttpContext.User.Identity.Name;
+        //        bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+        //        if (value == null || !IsAuthenticated)
+        //        {
+        //            return BadRequest();
+        //        }
+        //        IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+        //        int result = ids_wir.ChangeDivisionOutgoingWagons(value.num_doc, value.nums, value.id_division);
+        //        return Ok(result);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return BadRequest(e.Message);
+        //    }
+        //}
+        //// POST: WSD/admin/change/vesg/outgoing
+        //// BODY: WSD (JSON, XML)
+        //[HttpPost("admin/change/vesg/outgoing")]
+        //[Authorize(Roles = "KRR-LG_TD-IDSRW_ADMIN")]
+        //public async Task<ActionResult<ResultTransfer>> PostAdmChangeVesgOutgoingWagons([FromBody] AdmChangeVesgOutgoingWagons value)
+        //{
+        //    try
+        //    {
+        //        string user = HttpContext.User.Identity.Name;
+        //        bool IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
+
+        //        if (value == null || !IsAuthenticated)
+        //        {
+        //            return BadRequest();
+        //        }
+        //        IDS_WIR ids_wir = new IDS_WIR(_logger, _configuration, _eventId_ids_wir);
+        //        int result = ids_wir.ChangeVesgOutgoingWagons(value.num_doc, value.num_vag, value.vesg);
+        //        return Ok(result);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return BadRequest(e.Message);
+        //    }
+        //}
 
         // POST: WSD/admin/change/vesg/outgoing
         // BODY: WSD (JSON, XML)
